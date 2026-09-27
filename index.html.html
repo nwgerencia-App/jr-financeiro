@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
 <meta name="theme-color" content="#1b2740">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwZjFiMzMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMjM3NWYiLz4KPC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMzgiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTAiIGZpbGw9IiNlOGE1M2QiLz4KPHRleHQgeD0iOTAiIHk9IjExNCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjY2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTIyMDNkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4kPC90ZXh0Pgo8L3N2Zz4K">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwZjFiMzMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMjM3NWYiLz4KPC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMzgiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTAiIGZpbGw9IiNlOGE1M2QiLz4KPHRleHQgeD0iOTAiIHk9IjExNCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjY2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTIyMDNkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4kPC90ZXh0Pgo8L3N2Zz4K">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -206,6 +208,7 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
 <script>
 const MONTHS=[{f:'Janeiro',a:'jan'},{f:'Fevereiro',a:'fev'},{f:'Março',a:'mar'},{f:'Abril',a:'abr'},{f:'Maio',a:'mai'},{f:'Junho',a:'jun'},{f:'Julho',a:'jul'},{f:'Agosto',a:'ago'},{f:'Setembro',a:'set'},{f:'Outubro',a:'out'},{f:'Novembro',a:'nov'},{f:'Dezembro',a:'dez'}];
 const KEY='fin_app_v1';
+const WALLET_ICON='<svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg" style="display:block"><rect x="3" y="6" width="18" height="13" rx="3" fill="#fff"/><rect x="3" y="6" width="18" height="6" rx="3" fill="#fff" opacity=".55"/><circle cx="16" cy="13" r="1.6" fill="rgba(0,0,0,.35)"/></svg>';
 function brl(n){return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function seed(){
   return {
@@ -296,7 +299,7 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
   const totalDone=items.filter(e=>e.status===doneLabel).reduce((s,e)=>s+e.valor,0);
   const isReceber=pendLabel==='A Receber';
   let html=`<div class="cards3">
-    <div class="card amber-grad"><div class="cic amber">👛</div><div class="lbl">Total ${isReceber?'a receber':'a pagar'}</div><div class="val amber">${brl(totalPend)}</div></div>
+    <div class="card amber-grad"><div class="cic amber">${WALLET_ICON}</div><div class="lbl">Total ${isReceber?'a receber':'a pagar'}</div><div class="val amber">${brl(totalPend)}</div></div>
     <div class="card green-grad"><div class="cic green">⬆️</div><div class="lbl">Total ${isReceber?'recebido':'pago'}</div><div class="val green">${brl(totalDone)}</div></div>
     <div class="card blue-grad"><div class="cic blue">📊</div><div class="lbl">Total geral</div><div class="val muted">${brl(totalPend+totalDone)}</div></div>
   </div>`;
@@ -544,9 +547,9 @@ function renderResultado(c){
     ?`<div class="motiv"><div class="mic">🎯</div><div><b>Continue assim!</b><span>Seu controle financeiro está gerando resultados positivos.</span></div></div>`
     :`<div class="motiv" style="background:linear-gradient(135deg,#fbeae7,#f6d9d4);border-color:#eec3bc;"><div class="mic">⚠️</div><div><b style="color:#b3392a">Atenção</b><span style="color:#b3392a">As despesas superaram a receita neste mês.</span></div></div>`;
   c.innerHTML=`<div class="cards3">
-    <div class="card green-grad"><div class="cic green">👛</div><div class="lbl">Total a receber</div><div class="val green">${brl(cur.fat)}</div></div>
+    <div class="card green-grad"><div class="cic green">${WALLET_ICON}</div><div class="lbl">Total a receber</div><div class="val green">${brl(cur.fat)}</div></div>
     <div class="card red-grad"><div class="cic red">🧾</div><div class="lbl">Gastos diários</div><div class="val red">${brl(totalDiario)}</div></div>
-    <div class="card amber-grad"><div class="cic amber">👛</div><div class="lbl">Total a pagar</div><div class="val amber">${brl(cur.desp)}</div></div>
+    <div class="card amber-grad"><div class="cic amber">${WALLET_ICON}</div><div class="lbl">Total a pagar</div><div class="val amber">${brl(cur.desp)}</div></div>
   </div>
   <div class="cards3">
     <div class="card blue-grad wide"><div class="cic blue">📈</div><div class="lbl">Resultado</div><div class="val ${lucro>=0?'green':'red'}">${lucro>=0?'+ ':'- '}${brl(Math.abs(lucro))}</div><div class="sub" style="margin-top:2px;font-size:9.5px;">${pct}%</div></div>
@@ -597,7 +600,7 @@ function renderInicio(c){
 
   c.innerHTML=`<div class="cardsD">
     <div class="card green-grad">
-      ${cardHead('green','👛')}
+      ${cardHead('green',WALLET_ICON)}
       <div class="lbl">Total a receber</div><div class="val green">${brl(cur.fat)}</div>
     </div>
     <div class="card red-grad">
@@ -605,7 +608,7 @@ function renderInicio(c){
       <div class="lbl">Total a pagar</div><div class="val red">${brl(cur.desp)}</div>
     </div>
     <div class="card amber-grad">
-      ${cardHead('amber','👛')}
+      ${cardHead('amber',WALLET_ICON)}
       <div class="lbl">Total diários</div><div class="val amber">${brl(totalDiario)}</div>
     </div>
   </div>
@@ -651,8 +654,8 @@ function renderGestao(c){
   let trs=rows.map(row=>`<tr><td>${row.m}/26</td><td>${brl(row.fat)}</td><td>${brl(row.desp)}</td><td>${brl(row.diario)}</td><td style="font-weight:600;color:var(--green)">${brl(row.lucro)}</td>
     <td>${brl(row.lucro*r.imprevistos/100)}</td><td>${brl(row.lucro*r.projeto/100)}</td><td>${brl(row.lucro*r.pessoal/100)}</td><td>${brl(row.lucro*r.doacoes/100)}</td></tr>`).join('');
   c.innerHTML=`<div class="cards3">
-    <div class="card green-grad"><div class="cic green">👛</div><div class="lbl">Faturamento</div><div class="val green">${brl(fatAno)}</div></div>
-    <div class="card red-grad"><div class="cic red">👛</div><div class="lbl">Despesa</div><div class="val red">${brl(despAno)}</div></div>
+    <div class="card green-grad"><div class="cic green">${WALLET_ICON}</div><div class="lbl">Faturamento</div><div class="val green">${brl(fatAno)}</div></div>
+    <div class="card red-grad"><div class="cic red">${WALLET_ICON}</div><div class="lbl">Despesa</div><div class="val red">${brl(despAno)}</div></div>
     <div class="card red-grad"><div class="cic red">🧾</div><div class="lbl">Gastos diários</div><div class="val red">${brl(diarioAno)}</div></div>
   </div>
   <div class="cards3">
