@@ -1014,6 +1014,27 @@ function saveNovo(editId){
 document.getElementById('fabAdd').addEventListener('click',()=>{ if(tab==='diario') openDiarioForm(); else openNovoModal(); });
 document.getElementById('settingsBtn').addEventListener('click',openSettings);
 document.querySelectorAll('nav.bottom button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab; render();}));
+
+const TAB_ORDER=['resultado','diario','receber','pagar','gestao'];
+let swipeStartX=0, swipeStartY=0, swipeSkip=false;
+const contentEl=document.getElementById('content');
+contentEl.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1) return;
+  swipeStartX=e.touches[0].clientX;
+  swipeStartY=e.touches[0].clientY;
+  swipeSkip=!!e.target.closest('.tablewrap');
+},{passive:true});
+contentEl.addEventListener('touchend',e=>{
+  if(swipeSkip) return;
+  const t=e.changedTouches[0];
+  const dx=t.clientX-swipeStartX;
+  const dy=t.clientY-swipeStartY;
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){
+    const idx=TAB_ORDER.indexOf(tab);
+    if(dx<0 && idx<TAB_ORDER.length-1){ tab=TAB_ORDER[idx+1]; render(); }
+    else if(dx>0 && idx>0){ tab=TAB_ORDER[idx-1]; render(); }
+  }
+},{passive:true});
 function showLockScreen(){
   document.getElementById('modalRoot').innerHTML=`
   <div class="formscreen" style="justify-content:center;">
