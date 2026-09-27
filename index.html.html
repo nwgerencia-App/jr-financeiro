@@ -723,7 +723,7 @@ function openSettings(){
       <div class="sectionh">Alertas</div>
       <button class="gest-btn" onclick="openNotifSettings()"><div class="gic">🔔</div><div class="gtxt">Notificações e lembretes</div><div class="chev">›</div></button>
       <div class="sectionh">Segurança</div>
-      <button class="gest-btn" onclick="openPinSettings()"><div class="gic">🔐</div><div class="gtxt">PIN e biometria</div><div class="chev">›</div></button>
+      <button class="gest-btn" onclick="openPinSettings()"><div class="gic">🔐</div><div class="gtxt">Senha e biometria</div><div class="chev">›</div></button>
       <div class="sectionh">Dados</div>
       <button class="gest-btn" onclick="openBackupScreen()"><div class="gic">☁️</div><div class="gtxt">Backup e restauração</div><div class="chev">›</div></button>
       <div class="sectionh">Aparência</div>
@@ -770,12 +770,12 @@ function openNotifSettings(){
 }
 function openPinSettings(){
   const hasPin=!!S.pin;
-  const body=`<div class="es" style="margin-bottom:14px;">Defina um PIN de 4 dígitos para proteger a abertura do app neste aparelho. Leitura biométrica depende do sistema do celular e não está disponível nesta versão.</div>
-    ${hasPin?`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">PIN atual: definido ✓</div>`:''}
-    <div class="ffield"><div class="fic purple">🔐</div><div class="fbody"><label>${hasPin?'Novo PIN (4 dígitos)':'Criar PIN (4 dígitos)'}</label><input id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div></div>
-    <button class="btn primary" style="width:100%;margin-bottom:10px;" onclick="savePin()">Salvar PIN</button>
-    ${hasPin?`<button class="btn cancel" style="width:100%" onclick="removePin()">Remover PIN</button>`:''}`;
-  subScreen('🔐','PIN e biometria','Segurança do aplicativo', body);
+  const body=`<div class="es" style="margin-bottom:14px;">Defina uma senha de 4 dígitos para proteger a abertura do app neste aparelho. Leitura biométrica depende do sistema do celular e não está disponível nesta versão.</div>
+    ${hasPin?`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">Senha atual: definida ✓</div>`:''}
+    <div class="ffield"><div class="fic purple">🔐</div><div class="fbody"><label>${hasPin?'Nova senha (4 dígitos)':'Criar senha (4 dígitos)'}</label><input id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div></div>
+    <button class="btn primary" style="width:100%;margin-bottom:10px;" onclick="savePin()">Salvar senha</button>
+    ${hasPin?`<button class="btn cancel" style="width:100%" onclick="removePin()">Remover senha</button>`:''}`;
+  subScreen('🔐','Senha e biometria','Segurança do aplicativo', body);
 }
 function savePin(){
   const v=(document.getElementById('pinInput').value||'').trim();
@@ -1019,27 +1019,27 @@ function showLockScreen(){
   <div class="formscreen" style="justify-content:center;">
     <div style="padding:60px 24px;text-align:center;">
       <div style="font-size:40px;margin-bottom:14px;">🔐</div>
-      <h2 style="margin:0 0 18px;">Digite seu PIN</h2>
+      <h2 style="margin:0 0 18px;">Digite sua senha</h2>
       <input id="lockInput" type="password" inputmode="numeric" maxlength="4" style="text-align:center;font-size:22px;letter-spacing:8px;width:140px;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);" placeholder="••••">
       <br><button class="btn primary" style="width:140px;margin-top:16px;" onclick="tryUnlock()">Entrar</button>
       <div id="lockErr" style="color:#b3392a;font-size:12px;margin-top:10px;"></div>
-      <div style="margin-top:26px;"><button style="background:none;border:none;color:var(--muted);font-size:12.5px;text-decoration:underline;cursor:pointer;font-family:inherit;" onclick="openForgotPin()">Esqueci meu PIN</button></div>
+      <div style="margin-top:26px;"><button style="background:none;border:none;color:var(--muted);font-size:12.5px;text-decoration:underline;cursor:pointer;font-family:inherit;" onclick="openForgotPin()">Esqueci minha senha</button></div>
     </div>
   </div>`;
 }
 function tryUnlock(){
   const v=document.getElementById('lockInput').value;
   if(v===S.pin){ document.getElementById('modalRoot').innerHTML=''; render(); }
-  else { document.getElementById('lockErr').textContent='PIN incorreto.'; }
+  else { document.getElementById('lockErr').textContent='Senha incorreta.'; }
 }
 function openForgotPin(){
   document.getElementById('modalRoot').innerHTML=`
   <div class="formscreen" style="justify-content:center;">
     <div style="padding:40px 24px;text-align:center;">
       <div style="font-size:36px;margin-bottom:14px;">⚠️</div>
-      <h2 style="margin:0 0 14px;">Esqueceu o PIN?</h2>
-      <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 24px;">Como os dados ficam só neste aparelho, não existe forma de confirmar sua identidade para recuperar o PIN. A única opção é remover o PIN — seus lançamentos, categorias e configurações continuam intactos, só a proteção por PIN será desligada.</p>
-      <button class="btn primary" style="width:100%;margin-bottom:10px;" onclick="forgotPinReset()">Remover PIN e continuar</button>
+      <h2 style="margin:0 0 14px;">Esqueceu sua senha?</h2>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 24px;">Como os dados ficam só neste aparelho, não existe forma de confirmar sua identidade para recuperar a senha. A única opção é remover a senha — seus lançamentos, categorias e configurações continuam intactos, só a proteção por senha será desligada.</p>
+      <button class="btn primary" style="width:100%;margin-bottom:10px;" onclick="forgotPinReset()">Remover senha e continuar</button>
       <button class="btn ghost" style="width:100%;" onclick="showLockScreen()">Voltar</button>
     </div>
   </div>`;
@@ -1049,7 +1049,40 @@ function forgotPinReset(){
   document.getElementById('modalRoot').innerHTML='';
   render();
 }
-if(S.pin){ showLockScreen(); } else { render(); }
+function showOnboarding(){
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="formscreen">
+    <main style="display:flex; flex-direction:column; justify-content:center; padding-top:40px;">
+      <div style="text-align:center; margin-bottom:30px;">
+        <div style="font-size:44px; margin-bottom:10px;">💰</div>
+        <h2 style="margin:0 0 6px;">Bem-vindo(a)!</h2>
+        <div class="sub">Antes de começar, conte um pouco sobre você. Seus dados ficam salvos apenas neste aparelho/navegador.</div>
+      </div>
+      <div class="ffield"><div class="fic blue">👤</div><div class="fbody"><label>Nome <span style="color:#c0392b">*</span></label><input id="obNome" type="text" placeholder="Seu nome"></div></div>
+      <div class="ffield"><div class="fic green">✉️</div><div class="fbody"><label>E-mail</label><input id="obEmail" type="email" placeholder="seu@email.com (opcional)"></div></div>
+      <div class="ffield"><div class="fic purple">🔐</div><div class="fbody"><label>Senha (opcional)</label><input id="obSenha" type="password" inputmode="numeric" maxlength="4" placeholder="•••• (4 dígitos)"></div></div>
+      <div id="obErr" style="color:#b3392a; font-size:12.5px; margin:-8px 0 10px;"></div>
+    </main>
+    <div class="formbtns" style="position:fixed;">
+      <button class="btn save" style="width:100%" onclick="finishOnboarding()">✅ Começar a usar</button>
+    </div>
+  </div>`;
+}
+function finishOnboarding(){
+  const nome=(document.getElementById('obNome').value||'').trim();
+  const email=(document.getElementById('obEmail').value||'').trim();
+  const senha=(document.getElementById('obSenha').value||'').trim();
+  if(!nome){document.getElementById('obErr').textContent='Digite seu nome para continuar.'; return;}
+  if(senha && !/^\d{4}$/.test(senha)){document.getElementById('obErr').textContent='A senha deve ter exatamente 4 números, ou deixe em branco.'; return;}
+  S.perfil={nome,email};
+  if(senha) S.pin=senha;
+  save();
+  document.getElementById('modalRoot').innerHTML='';
+  if(S.pin){ showLockScreen(); } else { render(); }
+}
+if(!S.perfil || !S.perfil.nome){ render(); showOnboarding(); }
+else if(S.pin){ showLockScreen(); }
+else { render(); }
 </script>
 </body>
 </html>
