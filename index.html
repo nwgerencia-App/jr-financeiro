@@ -191,7 +191,7 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
   <header class="top">
     <div class="htitle"><div class="hic" id="headerIcon">💰</div><div><h1 id="pageTitle">A Receber</h1><div class="month" id="pageSub">Setembro/2026</div></div></div>
     <div style="display:flex; align-items:center; gap:10px;">
-      <select class="msel" id="monthSel"></select>
+      <button class="msel" id="monthSel" onclick="openMonthYearModal()" style="cursor:pointer;"></button>
       <input class="msel" id="diaSel" type="date" style="display:none">
       <button id="settingsBtn" style="background:rgba(255,255,255,.14); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:15px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:0;">⚙️</button>
     </div>
@@ -250,6 +250,7 @@ function load(){
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let tab='resultado';
 let curMonth=8; // index in MONTHS, default Setembro
+let curYear=2026;
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 let diaSel=todayStr();
 let diarioSort='hora_desc';
@@ -260,16 +261,19 @@ function monthIndexFromRef(ref){
   const nome=ref.split('/')[0].trim().toLowerCase();
   return MONTHS.findIndex(m=>m.f.toLowerCase()===nome);
 }
-function sumFor(list,idx){return list.filter(e=>monthIndexFromRef(e.referencia)===idx).reduce((s,e)=>s+e.valor,0);}
-function sumStatus(list,idx,statuses){return list.filter(e=>monthIndexFromRef(e.referencia)===idx&&statuses.includes(e.status)).reduce((s,e)=>s+e.valor,0);}
+function yearFromRef(ref){
+  const p=ref.split('/')[1];
+  return p?p.trim():null;
+}
+function sumFor(list,idx,year=curYear){return list.filter(e=>monthIndexFromRef(e.referencia)===idx&&yearFromRef(e.referencia)===String(year)).reduce((s,e)=>s+e.valor,0);}
+function sumStatus(list,idx,statuses,year=curYear){return list.filter(e=>monthIndexFromRef(e.referencia)===idx&&yearFromRef(e.referencia)===String(year)&&statuses.includes(e.status)).reduce((s,e)=>s+e.valor,0);}
 
 function fmtVenc(v){const[y,m,d]=v.split('-');return d+'/'+m+'/'+y;}
 
 function renderMonthSel(){
-  const sel=document.getElementById('monthSel');
-  sel.innerHTML=MONTHS.map((m,i)=>`<option value="${i}" ${i===curMonth?'selected':''}>${m.f}/2026</option>`).join('');
+  const btn=document.getElementById('monthSel');
+  btn.textContent=`${MONTHS[curMonth].f}/${curYear} ▾`;
 }
-document.getElementById('monthSel').addEventListener('change',e=>{curMonth=+e.target.value; render();});
 
 function render(){
   renderMonthSel();
@@ -285,8 +289,8 @@ function render(){
   const hIc=document.getElementById('headerIcon');
   hIc.textContent={receber:'💰',pagar:'🧾',diario:'🗓️',resultado:'📊',gestao:'🏦'}[tab];
   hIc.style.background={receber:'#e8a53d',pagar:'rgba(255,255,255,.14)',diario:'#2d6cdf',resultado:'#2d6cdf',gestao:'rgba(255,255,255,.14)'}[tab];
-  if(tab==='receber'){title.textContent='A Receber'; sub.textContent=MONTHS[curMonth].f+'/2026'; renderList(c,S.receber,'cliente','A Receber','Recebido');}
-  else if(tab==='pagar'){title.textContent='A Pagar'; sub.textContent=MONTHS[curMonth].f+'/2026'; renderList(c,S.pagar,'conta','A Pagar','Pago');}
+  if(tab==='receber'){title.textContent='A Receber'; sub.textContent=MONTHS[curMonth].f+'/'+curYear; renderList(c,S.receber,'cliente','A Receber','Recebido');}
+  else if(tab==='pagar'){title.textContent='A Pagar'; sub.textContent=MONTHS[curMonth].f+'/'+curYear; renderList(c,S.pagar,'conta','A Pagar','Pago');}
   else if(tab==='diario'){title.textContent='Lançamentos Diários'; sub.textContent='Acompanhe seus gastos de hoje'; renderDiario(c);}
   else if(tab==='resultado'){
     title.innerHTML='Olá,<br>Bem-vindo(a)!';
@@ -297,7 +301,7 @@ function render(){
 }
 
 function renderList(c,list,nameKey,pendLabel,doneLabel){
-  const items=list.filter(e=>monthIndexFromRef(e.referencia)===curMonth);
+  const items=list.filter(e=>monthIndexFromRef(e.referencia)===curMonth&&yearFromRef(e.referencia)===String(curYear));
   const totalPend=items.filter(e=>e.status===pendLabel).reduce((s,e)=>s+e.valor,0);
   const totalDone=items.filter(e=>e.status===doneLabel).reduce((s,e)=>s+e.valor,0);
   const isReceber=pendLabel==='A Receber';
@@ -444,6 +448,34 @@ function openExtratoMes(){
     <main>${body}</main>
   </div>`;
 }
+let mypYear=null;
+function openMonthYearModal(){
+  mypYear=curYear;
+  mypRenderPicker();
+}
+function mypRenderPicker(){
+  const rows=MONTHS.map((m,i)=>{
+    const sel=(i===curMonth && mypYear===curYear);
+    return `<div class="cl-row" style="cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;" onclick="selectMonthYear(${i})">
+      <span>${m.f}/${mypYear}</span>
+      <span style="width:16px;height:16px;border-radius:50%;border:2px solid ${sel?'var(--navy)':'var(--border)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${sel?'<span style="width:8px;height:8px;border-radius:50%;background:var(--navy);display:block;"></span>':''}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <button onclick="mypYear--;mypRenderPicker()" style="background:var(--cream);border:1px solid var(--border);border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;color:var(--text);">‹</button>
+      <h2 style="margin:0;">${mypYear}</h2>
+      <button onclick="mypYear++;mypRenderPicker()" style="background:var(--cream);border:1px solid var(--border);border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;color:var(--text);">›</button>
+    </div>
+    <div style="max-height:60vh;overflow-y:auto;">${rows}</div>
+    <div class="modalbtns" style="margin-top:6px;"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button></div>
+  </div></div>`;
+}
+function selectMonthYear(i){
+  curMonth=i; curYear=mypYear;
+  document.getElementById('catModalRoot').innerHTML='';
+  render();
+}
 function openCapitalModal(){
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
     <h2>Capital de giro mensal</h2>
@@ -553,11 +585,11 @@ function effTotals(){
   });
 }
 
-function diarioTotalForMonth(monthIdx){
+function diarioTotalForMonth(monthIdx,year=curYear){
   return S.diarios.filter(e=>{
     if(!e.data) return false;
     const parts=e.data.split('-');
-    return (+parts[1]-1)===monthIdx && parts[0]==='2026';
+    return (+parts[1]-1)===monthIdx && parts[0]===String(year);
   }).reduce((s,e)=>s+e.valor,0);
 }
 function renderResultado(c){
@@ -588,7 +620,7 @@ function renderResultado(c){
     <div class="card blue-grad wide"><div class="cic blue">📈</div><div class="lbl">Resultado</div><div class="val ${lucro>=0?'green':'red'}">${lucro>=0?'+ ':'- '}${brl(Math.abs(lucro))}</div><div class="sub" style="margin-top:2px;font-size:9.5px;">${pct}%</div></div>
   </div>
   <div class="chart">
-    <div class="lbl">Receita x Despesa por mês (2026)</div>
+    <div class="lbl">Receita x Despesa por mês (${curYear})</div>
     <div class="tablewrap"><svg width="${totals.length*(w*2+gap)+10}" height="180" viewBox="0 0 ${totals.length*(w*2+gap)+10} 180">${bars}</svg></div>
     <div class="legend"><span><i class="dot" style="background:var(--green)"></i>Receita</span><span><i class="dot" style="background:var(--amber)"></i>Despesa</span></div>
   </div>
@@ -621,7 +653,7 @@ function renderInicio(c){
   }
   const groupLbl='font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.03em;margin-bottom:8px;';
 
-  const ymKey=`2026-${String(curMonth+1).padStart(2,'0')}`;
+  const ymKey=`${curYear}-${String(curMonth+1).padStart(2,'0')}`;
   const diasComGasto=new Set((S.diarios||[]).filter(e=>e.data&&e.data.slice(0,7)===ymKey).map(e=>e.data)).size;
   const mediaDia=diasComGasto?totalDiario/diasComGasto:0;
 
@@ -654,7 +686,7 @@ function renderInicio(c){
   </div>
   <div class="chart">
     <div class="lbl">Movimentação Financeira</div>
-    <div class="sub" style="margin-bottom:16px;">${MONTHS[curMonth].f}/2026</div>
+    <div class="sub" style="margin-bottom:16px;">${MONTHS[curMonth].f}/${curYear}</div>
     <div style="margin-bottom:16px;">
       <div style="${groupLbl}">TOTAL A RECEBER</div>
       ${barRow('Recebido',recebido,colors[0])}
@@ -684,7 +716,7 @@ function renderGestao(c){
     return {m:MONTHS[i].a,fat:t.fat,desp:t.desp,diario,lucro};
   });
   const lucroAno=fatAno-despAno-diarioAno;
-  let trs=rows.map(row=>`<tr><td>${row.m}/26</td><td>${brl(row.fat)}</td><td>${brl(row.desp)}</td><td>${brl(row.diario)}</td><td style="font-weight:600;color:var(--green)">${brl(row.lucro)}</td>
+  let trs=rows.map(row=>`<tr><td>${row.m}/${String(curYear).slice(-2)}</td><td>${brl(row.fat)}</td><td>${brl(row.desp)}</td><td>${brl(row.diario)}</td><td style="font-weight:600;color:var(--green)">${brl(row.lucro)}</td>
     <td>${brl(row.lucro*r.imprevistos/100)}</td><td>${brl(row.lucro*r.projeto/100)}</td><td>${brl(row.lucro*r.pessoal/100)}</td><td>${brl(row.lucro*r.doacoes/100)}</td></tr>`).join('');
   c.innerHTML=`<div class="cards3">
     <div class="card green-grad"><div class="cic green">${WALLET_ICON}</div><div class="lbl">Faturamento</div><div class="val green">${brl(fatAno)}</div></div>
@@ -883,7 +915,7 @@ function openNovoModal(editId){
   const isReceber=tab==='receber';
   const list=isReceber?S.receber:S.pagar;
   const ed=editId?list.find(x=>x.id===editId):null;
-  const venc0=ed?ed.venc:`2026-${String(curMonth+1).padStart(2,'0')}-28`;
+  const venc0=ed?ed.venc:`${curYear}-${String(curMonth+1).padStart(2,'0')}-28`;
   const nomeVal=ed?(ed.cliente||ed.conta||''):'';
   const valorVal=ed?ed.valor:'';
   const tipoVal=ed?ed.tipo:'';
@@ -896,7 +928,7 @@ function openNovoModal(editId){
         <div class="hic" style="background:#0e9a72">📄</div>
         <div><h1>${isReceber?'A Receber':'A Pagar'}</h1><div class="month">${ed?'Editar lançamento':'Novo lançamento'}</div></div>
       </div>
-      <select class="msel" disabled><option>${MONTHS[curMonth].f}/2026</option></select>
+      <select class="msel" disabled><option>${MONTHS[curMonth].f}/${curYear}</option></select>
     </header>
     <main>
       <div class="ffield"><div class="fic blue">👤</div><div class="fbody"><label>Nome <span style="color:#c0392b">*</span></label><input id="fNome" type="text" value="${esc(nomeVal)}" placeholder="${isReceber?'Ex: Salário, Freelance, Venda':'Ex: Aluguel, Mercado, Internet'}"></div></div>
@@ -1027,7 +1059,7 @@ function saveNovo(editId){
   const nome=document.getElementById('fNome').value.trim()||'Sem nome';
   const tipo=document.getElementById('fTipo').value||'Outros';
   const pag=document.getElementById('fPag').value||'-';
-  const venc=document.getElementById('fVenc').value||`2026-${String(curMonth+1).padStart(2,'0')}-28`;
+  const venc=document.getElementById('fVenc').value||`${curYear}-${String(curMonth+1).padStart(2,'0')}-28`;
   const mIdx=(+venc.split('-')[1])-1, ano=venc.split('-')[0];
   const referencia=`${MONTHS[mIdx]?MONTHS[mIdx].f:MONTHS[curMonth].f}/${ano}`;
   const valor=+document.getElementById('fValor').value||0;
@@ -1040,6 +1072,7 @@ function saveNovo(editId){
     if(isReceber){item.cliente=nome; S.receber.push(item);} else {item.conta=nome; S.pagar.push(item);}
   }
   save(); closeModal();
+  curYear=+ano;
   curMonth=monthIndexFromRef(referencia);
   render();
 }
