@@ -253,7 +253,7 @@ let curMonth=8; // index in MONTHS, default Setembro
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 let diaSel=todayStr();
 let diarioSort='hora_desc';
-let diarioVerTodas=false;
+let diarioVerTodas=true;
 document.getElementById('diaSel').addEventListener('change',e=>{diaSel=e.target.value||todayStr(); render();});
 
 function monthIndexFromRef(ref){
@@ -381,12 +381,7 @@ function renderDiario(c){
   html+=diarioChartHtml(chartItems,chartTotalLabel);
   html+=`<div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;">
     <span>Lançamentos do dia</span>
-    <select onchange="diarioSort=this.value;render()" style="font-size:11px;border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--card);color:var(--text);font-family:inherit;">
-      <option value="hora_asc" ${diarioSort==='hora_asc'?'selected':''}>Mais cedo</option>
-      <option value="hora_desc" ${diarioSort==='hora_desc'?'selected':''}>Mais tarde</option>
-      <option value="valor_desc" ${diarioSort==='valor_desc'?'selected':''}>Maior valor</option>
-      <option value="valor_asc" ${diarioSort==='valor_asc'?'selected':''}>Menor valor</option>
-    </select>
+    <button onclick="openExtratoMes()" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;">📋 Extrato do mês ›</button>
   </div>`;
   const sorted=[...dayItems].sort((a,b)=>{
     if(diarioSort==='hora_desc') return (b.hora||'').localeCompare(a.hora||'');
@@ -413,6 +408,41 @@ function renderDiario(c){
       </div>`).join('')+'</div>';
   }
   c.innerHTML=html;
+}
+function openExtratoMes(){
+  const items=[...diarioItemsForMonth(diaSel)].sort((a,b)=>{
+    if(a.data!==b.data) return b.data.localeCompare(a.data);
+    return (b.hora||'').localeCompare(a.hora||'');
+  });
+  const total=items.reduce((s,e)=>s+e.valor,0);
+  const rows=items.map(e=>`
+    <div class="row">
+      <div class="left">
+        <div class="ric">${iconFor(e.categoria)}</div>
+        <div class="info">
+          <div class="cli">${e.nome}</div>
+          <div class="sub">${e.categoria} · ${fmtVenc(e.data)}</div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="sub" style="margin-bottom:2px;">${e.hora||''}</div>
+        <div class="valor" style="color:#b3392a">${brl(e.valor)}</div>
+      </div>
+    </div>`).join('');
+  const body=`<div class="card amber-grad" style="margin-bottom:16px;"><div class="cic amber">📆</div><div class="lbl">Total do mês</div><div class="val amber">${brl(total)}</div></div>
+    ${items.length?`<div class="list">${rows}</div>`:'<div class="empty"><div class="eic">📄</div><div class="et">Nenhum gasto neste mês.</div></div>'}`;
+  const mesLbl=MONTHS[+diaSel.split('-')[1]-1].f+'/'+diaSel.split('-')[0];
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="formscreen">
+    <header class="top">
+      <div class="htitle">
+        <button class="backbtn" onclick="closeModal(); render();">←</button>
+        <div class="hic" style="background:rgba(255,255,255,.14)">📋</div>
+        <div><h1>Extrato do mês</h1><div class="month">${mesLbl}</div></div>
+      </div>
+    </header>
+    <main>${body}</main>
+  </div>`;
 }
 function openCapitalModal(){
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
