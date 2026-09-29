@@ -721,9 +721,8 @@ function renderGestao(c){
     return {m:MONTHS[i].a,fat:t.fat,desp:t.desp,diario,lucro};
   });
   const lucroAno=fatAno-despAno-diarioAno;
-  const hoje=new Date();
   const trs=rows.map((row,i)=>{
-    const isCur=(i===hoje.getMonth() && curYear===hoje.getFullYear());
+    const isCur=(i===curMonth);
     const st=isCur?' style="background:var(--cream);font-weight:700;"':'';
     return `<tr${st}><td>${isCur?'▸ ':''}${row.m}/${String(curYear).slice(-2)}</td><td>${brl(row.fat)}</td><td>${brl(row.desp)}</td><td>${brl(row.diario)}</td><td style="font-weight:600;color:var(--green)">${brl(row.lucro)}</td>
     <td>${brl(row.lucro*r.imprevistos/100)}</td><td>${brl(row.lucro*r.projeto/100)}</td><td>${brl(row.lucro*r.pessoal/100)}</td><td>${brl(row.lucro*r.doacoes/100)}</td></tr>`;
