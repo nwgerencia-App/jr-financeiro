@@ -131,6 +131,11 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
 .cards3 .cic{width:28px; height:28px; font-size:13px; margin-bottom:6px;}
 .cards3 .lbl{font-size:9.5px;}
 .cards3 .val{font-size:13.5px;}
+.cards4{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:16px;}
+.cards4 .card{padding:8px;}
+.cards4 .cic{width:24px; height:24px; font-size:11px; margin-bottom:5px;}
+.cards4 .lbl{font-size:8px; line-height:1.2;}
+.cards4 .val{font-size:11px;}
 .cardsD{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px;}
 .cardsD .wide{grid-column:1/4;}
 .cardsD .card{padding:12px;}
@@ -716,18 +721,35 @@ function renderGestao(c){
     return {m:MONTHS[i].a,fat:t.fat,desp:t.desp,diario,lucro};
   });
   const lucroAno=fatAno-despAno-diarioAno;
-  let trs=rows.map(row=>`<tr><td>${row.m}/${String(curYear).slice(-2)}</td><td>${brl(row.fat)}</td><td>${brl(row.desp)}</td><td>${brl(row.diario)}</td><td style="font-weight:600;color:var(--green)">${brl(row.lucro)}</td>
-    <td>${brl(row.lucro*r.imprevistos/100)}</td><td>${brl(row.lucro*r.projeto/100)}</td><td>${brl(row.lucro*r.pessoal/100)}</td><td>${brl(row.lucro*r.doacoes/100)}</td></tr>`).join('');
-  c.innerHTML=`<div class="cards3">
-    <div class="card green-grad"><div class="cic green">${WALLET_ICON}</div><div class="lbl">Faturamento</div><div class="val green">${brl(fatAno)}</div></div>
-    <div class="card red-grad"><div class="cic red">${WALLET_ICON}</div><div class="lbl">Despesa</div><div class="val red">${brl(despAno)}</div></div>
-    <div class="card red-grad"><div class="cic red">🧾</div><div class="lbl">Gastos diários</div><div class="val red">${brl(diarioAno)}</div></div>
+  const hoje=new Date();
+  const trs=rows.map((row,i)=>{
+    const isCur=(i===hoje.getMonth() && curYear===hoje.getFullYear());
+    const st=isCur?' style="background:var(--cream);font-weight:700;"':'';
+    return `<tr${st}><td>${isCur?'▸ ':''}${row.m}/${String(curYear).slice(-2)}</td><td>${brl(row.fat)}</td><td>${brl(row.desp)}</td><td>${brl(row.diario)}</td><td style="font-weight:600;color:var(--green)">${brl(row.lucro)}</td>
+    <td>${brl(row.lucro*r.imprevistos/100)}</td><td>${brl(row.lucro*r.projeto/100)}</td><td>${brl(row.lucro*r.pessoal/100)}</td><td>${brl(row.lucro*r.doacoes/100)}</td></tr>`;
+  }).join('');
+  const reservaCards=[
+    {key:'imprevistos',cic:'green',grad:'green-grad'},
+    {key:'projeto',cic:'blue',grad:'blue-grad'},
+    {key:'pessoal',cic:'amber',grad:'amber-grad'},
+    {key:'doacoes',cic:'red',grad:'red-grad'}
+  ].map(x=>`<div class="card ${x.grad}"><div class="cic ${x.cic}">${WALLET_ICON}</div><div class="lbl">${n[x.key]}</div><div class="val ${x.cic==='blue'?'muted':x.cic}">${brl(lucroAno*r[x.key]/100)}</div></div>`).join('');
+  c.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:14px;">
+    <button onclick="changeGestaoYear(-1)" style="background:var(--card);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;color:var(--text);">‹</button>
+    <div style="font-weight:700;font-size:16px;color:var(--text);">${curYear}</div>
+    <button onclick="changeGestaoYear(1)" style="background:var(--card);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;color:var(--text);">›</button>
   </div>
-  <div class="cards3">
-    <div class="card blue-grad wide"><div class="cic amber">🪙</div><div class="lbl">Lucro a distribuir</div><div class="val ${lucroAno>=0?'muted':'red'}">${brl(lucroAno)}</div></div>
+  <div class="cards4">
+    ${reservaCards}
   </div>
-  <button class="gest-btn" onclick="openReservaModal()"><div class="gic">⚙️</div><div class="gtxt">Editar reservas (${r.imprevistos}/${r.projeto}/${r.pessoal}/${r.doacoes}%)</div><div class="chev">›</div></button>
+  <div class="sectionh" style="display:flex;justify-content:flex-end;align-items:center;">
+    <button onclick="openReservaModal()" style="background:none;border:none;color:var(--navy);font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;">Editar reservas</button>
+  </div>
   <div class="tablewrap"><table class="gestao"><thead><tr><th>Mês</th><th>Faturamento</th><th>Despesa</th><th>Gastos diários</th><th>Lucro</th><th>${n.imprevistos} ${r.imprevistos}%</th><th>${n.projeto} ${r.projeto}%</th><th>${n.pessoal} ${r.pessoal}%</th><th>${n.doacoes} ${r.doacoes}%</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+}
+function changeGestaoYear(delta){
+  curYear+=delta;
+  render();
 }
 function openReservaModal(){
   const r=S.reservas;
@@ -1143,11 +1165,11 @@ function showOnboarding(){
       <div style="text-align:center; margin-bottom:30px;">
         <div style="font-size:44px; margin-bottom:10px;">💰</div>
         <h2 style="margin:0 0 6px;">Bem-vindo(a)!</h2>
-        <div class="sub">Antes de começar, conte um pouco sobre você. Seus dados ficam salvos apenas neste aparelho/navegador.</div>
+        <div class="sub">Cadastre seu perfil para continuar. Seus dados ficam salvos apenas neste aparelho/navegador.</div>
       </div>
       <div class="ffield"><div class="fic blue">👤</div><div class="fbody"><label>Nome <span style="color:#c0392b">*</span></label><input id="obNome" type="text" placeholder="Seu nome"></div></div>
-      <div class="ffield"><div class="fic green">✉️</div><div class="fbody"><label>E-mail</label><input id="obEmail" type="email" placeholder="seu@email.com (opcional)"></div></div>
-      <div class="ffield"><div class="fic purple">🔐</div><div class="fbody"><label>Senha (opcional)</label><input id="obSenha" type="password" inputmode="numeric" maxlength="4" placeholder="•••• (4 dígitos)"></div></div>
+      <div class="ffield"><div class="fic green">✉️</div><div class="fbody"><label>E-mail <span style="color:#c0392b">*</span></label><input id="obEmail" type="email" placeholder="seu@email.com"></div></div>
+      <div class="ffield"><div class="fic purple">🔐</div><div class="fbody"><label>Senha <span style="color:#c0392b">*</span></label><input id="obSenha" type="password" inputmode="numeric" maxlength="4" placeholder="•••• (4 dígitos)"></div></div>
       <div id="obErr" style="color:#b3392a; font-size:12.5px; margin:-8px 0 10px;"></div>
     </main>
     <div class="formbtns" style="position:fixed;">
@@ -1160,12 +1182,13 @@ function finishOnboarding(){
   const email=(document.getElementById('obEmail').value||'').trim();
   const senha=(document.getElementById('obSenha').value||'').trim();
   if(!nome){document.getElementById('obErr').textContent='Digite seu nome para continuar.'; return;}
-  if(senha && !/^\d{4}$/.test(senha)){document.getElementById('obErr').textContent='A senha deve ter exatamente 4 números, ou deixe em branco.'; return;}
+  if(!email){document.getElementById('obErr').textContent='Digite seu e-mail para continuar.'; return;}
+  if(!senha||!/^\d{4}$/.test(senha)){document.getElementById('obErr').textContent='Digite uma senha de 4 números para continuar.'; return;}
   S.perfil={nome,email};
-  if(senha) S.pin=senha;
+  S.pin=senha;
   save();
   document.getElementById('modalRoot').innerHTML='';
-  if(S.pin){ showLockScreen(); } else { render(); }
+  showLockScreen();
 }
 // ===== Botão Voltar (Android) + PWA =====
 function showToast(msg){
