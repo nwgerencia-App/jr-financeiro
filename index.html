@@ -209,8 +209,8 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
   <nav class="bottom">
     <button data-tab="resultado" class="active"><span class="ic">🏠</span>Início</button>
     <button data-tab="diario"><span class="ic">🗓️</span>Diário</button>
-    <button data-tab="receber"><span class="ic">💰</span>Receber</button>
-    <button data-tab="pagar"><span class="ic">🧾</span>Pagar</button>
+    <button data-tab="receber"><span class="ic">💰</span>A receber</button>
+    <button data-tab="pagar"><span class="ic">🧾</span>A pagar</button>
     <button data-tab="gestao"><span class="ic">🏦</span>Gestão</button>
   </nav>
 </div>
@@ -334,8 +334,7 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
         </div>
         <div class="right">
           <div class="valor">${brl(e.valor)}</div>
-          <span class="badge ${e.status===pendLabel?'pend':'done'}" onclick="event.stopPropagation();toggleStatus('${tab}','${e.id}','${pendLabel}','${doneLabel}')">${e.status}</span><br>
-          <button class="delbtn" onclick="event.stopPropagation();delItem('${tab}','${e.id}')">✕</button>
+          <span class="badge ${e.status===pendLabel?'pend':'done'}" onclick="event.stopPropagation();toggleStatus('${tab}','${e.id}','${pendLabel}','${doneLabel}')">${e.status}</span>
         </div>
       </div>`).join('')+'</div>';
   }
@@ -415,7 +414,6 @@ function renderDiario(c){
         <div class="right">
           <div class="sub" style="margin-bottom:2px;">${e.hora||''}</div>
           <div class="valor" style="color:#b3392a">${brl(e.valor)}</div>
-          <button class="delbtn" onclick="event.stopPropagation();delDiario('${e.id}')">✕</button>
         </div>
       </div>`).join('')+'</div>';
   }
@@ -528,6 +526,7 @@ function openDiarioForm(editId){
           ${PAGS.concat(S.customFormas||[]).map(p=>`<option value="${p}" ${p===formaVal?'selected':''}>${p}</option>`).join('')}
         </select>
       </div></div>
+      ${ed?`<button class="btn" style="width:100%;background:#fbeae7;color:#b3392a;margin-top:4px;" onclick="delDiario('${ed.id}')">🗑️ Excluir lançamento</button>`:''}
     </main>
     <div class="formbtns">
       <button class="btn cancel" onclick="closeModal()">✕ Cancelar</button>
@@ -560,7 +559,7 @@ function delDiario(id){
 }
 function confirmDelDiario(id){
   S.diarios=S.diarios.filter(x=>x.id!==id);
-  save(); document.getElementById('catModalRoot').innerHTML=''; render();
+  save(); document.getElementById('catModalRoot').innerHTML=''; closeModal(); render();
 }
 function iconFor(tipo){
   const t=(tipo||'').toLowerCase();
@@ -582,7 +581,7 @@ function delItem(t,id){
 }
 function confirmDelItem(t,id){
   if(t==='receber')S.receber=S.receber.filter(x=>x.id!==id); else S.pagar=S.pagar.filter(x=>x.id!==id);
-  save(); document.getElementById('catModalRoot').innerHTML=''; render();
+  save(); document.getElementById('catModalRoot').innerHTML=''; closeModal(); render();
 }
 
 function monthTotals(){
@@ -987,6 +986,7 @@ function openNovoModal(editId){
           <option value="${statusDone}" ${statusVal===statusDone?'selected':''}>${statusDone}</option>
         </select>
       </div></div>
+      ${ed?`<button class="btn" style="width:100%;background:#fbeae7;color:#b3392a;margin-top:4px;" onclick="delItem('${tab}','${ed.id}')">🗑️ Excluir lançamento</button>`:''}
     </main>
     <div class="formbtns">
       <button class="btn cancel" onclick="closeModal()">✕ Cancelar</button>
