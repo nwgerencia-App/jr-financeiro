@@ -12,7 +12,9 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwZjFiMzMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMjM3NWYiLz4KPC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMzgiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTAiIGZpbGw9IiNlOGE1M2QiLz4KPHRleHQgeD0iOTAiIHk9IjExNCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjY2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTIyMDNkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4kPC90ZXh0Pgo8L3N2Zz4K">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --cream:#f5f2ea; --card:#ffffff; --navy:#1b2740; --navy2:#26324a;
@@ -33,10 +35,11 @@ html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
 *{box-sizing:border-box;}
 body{
   margin:0; height:100%; background:var(--cream); color:var(--text);
-  font-family:'Inter',system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased;
+  font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums;
   overscroll-behavior-y:none;
 }
-h1,h2,.serif{font-family:'Playfair Display',Georgia,serif;}
+h1,h2,.serif{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; letter-spacing:-.02em; font-weight:800;}
+button,input,select,textarea{font-family:inherit;}
 #app{display:flex; flex-direction:column; height:100vh; max-width:520px; margin:0 auto; position:relative;}
 header.top{
   background:linear-gradient(135deg,#0f1b33 0%,#1b2a4a 55%,#22375f 100%);
@@ -311,9 +314,9 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
   const totalDone=items.filter(e=>e.status===doneLabel).reduce((s,e)=>s+e.valor,0);
   const isReceber=pendLabel==='A Receber';
   let html=`<div class="cards3">
-    <div class="card amber-grad"><div class="cic amber">${WALLET_ICON}</div><div class="lbl">Total ${isReceber?'a receber':'a pagar'}</div><div class="val amber">${brl(totalPend)}</div></div>
-    <div class="card green-grad"><div class="cic green">⬆️</div><div class="lbl">Total ${isReceber?'recebido':'pago'}</div><div class="val green">${brl(totalDone)}</div></div>
-    <div class="card blue-grad"><div class="cic blue">📊</div><div class="lbl">Total geral</div><div class="val muted">${brl(totalPend+totalDone)}</div></div>
+    <div class="card amber-grad"><div class="cic amber">${WALLET_ICON}</div><div class="lbl">Total ${isReceber?'a receber':'a pagar'} no mês</div><div class="val amber">${brl(totalPend)}</div></div>
+    <div class="card green-grad"><div class="cic green">⬆️</div><div class="lbl">Total ${isReceber?'recebido':'pago'} no mês</div><div class="val green">${brl(totalDone)}</div></div>
+    <div class="card blue-grad"><div class="cic blue">📊</div><div class="lbl">Total geral do mês</div><div class="val muted">${brl(totalPend+totalDone)}</div></div>
   </div>`;
   html+=catChartHtml(items,isReceber);
   html+='<div class="sectionh">Últimos lançamentos</div>';
@@ -406,7 +409,7 @@ function renderDiario(c){
           <div class="ric">${iconFor(e.categoria)}</div>
           <div class="info">
             <div class="cli">${e.nome}</div>
-            <div class="sub">${e.categoria}</div>
+            <div class="sub">${e.categoria}${e.forma?' · '+e.forma:''}</div>
           </div>
         </div>
         <div class="right">
@@ -430,7 +433,7 @@ function openExtratoMes(){
         <div class="ric">${iconFor(e.categoria)}</div>
         <div class="info">
           <div class="cli">${e.nome}</div>
-          <div class="sub">${e.categoria} · ${fmtVenc(e.data)}</div>
+          <div class="sub">${e.categoria}${e.forma?' · '+e.forma:''} · ${fmtVenc(e.data)}</div>
         </div>
       </div>
       <div class="right">
@@ -497,6 +500,7 @@ function openDiarioForm(editId){
   const nomeVal=ed?ed.nome:'';
   const valorVal=ed?ed.valor:'';
   const catVal=ed?ed.categoria:'';
+  const formaVal=ed?(ed.forma||''):'';
   const horaVal=ed?ed.hora:new Date().toTimeString().slice(0,5);
   const dataVal=ed?ed.data:diaSel;
   document.getElementById('modalRoot').innerHTML=`
@@ -518,6 +522,12 @@ function openDiarioForm(editId){
           ${visibleCats().map(c=>`<option value="${c}" ${c===catVal?'selected':''}>${c}</option>`).join('')}
         </select>
       </div></div>
+      <div class="ffield"><div class="fic teal">💳</div><div class="fbody"><label>Forma de pagamento</label>
+        <select id="dForma">
+          <option value="">Selecione a forma de pagamento</option>
+          ${PAGS.concat(S.customFormas||[]).map(p=>`<option value="${p}" ${p===formaVal?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div></div>
     </main>
     <div class="formbtns">
       <button class="btn cancel" onclick="closeModal()">✕ Cancelar</button>
@@ -531,11 +541,12 @@ function saveDiario(editId){
   const data=document.getElementById('dData').value||diaSel;
   const horaAtual=new Date().toTimeString().slice(0,5);
   const categoria=document.getElementById('dCat').value||'Outros';
+  const forma=document.getElementById('dForma').value||'';
   if(editId){
     const it=S.diarios.find(x=>x.id===editId);
-    if(it){it.nome=nome; it.valor=valor; it.data=data; it.categoria=categoria;}
+    if(it){it.nome=nome; it.valor=valor; it.data=data; it.categoria=categoria; it.forma=forma;}
   } else {
-    S.diarios.push({id:'d'+Date.now(),nome,valor,data,hora:horaAtual,categoria});
+    S.diarios.push({id:'d'+Date.now(),nome,valor,data,hora:horaAtual,categoria,forma});
   }
   save(); closeModal();
   diaSel=data; render();
@@ -671,15 +682,15 @@ function renderInicio(c){
   c.innerHTML=`<div class="cardsD">
     <div class="card green-grad">
       ${cardHead('green',WALLET_ICON)}
-      <div class="lbl">Total a receber</div><div class="val green">${brl(cur.fat)}</div>
+      <div class="lbl">Total a receber no mês</div><div class="val green">${brl(cur.fat)}</div>
     </div>
     <div class="card red-grad">
       ${cardHead('red','🧾')}
-      <div class="lbl">Total a pagar</div><div class="val red">${brl(cur.desp)}</div>
+      <div class="lbl">Total a pagar no mês</div><div class="val red">${brl(cur.desp)}</div>
     </div>
     <div class="card amber-grad">
       ${cardHead('amber',WALLET_ICON)}
-      <div class="lbl">Total diários</div><div class="val amber">${brl(totalDiario)}</div>
+      <div class="lbl">Total diários no mês</div><div class="val amber">${brl(totalDiario)}</div>
     </div>
   </div>
   <div class="card blue-grad" style="border-left:4px solid #2f9e5f; padding:16px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -936,11 +947,16 @@ function openNovoModal(editId){
   const isReceber=tab==='receber';
   const list=isReceber?S.receber:S.pagar;
   const ed=editId?list.find(x=>x.id===editId):null;
-  const venc0=ed?ed.venc:`${curYear}-${String(curMonth+1).padStart(2,'0')}-28`;
+  const venc0=ed?ed.venc:todayStr();
   const nomeVal=ed?(ed.cliente||ed.conta||''):'';
   const valorVal=ed?ed.valor:'';
   const tipoVal=ed?ed.tipo:'';
   const pagVal=ed?ed.descricao:'';
+  const statusPend=isReceber?'A Receber':'A Pagar';
+  const statusDone=isReceber?'Recebido':'Pago';
+  const statusVal=ed?ed.status:statusPend;
+  const parcelasOpts=[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>`<option value="${n}">${n===1?'1x (à vista / não parcelar)':n+'x'}</option>`).join('')
+    +`<option value="perder">A perder de vista</option>`;
   document.getElementById('modalRoot').innerHTML=`
   <div class="formscreen">
     <header class="top">
@@ -952,14 +968,23 @@ function openNovoModal(editId){
       <select class="msel" disabled><option>${MONTHS[curMonth].f}/${curYear}</option></select>
     </header>
     <main>
-      <div class="ffield"><div class="fic blue">👤</div><div class="fbody"><label>Nome <span style="color:#c0392b">*</span></label><input id="fNome" type="text" value="${esc(nomeVal)}" placeholder="${isReceber?'Ex: Salário, Freelance, Venda':'Ex: Aluguel, Mercado, Internet'}"></div></div>
       <div class="ffield"><div class="fic green">💲</div><div class="fbody"><label>Valor (R$) <span style="color:#c0392b">*</span></label><input id="fValor" type="number" step="0.01" value="${valorVal===''?'':valorVal}" placeholder="0,00"></div></div>
-      <div class="ffield"><div class="fic purple">📅</div><div class="fbody"><label>Data <span style="color:#c0392b">*</span></label><input id="fVenc" type="date" value="${venc0}"></div></div>
-      <div class="ffield"><div class="fic teal">💳</div><div class="fbody"><label>${isReceber?'Forma de recebimento':'Forma de pagamento'} <span style="color:#c0392b">*</span></label><select id="fPag"><option value="">Selecione a forma de ${isReceber?'recebimento':'pagamento'}</option>${PAGS.concat(S.customFormas||[]).map(p=>`<option value="${p}" ${p===pagVal?'selected':''}>${p}</option>`).join('')}</select></div></div>
+      <div class="ffield"><div class="fic blue">📝</div><div class="fbody"><label>Descrição <span style="color:#c0392b">*</span></label><input id="fNome" type="text" value="${esc(nomeVal)}" placeholder="${isReceber?'Ex: Salário, Freelance, Venda':'Ex: Aluguel, Mercado, Internet'}"></div></div>
       <div class="ffield"><div class="fic orange">🏷️</div><div class="fbody"><label>Categoria <span style="color:#c0392b">*</span></label>
         <select id="fTipo">
           <option value="">Selecione a categoria</option>
           ${visibleCats().map(c=>`<option value="${c}" ${c===tipoVal?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div></div>
+      <div class="ffield"><div class="fic purple">📅</div><div class="fbody"><label>Data <span style="color:#c0392b">*</span></label><input id="fVenc" type="date" value="${venc0}"></div></div>
+      <div class="ffield"><div class="fic teal">💳</div><div class="fbody"><label>${isReceber?'Forma de recebimento':'Forma de pagamento'} <span style="color:#c0392b">*</span></label><select id="fPag"><option value="">Selecione a forma de ${isReceber?'recebimento':'pagamento'}</option>${PAGS.concat(S.customFormas||[]).map(p=>`<option value="${p}" ${p===pagVal?'selected':''}>${p}</option>`).join('')}</select></div></div>
+      ${ed?'':`<div class="ffield"><div class="fic blue">🔁</div><div class="fbody"><label>Parcelar em quantas vezes</label>
+        <select id="fParcelas">${parcelasOpts}</select>
+      </div></div>`}
+      <div class="ffield"><div class="fic green">✅</div><div class="fbody"><label>Status</label>
+        <select id="fStatus">
+          <option value="${statusPend}" ${statusVal===statusPend?'selected':''}>${statusPend}</option>
+          <option value="${statusDone}" ${statusVal===statusDone?'selected':''}>${statusDone}</option>
         </select>
       </div></div>
     </main>
@@ -1075,6 +1100,14 @@ function confirmCatModal(targetSelectId){
     }
   }
 }
+function addMonths(dateStr,n){
+  const [y,m,d]=dateStr.split('-').map(Number);
+  const base=new Date(y,(m-1)+n,1);
+  const yy=base.getFullYear(), mm=base.getMonth();
+  const lastDay=new Date(yy,mm+1,0).getDate();
+  const dd=Math.min(d,lastDay);
+  return `${yy}-${String(mm+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+}
 function saveNovo(editId){
   const isReceber=tab==='receber';
   const nome=document.getElementById('fNome').value.trim()||'Sem nome';
@@ -1084,13 +1117,25 @@ function saveNovo(editId){
   const mIdx=(+venc.split('-')[1])-1, ano=venc.split('-')[0];
   const referencia=`${MONTHS[mIdx]?MONTHS[mIdx].f:MONTHS[curMonth].f}/${ano}`;
   const valor=+document.getElementById('fValor').value||0;
+  const statusPend=isReceber?'A Receber':'A Pagar';
+  const status=document.getElementById('fStatus').value||statusPend;
   const list=isReceber?S.receber:S.pagar;
   if(editId){
     const it=list.find(x=>x.id===editId);
-    if(it){ if(isReceber)it.cliente=nome; else it.conta=nome; it.tipo=tipo; it.referencia=referencia; it.descricao=pag; it.venc=venc; it.valor=valor; }
+    if(it){ if(isReceber)it.cliente=nome; else it.conta=nome; it.tipo=tipo; it.referencia=referencia; it.descricao=pag; it.venc=venc; it.valor=valor; it.status=status; }
   } else {
-    const item={id:'n'+Date.now(),tipo,referencia,descricao:pag,venc,valor,status:isReceber?'A Receber':'A Pagar'};
-    if(isReceber){item.cliente=nome; S.receber.push(item);} else {item.conta=nome; S.pagar.push(item);}
+    const parcelasSel=document.getElementById('fParcelas').value;
+    const n=parcelasSel==='perder'?60:(+parcelasSel||1);
+    for(let k=0;k<n;k++){
+      const vencK=k===0?venc:addMonths(venc,k);
+      const mK=(+vencK.split('-')[1])-1, anoK=vencK.split('-')[0];
+      const refK=`${MONTHS[mK]?MONTHS[mK].f:MONTHS[curMonth].f}/${anoK}`;
+      let descK=pag;
+      if(parcelasSel==='perder') descK+=' (recorrente)';
+      else if(n>1) descK+=` (parcela ${k+1}/${n})`;
+      const item={id:'n'+Date.now()+'_'+k,tipo,referencia:refK,descricao:descK,venc:vencK,valor,status:k===0?status:statusPend};
+      if(isReceber){item.cliente=nome; S.receber.push(item);} else {item.conta=nome; S.pagar.push(item);}
+    }
   }
   save(); closeModal();
   curYear=+ano;
