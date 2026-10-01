@@ -202,7 +202,7 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
     </div>
   </header>
   <main id="content"></main>
-  <button class="fabround" id="fabAdd">+</button>
+  <button class="fab" id="fabAdd" style="display:none;"><span class="plus">+</span><span id="fabAddLabel">Novo lançamento</span></button>
   <nav class="bottom">
     <button data-tab="resultado" class="active"><span class="ic">🏠</span>Início</button>
     <button data-tab="diario"><span class="ic">🗓️</span>Diário</button>
@@ -288,6 +288,7 @@ function render(){
   const sub=document.getElementById('pageSub');
   document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   document.getElementById('fabAdd').style.display=(tab==='receber'||tab==='pagar'||tab==='diario')?'flex':'none';
+  document.getElementById('fabAddLabel').textContent=tab==='diario'?'Novo gasto':(tab==='receber'?'Novo recebimento':'Nova conta a pagar');
   document.getElementById('monthSel').style.display=(tab==='diario')?'none':'block';
   const diaInput=document.getElementById('diaSel');
   diaInput.style.display=(tab==='diario')?'block':'none';
@@ -670,20 +671,20 @@ function renderInicio(c){
       </div>`;
 
   c.innerHTML=`<div class="cardsD">
-    <div class="card green-grad">
+    <div class="card green-grad" onclick="goTab('receber')" style="cursor:pointer;">
       ${cardHead('green',WALLET_ICON)}
       <div class="lbl">Total a receber</div><div class="val green">${brl(cur.fat)}</div>
     </div>
-    <div class="card red-grad">
+    <div class="card red-grad" onclick="goTab('pagar')" style="cursor:pointer;">
       ${cardHead('red','🧾')}
       <div class="lbl">Total a pagar</div><div class="val red">${brl(cur.desp)}</div>
     </div>
-    <div class="card amber-grad">
+    <div class="card amber-grad" onclick="goTab('diario')" style="cursor:pointer;">
       ${cardHead('amber',WALLET_ICON)}
       <div class="lbl">Total diários</div><div class="val amber">${brl(totalDiario)}</div>
     </div>
   </div>
-  <div class="card blue-grad" style="border-left:4px solid #2f9e5f; padding:16px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+  <div class="card blue-grad" onclick="goTab('gestao')" style="cursor:pointer; border-left:4px solid #2f9e5f; padding:16px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
     <div style="display:flex; align-items:center; gap:12px; min-width:0;">
       <div class="cic blue" style="width:42px; height:42px; font-size:19px; margin-bottom:0; flex-shrink:0;">📈</div>
       <div style="min-width:0;"><div class="lbl" style="font-size:12.5px; margin-bottom:2px;">Resultado</div><div class="val ${lucro>=0?'green':'red'}" style="font-size:21px; white-space:nowrap;">${lucro>=0?'+ ':'- '}${brl(Math.abs(lucro))}</div><div class="sub" style="margin-top:2px;">${pct}% sobre a receita</div></div>
@@ -1136,6 +1137,7 @@ function saveNovo(editId){
 document.getElementById('fabAdd').addEventListener('click',()=>{ if(tab==='diario') openDiarioForm(); else openNovoModal(); });
 document.getElementById('settingsBtn').addEventListener('click',openSettings);
 document.querySelectorAll('nav.bottom button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab; render();}));
+function goTab(t){ tab=t; render(); }
 
 const TAB_ORDER=['resultado','diario','receber','pagar','gestao'];
 let swipeStartX=0, swipeStartY=0, swipeSkip=false;
