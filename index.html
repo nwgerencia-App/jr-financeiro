@@ -189,6 +189,31 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
 :root[data-theme="dark"] .gest-btn .gic{background:#2a3040;}
 .toast{position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(10px); background:rgba(20,26,40,.92); color:#fff; padding:10px 16px; border-radius:22px; font-size:12.5px; opacity:0; pointer-events:none; transition:.2s; z-index:60; max-width:80%; text-align:center;}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.ex-hero{background:linear-gradient(135deg,#0f1b33 0%,#1b2a4a 55%,#2a4478 100%); color:#f5f2ea; border-radius:20px; padding:18px; margin-bottom:14px; position:relative; overflow:hidden; box-shadow:0 10px 24px rgba(20,30,55,.25);}
+.ex-hero::after{content:''; position:absolute; right:-30px; top:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.07);}
+.ex-hero .eh-top{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+.ex-hero .eh-ic{width:34px; height:34px; border-radius:12px; background:rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center;}
+.ex-hero .eh-lbl{font-size:12px; color:#b9c2dd; font-weight:500;}
+.ex-hero .eh-per{font-size:10.5px; color:#8fa0c8;}
+.ex-hero .eh-val{font-family:'Playfair Display',Georgia,serif; font-size:30px; font-weight:700; letter-spacing:-.5px; margin-bottom:14px;}
+.ex-hero .eh-stats{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.ex-hero .eh-st{background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:10px 12px;}
+.ex-hero .eh-st small{display:flex; align-items:center; gap:6px; font-size:10.5px; color:#b9c2dd; margin-bottom:3px;}
+.ex-hero .eh-st b{font-size:14px;}
+.ex-hero .up{color:#6fe0a0;} .ex-hero .down{color:#ff9d8f;}
+.ex-btnsaida{width:100%; background:linear-gradient(135deg,#e07a6b,#c9564a); color:#fff; border:none; border-radius:16px; padding:15px; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px; font-family:inherit; cursor:pointer; margin-bottom:18px; box-shadow:0 8px 18px rgba(201,86,74,.3);}
+.ex-row{display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:18px; padding:12px 14px; margin-bottom:10px; position:relative; overflow:hidden; box-shadow:0 2px 8px rgba(20,30,55,.05);}
+.ex-row::before{content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--ac);}
+.ex-row .ex-ic{width:42px; height:42px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; flex-shrink:0; background:var(--acbg); color:var(--ac);}
+.ex-row .ex-info{flex:1; min-width:0;}
+.ex-row .ex-t{font-weight:600; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.ex-row .ex-s{font-size:11px; color:var(--muted); margin-top:3px;}
+.ex-row .ex-v{font-weight:700; font-size:14px; text-align:right; white-space:nowrap; color:var(--ac);}
+.ex-row .ex-tag{display:inline-block; margin-top:4px; font-size:9.5px; font-weight:600; padding:2px 8px; border-radius:20px; background:var(--acbg); color:var(--ac);}
+.ex-filtro{display:flex; gap:8px; margin-bottom:14px;}
+.ex-filtro .ex-ano{flex:1; border:1px solid var(--border); border-radius:14px; padding:8px; background:var(--card); display:flex; align-items:center; justify-content:space-between;}
+.ex-filtro .ex-ano button{background:none; border:none; font-size:16px; color:var(--text); cursor:pointer;}
+.ex-filtro select{flex:1; border:1px solid var(--border); border-radius:14px; padding:8px 10px; background:var(--card); color:var(--text); font-family:inherit; font-size:12.5px; font-weight:600;}
 </style>
 </head>
 <body>
@@ -723,7 +748,10 @@ function renderGestao(c){
     const lucro=t.fat-t.desp-diario;
     return {m:MONTHS[i].a,fat:t.fat,desp:t.desp,diario,lucro};
   });
-  const lucroAno=fatAno-despAno-diarioAno;
+  // só conta até o mês atual (meses futuros não entram nos cards)
+  const hojeG=new Date(), anoRealG=hojeG.getFullYear(), mesRealG=hojeG.getMonth();
+  const limiteG=curYear<anoRealG?11:(curYear===anoRealG?mesRealG:-1);
+  const lucroAno=rows.reduce((s,r,i)=>i<=limiteG?s+r.lucro:s,0);
   const trs=rows.map((row,i)=>{
     const isCur=(i===curMonth);
     const st=isCur?' style="background:var(--cream);font-weight:700;"':'';
@@ -768,36 +796,46 @@ function renderExtratoReserva(){
   const key=extratoReserva;
   const n=S.reservaNomes||{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'};
   const pct=S.reservas[key];
-  const meses=extratoMes==='todos'?[0,1,2,3,4,5,6,7,8,9,10,11]:[+extratoMes];
-  const auto=[];
+
+  // meses válidos: só até o mês atual (futuro não conta)
+  const hoje=new Date(), anoReal=hoje.getFullYear(), mesReal=hoje.getMonth();
+  let validos=[];
+  if(extratoYear<anoReal) validos=[0,1,2,3,4,5,6,7,8,9,10,11];
+  else if(extratoYear===anoReal) validos=Array.from({length:mesReal+1},(_,i)=>i);
+  const meses=extratoMes==='todos'?validos:(validos.includes(+extratoMes)?[+extratoMes]:[]);
+
+  const itens=[];
   meses.forEach(i=>{
-    const lucro=lucroMes(i,extratoYear);
-    const valor=lucro*pct/100;
-    if(valor!==0) auto.push({mes:i,tipo:valor>=0?'entrada':'saida',desc:`Distribuição automática (${pct}% do lucro)`,valor:Math.abs(valor)});
+    const valor=lucroMes(i,extratoYear)*pct/100;
+    if(valor!==0) itens.push({mes:i,tipo:valor>0?'entrada':'saida',titulo:'Mês de '+MONTHS[i].f,desc:`Distribuição automática (${pct}% do lucro)`,valor:Math.abs(valor)});
   });
-  const manual=(S.reservaSaidas||[]).filter(sd=>{
-    if(sd.reserva!==key) return false;
+  (S.reservaSaidas||[]).forEach(sd=>{
+    if(sd.reserva!==key) return;
     const [ay,am]=sd.data.split('-');
-    if(+ay!==extratoYear) return false;
-    if(extratoMes!=='todos' && (+am-1)!==+extratoMes) return false;
-    return true;
-  }).map(sd=>({mes:+sd.data.split('-')[1]-1,tipo:'saida',desc:sd.descricao,valor:sd.valor,id:sd.id}));
-  const items=[...auto,...manual].sort((a,b)=>b.mes-a.mes);
-  const total=auto.reduce((s,m)=>s+(m.tipo==='entrada'?m.valor:-m.valor),0)-manual.reduce((s,m)=>s+m.valor,0);
-  const rows=items.length?items.map(m=>`
-    <div class="row" style="align-items:center;">
-      <div class="left">
-        <div class="ric" style="background:${m.tipo==='entrada'?'#dcecdf':'#f6d9d4'};color:${m.tipo==='entrada'?'#1f5c3a':'#8a2f22'};">${m.tipo==='entrada'?'↓':'↑'}</div>
-        <div class="info">
-          <div class="cli">${m.desc}</div>
-          <div class="sub">${MONTHS[m.mes].f}/${extratoYear}</div>
-        </div>
+    if(+ay!==extratoYear) return;
+    if(extratoMes!=='todos' && (+am-1)!==+extratoMes) return;
+    itens.push({mes:+am-1,tipo:'saida',titulo:sd.descricao,desc:fmtVenc(sd.data),valor:sd.valor,id:sd.id,manual:true});
+  });
+  itens.sort((a,b)=>b.mes-a.mes);
+
+  const entradas=itens.filter(x=>x.tipo==='entrada').reduce((s,x)=>s+x.valor,0);
+  const saidas=itens.filter(x=>x.tipo==='saida').reduce((s,x)=>s+x.valor,0);
+  const total=entradas-saidas;
+  const periodo=extratoMes==='todos'
+    ?(extratoYear>anoReal?'Nenhum mês disponível ainda':(extratoYear===anoReal?`Até ${MONTHS[mesReal].f}/${anoReal}`:`Ano de ${extratoYear}`))
+    :`${MONTHS[+extratoMes].f}/${extratoYear}`;
+
+  const rows=itens.length?itens.map(m=>{
+    const ent=m.tipo==='entrada';
+    return `<div class="ex-row" style="--ac:${ent?'#217a4b':'#b3392a'};--acbg:${ent?'#dcecdf':'#f8dcd6'};">
+      <div class="ex-ic">${ent?'↓':'↑'}</div>
+      <div class="ex-info"><div class="ex-t">${m.titulo}</div><div class="ex-s">${m.desc}</div></div>
+      <div class="ex-v">${ent?'+ ':'- '}${brl(m.valor)}<br>
+        ${m.manual?`<button class="delbtn" onclick="delSaidaReserva('${m.id}')">✕</button>`:`<span class="ex-tag">${MONTHS[m.mes].a.toUpperCase()}/${String(extratoYear).slice(-2)}</span>`}
       </div>
-      <div class="right">
-        <div class="valor" style="color:${m.tipo==='entrada'?'#217a4b':'#b3392a'};">${m.tipo==='entrada'?'+ ':'- '}${brl(m.valor)}</div>
-        ${m.id?`<button class="delbtn" onclick="delSaidaReserva('${m.id}')">✕</button>`:''}
-      </div>
-    </div>`).join(''):'<div class="empty"><div class="eic">📄</div><div class="et">Nenhuma movimentação neste período.</div></div>';
+    </div>`;}).join('')
+    :'<div class="empty"><div class="eic">📄</div><div class="et">Nenhuma movimentação neste período.</div></div>';
+
   document.getElementById('modalRoot').innerHTML=`
   <div class="formscreen">
     <header class="top">
@@ -807,27 +845,40 @@ function renderExtratoReserva(){
         <div><h1>${n[key]}</h1><div class="month">Extrato de entradas e saídas</div></div>
       </div>
     </header>
-    <main>
-      <div style="display:flex;gap:8px;margin-bottom:14px;">
-        <div style="flex:1;border:1px solid var(--border);border-radius:10px;padding:9px 8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;">
-          <button onclick="changeExtratoYear(-1)" style="background:none;border:none;font-size:15px;color:var(--navy);cursor:pointer;">‹</button>
-          <span style="font-weight:600;font-size:13px;">${extratoYear}</span>
-          <button onclick="changeExtratoYear(1)" style="background:none;border:none;font-size:15px;color:var(--navy);cursor:pointer;">›</button>
+    <main style="padding-bottom:140px;">
+      <div class="ex-filtro">
+        <div class="ex-ano">
+          <button onclick="changeExtratoYear(-1)">‹</button>
+          <span style="font-weight:700;font-size:13px;">${extratoYear}</span>
+          <button onclick="changeExtratoYear(1)">›</button>
         </div>
-        <select onchange="extratoMes=this.value;renderExtratoReserva()" style="flex:1;border:1px solid var(--border);border-radius:10px;padding:9px 8px;background:var(--card);color:var(--text);font-family:inherit;font-size:12.5px;">
+        <select onchange="extratoMes=this.value;renderExtratoReserva()">
           <option value="todos" ${extratoMes==='todos'?'selected':''}>Ano inteiro</option>
-          ${MONTHS.map((m,i)=>`<option value="${i}" ${extratoMes==String(i)?'selected':''}>${m.f}</option>`).join('')}
+          ${MONTHS.map((m,i)=>{
+            const futuro=(extratoYear>anoReal)||(extratoYear===anoReal&&i>mesReal);
+            return `<option value="${i}" ${extratoMes==String(i)?'selected':''} ${futuro?'disabled':''}>${m.f}${futuro?' (futuro)':''}</option>`;
+          }).join('')}
         </select>
       </div>
-      <div class="card blue-grad" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
-        <div class="lbl">Saldo no período</div>
-        <div class="val" style="font-size:19px;color:${total>=0?'#2a4f8f':'#b3392a'};">${brl(total)}</div>
+
+      <div class="ex-hero">
+        <div class="eh-top">
+          <div class="eh-ic">${WALLET_ICON}</div>
+          <div><div class="eh-lbl">Saldo no período</div><div class="eh-per">${periodo}</div></div>
+        </div>
+        <div class="eh-val" style="${total<0?'color:#ff9d8f;':''}">${brl(total)}</div>
+        <div class="eh-stats">
+          <div class="eh-st"><small><span class="up">↓</span> Entradas</small><b class="up">${brl(entradas)}</b></div>
+          <div class="eh-st"><small><span class="down">↑</span> Saídas</small><b class="down">${brl(saidas)}</b></div>
+        </div>
       </div>
-      <button onclick="openNovaSaidaReserva()" style="width:100%;background:#d9695a;color:#fff;border:none;border-radius:14px;padding:16px;font-weight:700;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;cursor:pointer;margin-bottom:14px;box-shadow:0 6px 16px rgba(217,105,90,.35);">➖ Registrar saída</button>
-      <button class="btn ghost" style="width:100%;margin-bottom:16px;" onclick="closeModal(); render();">← Voltar</button>
+
+      <button class="ex-btnsaida" onclick="openNovaSaidaReserva()">➖ Registrar saída</button>
+
       <div class="sectionh">Movimentações</div>
-      <div class="list">${rows}</div>
+      ${rows}
     </main>
+    <button class="fab" onclick="closeModal(); render();" style="bottom:calc(24px + env(safe-area-inset-bottom,0px));"><span class="plus">←</span><span>Voltar</span></button>
   </div>`;
 }
 function openNovaSaidaReserva(){
