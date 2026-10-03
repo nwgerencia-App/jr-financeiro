@@ -292,6 +292,15 @@ header.hmain .hic{box-shadow:none;}
 .rcard .rc-val{color:var(--text);}
 :root[data-theme="dark"] .rcard .cic{color:var(--text);}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rcard .cic{color:var(--text);}}
+.hero{background:var(--card); color:var(--text); border:1px solid var(--border); box-shadow:none;}
+.hero-lbl{color:var(--muted); opacity:1;}
+.hero-val{color:var(--navy);}
+.hero-stats,.hero-stats.three{border-top:1px solid var(--border);}
+.hero-st{border-left:1px solid var(--border);}
+.hero-st small{color:var(--muted); opacity:1;}
+.hero-st b,.hero-stats.three .hero-st b{color:var(--text);}
+:root[data-theme="dark"] .hero-val{color:var(--text);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hero-val{color:var(--text);}}
 </style>
 </head>
 <body>
