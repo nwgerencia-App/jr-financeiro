@@ -471,7 +471,7 @@ function render(){
     sub.textContent=(S.perfil&&S.perfil.nome)?S.perfil.nome:'Configure seu perfil em Configurações';
     renderInicio(c);
   }
-  else{title.textContent='Gestão'; sub.textContent='Distribuição do lucro'; renderGestao(c);}
+  else{title.textContent='Gestão'; sub.textContent='Acumulado até '+MONTHS[curMonth].f+'/'+curYear; renderGestao(c);}
 }
 
 function renderList(c,list,nameKey,pendLabel,doneLabel){
@@ -886,7 +886,7 @@ function renderGestao(c){
   });
   // só conta até o mês atual (meses futuros não entram nos cards)
   const hojeG=new Date(), anoRealG=hojeG.getFullYear(), mesRealG=hojeG.getMonth();
-  const limiteG=curYear<anoRealG?11:(curYear===anoRealG?mesRealG:-1);
+  const limiteG=curYear<anoRealG?curMonth:(curYear===anoRealG?Math.min(curMonth,mesRealG):-1);
   const lucroAno=rows.reduce((s,r,i)=>i<=limiteG?s+r.lucro:s,0);
   const trs=rows.map((row,i)=>{
     const isCur=(i===curMonth);
@@ -900,8 +900,7 @@ function renderGestao(c){
     {key:'pessoal',cic:'amber',grad:'amber-grad'},
     {key:'doacoes',cic:'red',grad:'red-grad'}
   ].map(x=>`<div class="rcard tint-${x.cic}" onclick="openExtratoReserva('${x.key}')"><div class="rc-top"><div class="cic ${x.cic}">${WALLET_ICON}</div></div><div class="lbl">${n[x.key]}</div><div class="rc-val ${x.cic}">${brl(lucroAno*r[x.key]/100)}</div></div>`).join('');
-  c.innerHTML=`<div class="yearpill"><button onclick="changeGestaoYear(-1)">‹</button><span>${curYear}</span><button onclick="changeGestaoYear(1)">›</button></div>
-  <div class="rgrid">
+  c.innerHTML=`<div class="rgrid">
     ${reservaCards}
   </div>
   <div class="sectionh" style="display:flex;justify-content:flex-end;align-items:center;">
