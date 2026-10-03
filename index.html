@@ -214,6 +214,12 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
 .ex-filtro .ex-ano{flex:1; border:1px solid var(--border); border-radius:14px; padding:8px; background:var(--card); display:flex; align-items:center; justify-content:space-between;}
 .ex-filtro .ex-ano button{background:none; border:none; font-size:16px; color:var(--text); cursor:pointer;}
 .ex-filtro select{flex:1; border:1px solid var(--border); border-radius:14px; padding:8px 10px; background:var(--card); color:var(--text); font-family:inherit; font-size:12.5px; font-weight:600;}
+.ex-mesbtn{flex:1; border:1px solid var(--border); border-radius:14px; padding:8px 12px; background:var(--card); color:var(--text); font-family:inherit; font-size:12.5px; font-weight:600; display:flex; align-items:center; justify-content:space-between; gap:6px; cursor:pointer; white-space:nowrap; overflow:hidden;}
+.ex-mgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;}
+.ex-mchip{padding:12px 4px; border-radius:12px; border:1px solid var(--border); background:var(--cream); color:var(--text); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;}
+.ex-mchip.on{background:var(--navy); color:#fff; border-color:var(--navy);}
+.ex-mchip:disabled{opacity:.35; cursor:not-allowed;}
+:root[data-theme="dark"] .ex-mchip.on{background:#8fb3ff; color:#15181f; border-color:#8fb3ff;}
 </style>
 </head>
 <body>
@@ -786,9 +792,9 @@ function lucroMes(i,year){
   const diario=diarioTotalForMonth(i,year);
   return fat-desp-diario;
 }
-let extratoReserva=null, extratoYear=null, extratoMes='todos';
+let extratoReserva=null, extratoYear=null, extratoMeses=[], extratoMesesTmp=[];
 function openExtratoReserva(key){
-  extratoReserva=key; extratoYear=curYear; extratoMes='todos';
+  extratoReserva=key; extratoYear=curYear; extratoMeses=[];
   renderExtratoReserva();
 }
 function changeExtratoYear(delta){ extratoYear+=delta; renderExtratoReserva(); }
@@ -802,7 +808,7 @@ function renderExtratoReserva(){
   let validos=[];
   if(extratoYear<anoReal) validos=[0,1,2,3,4,5,6,7,8,9,10,11];
   else if(extratoYear===anoReal) validos=Array.from({length:mesReal+1},(_,i)=>i);
-  const meses=extratoMes==='todos'?validos:(validos.includes(+extratoMes)?[+extratoMes]:[]);
+  const meses=extratoMeses.length?validos.filter(i=>extratoMeses.includes(i)):validos;
 
   const itens=[];
   meses.forEach(i=>{
@@ -813,7 +819,7 @@ function renderExtratoReserva(){
     if(sd.reserva!==key) return;
     const [ay,am]=sd.data.split('-');
     if(+ay!==extratoYear) return;
-    if(extratoMes!=='todos' && (+am-1)!==+extratoMes) return;
+    if(extratoMeses.length && !extratoMeses.includes(+am-1)) return;
     itens.push({mes:+am-1,tipo:'saida',titulo:sd.descricao,desc:fmtVenc(sd.data),valor:sd.valor,id:sd.id,manual:true});
   });
   itens.sort((a,b)=>b.mes-a.mes);
@@ -821,9 +827,10 @@ function renderExtratoReserva(){
   const entradas=itens.filter(x=>x.tipo==='entrada').reduce((s,x)=>s+x.valor,0);
   const saidas=itens.filter(x=>x.tipo==='saida').reduce((s,x)=>s+x.valor,0);
   const total=entradas-saidas;
-  const periodo=extratoMes==='todos'
-    ?(extratoYear>anoReal?'Nenhum mês disponível ainda':(extratoYear===anoReal?`Até ${MONTHS[mesReal].f}/${anoReal}`:`Ano de ${extratoYear}`))
-    :`${MONTHS[+extratoMes].f}/${extratoYear}`;
+  const selM=[...extratoMeses].sort((x,y)=>x-y);
+  const periodo=selM.length
+    ?(selM.length===1?`${MONTHS[selM[0]].f}/${extratoYear}`:selM.map(i=>MONTHS[i].a.charAt(0).toUpperCase()+MONTHS[i].a.slice(1)).join(', ')+'/'+extratoYear)
+    :(extratoYear>anoReal?'Nenhum mês disponível ainda':(extratoYear===anoReal?`Até ${MONTHS[mesReal].f}/${anoReal}`:`Ano de ${extratoYear}`));
 
   const rows=itens.length?itens.map(m=>{
     const ent=m.tipo==='entrada';
@@ -852,13 +859,7 @@ function renderExtratoReserva(){
           <span style="font-weight:700;font-size:13px;">${extratoYear}</span>
           <button onclick="changeExtratoYear(1)">›</button>
         </div>
-        <select onchange="extratoMes=this.value;renderExtratoReserva()">
-          <option value="todos" ${extratoMes==='todos'?'selected':''}>Ano inteiro</option>
-          ${MONTHS.map((m,i)=>{
-            const futuro=(extratoYear>anoReal)||(extratoYear===anoReal&&i>mesReal);
-            return `<option value="${i}" ${extratoMes==String(i)?'selected':''} ${futuro?'disabled':''}>${m.f}${futuro?' (futuro)':''}</option>`;
-          }).join('')}
-        </select>
+        <button class="ex-mesbtn" onclick="openFiltroMeses()"><span>📅 ${labelMesesExtrato()}</span><span style="color:var(--muted)">▾</span></button>
       </div>
 
       <div class="ex-hero">
@@ -880,6 +881,42 @@ function renderExtratoReserva(){
     </main>
     <button class="fab" onclick="closeModal(); render();" style="bottom:calc(24px + env(safe-area-inset-bottom,0px));"><span class="plus">←</span><span>Voltar</span></button>
   </div>`;
+}
+function labelMesesExtrato(){
+  if(!extratoMeses.length) return 'Ano inteiro';
+  const m=[...extratoMeses].sort((a,b)=>a-b);
+  if(m.length<=2) return m.map(i=>MONTHS[i].a.charAt(0).toUpperCase()+MONTHS[i].a.slice(1)).join(', ');
+  return m.length+' meses';
+}
+function openFiltroMeses(){
+  extratoMesesTmp=[...extratoMeses];
+  renderFiltroMeses();
+}
+function renderFiltroMeses(){
+  const h=new Date(), anoReal=h.getFullYear(), mesReal=h.getMonth();
+  const chips=MONTHS.map((m,i)=>{
+    const futuro=(extratoYear>anoReal)||(extratoYear===anoReal&&i>mesReal);
+    return `<button class="ex-mchip ${extratoMesesTmp.includes(i)?'on':''}" ${futuro?'disabled':''} onclick="toggleMesFiltro(${i})">${m.a.charAt(0).toUpperCase()+m.a.slice(1)}</button>`;
+  }).join('');
+  document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
+    <h2>Filtrar meses</h2>
+    <div class="sub" style="color:var(--muted);font-size:12px;margin:-8px 0 14px;">Toque nos meses que quiser ver em ${extratoYear}. Meses futuros ficam indisponíveis.</div>
+    <div class="ex-mgrid">${chips}</div>
+    <div class="modalbtns" style="margin-bottom:10px;">
+      <button class="btn ghost" onclick="extratoMesesTmp=[];renderFiltroMeses()">Ano inteiro</button>
+      <button class="btn primary" onclick="aplicarFiltroMeses()">Aplicar</button>
+    </div>
+  </div></div>`;
+}
+function toggleMesFiltro(i){
+  const k=extratoMesesTmp.indexOf(i);
+  if(k>=0) extratoMesesTmp.splice(k,1); else extratoMesesTmp.push(i);
+  renderFiltroMeses();
+}
+function aplicarFiltroMeses(){
+  extratoMeses=[...extratoMesesTmp];
+  document.getElementById('catModalRoot').innerHTML='';
+  renderExtratoReserva();
 }
 function openNovaSaidaReserva(){
   const hoje=todayStr();
