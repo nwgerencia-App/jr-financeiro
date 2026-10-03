@@ -8,14 +8,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<meta name="theme-color" content="#1b2740">
+<meta name="theme-color" content="#26365a">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwZjFiMzMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMjM3NWYiLz4KPC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMzgiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTAiIGZpbGw9IiNlOGE1M2QiLz4KPHRleHQgeD0iOTAiIHk9IjExNCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjY2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTIyMDNkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4kPC90ZXh0Pgo8L3N2Zz4K">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --cream:#f5f2ea; --card:#ffffff; --navy:#1b2740; --navy2:#26324a;
+  --cream:#f5f2ea; --card:#ffffff; --navy:#26365a; --navy2:#26324a;
   --amber:#b9812e; --green:#2f6a4d; --red:#a84a3a; --muted:#6b7280;
   --border:#e7e2d6; --text:#22283a;
   box-sizing:border-box;
@@ -39,7 +39,7 @@ body{
 h1,h2,.serif{font-family:'Playfair Display',Georgia,serif;}
 #app{display:flex; flex-direction:column; height:100vh; max-width:520px; margin:0 auto; position:relative;}
 header.top{
-  background:linear-gradient(135deg,#0f1b33 0%,#1b2a4a 55%,#22375f 100%);
+  background:linear-gradient(135deg,#1a2a4a 0%,#243a62 55%,#2c4676 100%);
   color:#f5f2ea; padding:20px 18px 24px;
   padding-top:calc(20px + env(safe-area-inset-top,0px));
   display:flex; justify-content:space-between; align-items:flex-start;
@@ -199,7 +199,7 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
 :root[data-theme="dark"] .gest-btn .gic{background:#2a3040;}
 .toast{position:fixed; left:50%; bottom:calc(106px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(10px); background:rgba(20,26,40,.92); color:#fff; padding:10px 16px; border-radius:22px; font-size:12.5px; opacity:0; pointer-events:none; transition:.2s; z-index:60; max-width:80%; text-align:center;}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
-.ex-hero{background:linear-gradient(135deg,#0f1b33 0%,#1b2a4a 55%,#2a4478 100%); color:#f5f2ea; border-radius:20px; padding:18px; margin-bottom:14px; position:relative; overflow:hidden; box-shadow:0 10px 24px rgba(20,30,55,.25);}
+.ex-hero{background:linear-gradient(135deg,#1a2a4a 0%,#243a62 55%,#34508a 100%); color:#f5f2ea; border-radius:20px; padding:18px; margin-bottom:14px; position:relative; overflow:hidden; box-shadow:0 10px 24px rgba(20,30,55,.25);}
 .ex-hero::after{content:''; position:absolute; right:-30px; top:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.07);}
 .ex-hero .eh-top{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
 .ex-hero .eh-ic{width:34px; height:34px; border-radius:12px; background:rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center;}
@@ -241,7 +241,7 @@ header.hmain h1{font-size:22px; line-height:1.15;}
 .hbar{display:flex; align-items:center; gap:4px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16); border-radius:18px; padding:4px;}
 .hnav{width:36px; height:36px; border-radius:14px; border:none; background:rgba(255,255,255,.1); color:#fff; font-size:18px; cursor:pointer; flex-shrink:0; font-family:inherit;}
 .hbar .hlabel{flex:1; background:transparent; border:none; text-align:center; font-size:13.5px; font-weight:600; padding:8px 6px; border-radius:12px; min-width:0;}
-.hero{position:relative; overflow:hidden; border-radius:22px; padding:18px; margin-bottom:16px; color:#fff; background:linear-gradient(135deg,#0f1b33,#1b2a4a 55%,#2a4478); box-shadow:0 12px 26px rgba(20,30,55,.22);}
+.hero{position:relative; overflow:hidden; border-radius:22px; padding:18px; margin-bottom:16px; color:#fff; background:linear-gradient(135deg,#1a2a4a,#243a62 55%,#34508a); box-shadow:0 12px 26px rgba(20,30,55,.22);}
 .hero.green{background:linear-gradient(135deg,#0d3b2c,#176a49 60%,#2a9266);}
 .hero.red{background:linear-gradient(135deg,#4a1a18,#9a3a31 60%,#d0594b);}
 .hero.blue{background:linear-gradient(135deg,#112a63,#1f4fb5 60%,#3b7cf0);}
@@ -277,7 +277,7 @@ header.hmain::before{display:none;}
 header.hmain .hic{box-shadow:none;}
 .hbar{background:rgba(255,255,255,.08);}
 .hnav{background:none;}
-.hero{padding:20px; background:linear-gradient(135deg,#1b2a4a,#22375f); box-shadow:0 8px 20px rgba(20,30,55,.14);}
+.hero{padding:20px; background:linear-gradient(135deg,#243a62,#2c4676); box-shadow:0 8px 20px rgba(20,30,55,.14);}
 .hero::before,.hero::after{display:none;}
 .hero-lbl{font-size:12px; font-weight:500; opacity:.75; margin-bottom:6px;}
 .hero-val{font-size:30px; margin-bottom:16px;}
