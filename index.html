@@ -84,27 +84,37 @@ main{flex:1; overflow-y:auto; padding:16px 16px 150px; -webkit-overflow-scrollin
 :root[data-theme="dark"] .badge.pend, @media (prefers-color-scheme:dark){.badge.pend{background:#4a3a1c; color:#e8c887;}}
 .delbtn{background:none; border:none; color:var(--muted); font-size:16px; padding:2px 4px; cursor:pointer;}
 .fab{
-  position:fixed; right:18px; bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  position:fixed; right:18px; bottom:calc(94px + env(safe-area-inset-bottom,0px));
   background:var(--navy); color:#fff; border:none; border-radius:30px; padding:11px 20px 11px 11px;
   font-family:inherit; font-weight:600; font-size:13.5px; box-shadow:0 8px 20px rgba(20,30,55,.35); cursor:pointer;
   max-width:480px; display:flex; align-items:center; gap:9px;
 }
 .fab .plus{width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:15px;}
-.fabround{position:fixed; right:18px; bottom:calc(84px + env(safe-area-inset-bottom,0px)); width:52px; height:52px; border-radius:50%; background:var(--navy); color:#fff; border:none; font-size:24px; box-shadow:0 8px 20px rgba(20,30,55,.35); cursor:pointer; display:none; align-items:center; justify-content:center;}
+.fabround{position:fixed; right:18px; bottom:calc(94px + env(safe-area-inset-bottom,0px)); width:52px; height:52px; border-radius:50%; background:var(--navy); color:#fff; border:none; font-size:24px; box-shadow:0 8px 20px rgba(20,30,55,.35); cursor:pointer; display:none; align-items:center; justify-content:center;}
 nav.bottom{
-  position:fixed; bottom:0; left:0; right:0; background:var(--card); border-top:1px solid var(--border);
-  display:flex; max-width:520px; margin:0 auto;
-  padding-bottom:env(safe-area-inset-bottom,0px);
+  position:fixed; left:12px; right:12px; bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  max-width:496px; margin:0 auto; z-index:20;
+  display:flex; gap:2px; padding:6px;
+  background:var(--card); border:1px solid var(--border); border-radius:28px;
+  box-shadow:0 12px 32px rgba(20,30,55,.18), 0 2px 6px rgba(20,30,55,.06);
 }
 nav.bottom button{
-  position:relative; flex:1; background:none; border:none; padding:10px 4px 8px; font-family:inherit; cursor:pointer;
-  color:var(--muted); display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px;
+  flex:1; background:none; border:none; padding:5px 2px 4px; font-family:inherit; cursor:pointer;
+  color:var(--muted); display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px; font-weight:500;
+  -webkit-tap-highlight-color:transparent; transition:color .2s;
 }
+nav.bottom .ic{width:46px; height:30px; border-radius:16px; display:flex; align-items:center; justify-content:center; transition:background .2s, transform .2s, box-shadow .2s;}
+nav.bottom .ic svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;}
+nav.bottom button:active .ic{transform:scale(.92);}
 nav.bottom button.active{color:var(--navy); font-weight:700;}
-nav.bottom button.active::after{content:''; position:absolute; bottom:0; left:26%; right:26%; height:3px; background:var(--navy); border-radius:3px 3px 0 0;}
+nav.bottom button.active .ic{background:var(--navy); color:#fff; box-shadow:0 5px 12px rgba(27,39,64,.32);}
+:root[data-theme="dark"] nav.bottom{box-shadow:0 12px 32px rgba(0,0,0,.5);}
 :root[data-theme="dark"] nav.bottom button.active{color:#8fb3ff;}
-:root[data-theme="dark"] nav.bottom button.active::after{background:#8fb3ff;}
-nav.bottom .ic{font-size:18px;}
+:root[data-theme="dark"] nav.bottom button.active .ic{background:#8fb3ff; color:#15181f; box-shadow:0 5px 12px rgba(143,179,255,.25);}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) nav.bottom button.active{color:#8fb3ff;}
+  :root:not([data-theme="light"]) nav.bottom button.active .ic{background:#8fb3ff; color:#15181f;}
+}
 table.gestao{width:100%; border-collapse:collapse; font-size:11.5px; background:var(--card); border-radius:12px; overflow:hidden; border:1px solid var(--border);}
 table.gestao th{background:var(--navy); color:#f5f2ea; padding:8px 6px; font-weight:600; text-align:right; white-space:nowrap;}
 table.gestao th:first-child, table.gestao td:first-child{text-align:left;}
@@ -187,7 +197,7 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
 .gest-btn .gtxt{flex:1; text-align:left; font-weight:600; font-size:13.5px; color:var(--text);}
 .gest-btn .chev{color:var(--muted); font-size:18px;}
 :root[data-theme="dark"] .gest-btn .gic{background:#2a3040;}
-.toast{position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(10px); background:rgba(20,26,40,.92); color:#fff; padding:10px 16px; border-radius:22px; font-size:12.5px; opacity:0; pointer-events:none; transition:.2s; z-index:60; max-width:80%; text-align:center;}
+.toast{position:fixed; left:50%; bottom:calc(106px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(10px); background:rgba(20,26,40,.92); color:#fff; padding:10px 16px; border-radius:22px; font-size:12.5px; opacity:0; pointer-events:none; transition:.2s; z-index:60; max-width:80%; text-align:center;}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 .ex-hero{background:linear-gradient(135deg,#0f1b33 0%,#1b2a4a 55%,#2a4478 100%); color:#f5f2ea; border-radius:20px; padding:18px; margin-bottom:14px; position:relative; overflow:hidden; box-shadow:0 10px 24px rgba(20,30,55,.25);}
 .ex-hero::after{content:''; position:absolute; right:-30px; top:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.07);}
@@ -235,11 +245,11 @@ table.gestao td{padding:7px 6px; text-align:right; border-top:1px solid var(--bo
   <main id="content"></main>
   <button class="fab" id="fabAdd" style="display:none;"><span class="plus">+</span><span id="fabAddLabel">Novo lançamento</span></button>
   <nav class="bottom">
-    <button data-tab="resultado" class="active"><span class="ic">🏠</span>Início</button>
-    <button data-tab="diario"><span class="ic">🗓️</span>Diário</button>
-    <button data-tab="receber"><span class="ic">💰</span>Receber</button>
-    <button data-tab="pagar"><span class="ic">🧾</span>Pagar</button>
-    <button data-tab="gestao"><span class="ic">🏦</span>Gestão</button>
+    <button data-tab="resultado" class="active"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg></span>Início</button>
+    <button data-tab="diario"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg></span>Diário</button>
+    <button data-tab="receber"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M8.5 13l3.5 3.5 3.5-3.5"/></svg></span>Receber</button>
+    <button data-tab="pagar"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-9M8.5 11 12 7.5 15.5 11"/></svg></span>Pagar</button>
+    <button data-tab="gestao"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 10 12 4l9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></span>Gestão</button>
   </nav>
 </div>
 <div id="modalRoot"></div>
