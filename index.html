@@ -225,7 +225,7 @@ function seed(){
     hist:{},
     reservas:{imprevistos:50,projeto:20,pessoal:20,doacoes:10},
     reservaNomes:{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'},
-    customCats:[], catColors:{}, hiddenCats:[], diarios:[], capitalGiro:0, customFormas:[], notifPref:true, pin:null, perfil:{nome:'',email:''}, theme:'auto', ano:'2026'
+    customCats:[], catColors:{}, hiddenCats:[], diarios:[], capitalGiro:0, customFormas:[], notifPref:true, pin:null, perfil:{nome:'',email:''}, theme:'auto', ano:'2026', reservaSaidas:[]
   };
 }
 let S=load();
@@ -249,6 +249,7 @@ function load(){
     if(s.notifPref===undefined) s.notifPref=true;
     if(s.pin===undefined) s.pin=null;
     if(!s.perfil) s.perfil={nome:'',email:''};
+    if(!s.reservaSaidas) s.reservaSaidas=[];
     return s;
   }catch(e){return seed();}
 }
@@ -734,7 +735,7 @@ function renderGestao(c){
     {key:'projeto',cic:'blue',grad:'blue-grad'},
     {key:'pessoal',cic:'amber',grad:'amber-grad'},
     {key:'doacoes',cic:'red',grad:'red-grad'}
-  ].map(x=>`<div class="card ${x.grad}"><div class="cic ${x.cic}">${WALLET_ICON}</div><div class="lbl">${n[x.key]}</div><div class="val ${x.cic==='blue'?'muted':x.cic}">${brl(lucroAno*r[x.key]/100)}</div></div>`).join('');
+  ].map(x=>`<div class="card ${x.grad}" onclick="openExtratoReserva('${x.key}')" style="cursor:pointer;"><div class="cic ${x.cic}">${WALLET_ICON}</div><div class="lbl">${n[x.key]}</div><div class="val ${x.cic==='blue'?'muted':x.cic}">${brl(lucroAno*r[x.key]/100)}</div></div>`).join('');
   c.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:14px;">
     <button onclick="changeGestaoYear(-1)" style="background:var(--card);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;color:var(--text);">‹</button>
     <div style="font-weight:700;font-size:16px;color:var(--text);">${curYear}</div>
@@ -751,6 +752,110 @@ function renderGestao(c){
 function changeGestaoYear(delta){
   curYear+=delta;
   render();
+}
+function lucroMes(i,year){
+  const fat=sumFor(S.receber,i,year), desp=sumFor(S.pagar,i,year);
+  const diario=diarioTotalForMonth(i,year);
+  return fat-desp-diario;
+}
+let extratoReserva=null, extratoYear=null, extratoMes='todos';
+function openExtratoReserva(key){
+  extratoReserva=key; extratoYear=curYear; extratoMes='todos';
+  renderExtratoReserva();
+}
+function changeExtratoYear(delta){ extratoYear+=delta; renderExtratoReserva(); }
+function renderExtratoReserva(){
+  const key=extratoReserva;
+  const n=S.reservaNomes||{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'};
+  const pct=S.reservas[key];
+  const meses=extratoMes==='todos'?[0,1,2,3,4,5,6,7,8,9,10,11]:[+extratoMes];
+  const auto=[];
+  meses.forEach(i=>{
+    const lucro=lucroMes(i,extratoYear);
+    const valor=lucro*pct/100;
+    if(valor!==0) auto.push({mes:i,tipo:valor>=0?'entrada':'saida',desc:`Distribuição automática (${pct}% do lucro)`,valor:Math.abs(valor)});
+  });
+  const manual=(S.reservaSaidas||[]).filter(sd=>{
+    if(sd.reserva!==key) return false;
+    const [ay,am]=sd.data.split('-');
+    if(+ay!==extratoYear) return false;
+    if(extratoMes!=='todos' && (+am-1)!==+extratoMes) return false;
+    return true;
+  }).map(sd=>({mes:+sd.data.split('-')[1]-1,tipo:'saida',desc:sd.descricao,valor:sd.valor,id:sd.id}));
+  const items=[...auto,...manual].sort((a,b)=>b.mes-a.mes);
+  const total=auto.reduce((s,m)=>s+(m.tipo==='entrada'?m.valor:-m.valor),0)-manual.reduce((s,m)=>s+m.valor,0);
+  const rows=items.length?items.map(m=>`
+    <div class="row" style="align-items:center;">
+      <div class="left">
+        <div class="ric" style="background:${m.tipo==='entrada'?'#dcecdf':'#f6d9d4'};color:${m.tipo==='entrada'?'#1f5c3a':'#8a2f22'};">${m.tipo==='entrada'?'↓':'↑'}</div>
+        <div class="info">
+          <div class="cli">${m.desc}</div>
+          <div class="sub">${MONTHS[m.mes].f}/${extratoYear}</div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="valor" style="color:${m.tipo==='entrada'?'#217a4b':'#b3392a'};">${m.tipo==='entrada'?'+ ':'- '}${brl(m.valor)}</div>
+        ${m.id?`<button class="delbtn" onclick="delSaidaReserva('${m.id}')">✕</button>`:''}
+      </div>
+    </div>`).join(''):'<div class="empty"><div class="eic">📄</div><div class="et">Nenhuma movimentação neste período.</div></div>';
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="formscreen">
+    <header class="top">
+      <div class="htitle">
+        <button class="backbtn" onclick="closeModal(); render();">←</button>
+        <div class="hic" style="background:rgba(255,255,255,.14)">💰</div>
+        <div><h1>${n[key]}</h1><div class="month">Extrato de entradas e saídas</div></div>
+      </div>
+    </header>
+    <main>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <div style="flex:1;border:1px solid var(--border);border-radius:10px;padding:9px 8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;">
+          <button onclick="changeExtratoYear(-1)" style="background:none;border:none;font-size:15px;color:var(--navy);cursor:pointer;">‹</button>
+          <span style="font-weight:600;font-size:13px;">${extratoYear}</span>
+          <button onclick="changeExtratoYear(1)" style="background:none;border:none;font-size:15px;color:var(--navy);cursor:pointer;">›</button>
+        </div>
+        <select onchange="extratoMes=this.value;renderExtratoReserva()" style="flex:1;border:1px solid var(--border);border-radius:10px;padding:9px 8px;background:var(--card);color:var(--text);font-family:inherit;font-size:12.5px;">
+          <option value="todos" ${extratoMes==='todos'?'selected':''}>Ano inteiro</option>
+          ${MONTHS.map((m,i)=>`<option value="${i}" ${extratoMes==String(i)?'selected':''}>${m.f}</option>`).join('')}
+        </select>
+      </div>
+      <div class="card blue-grad" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+        <div class="lbl">Saldo no período</div>
+        <div class="val" style="font-size:19px;color:${total>=0?'#2a4f8f':'#b3392a'};">${brl(total)}</div>
+      </div>
+      <button onclick="openNovaSaidaReserva()" style="width:100%;background:#d9695a;color:#fff;border:none;border-radius:14px;padding:16px;font-weight:700;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;cursor:pointer;margin-bottom:14px;box-shadow:0 6px 16px rgba(217,105,90,.35);">➖ Registrar saída</button>
+      <button class="btn ghost" style="width:100%;margin-bottom:16px;" onclick="closeModal(); render();">← Voltar</button>
+      <div class="sectionh">Movimentações</div>
+      <div class="list">${rows}</div>
+    </main>
+  </div>`;
+}
+function openNovaSaidaReserva(){
+  const hoje=todayStr();
+  document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
+    <h2>Registrar saída</h2>
+    <div class="field"><label>Descrição</label><input id="fSaidaDesc" type="text" placeholder="Ex: Retirada para emergência"></div>
+    <div class="field"><label>Valor (R$)</label><input id="fSaidaValor" type="number" step="0.01" placeholder="0,00"></div>
+    <div class="field"><label>Data</label><input id="fSaidaData" type="date" value="${hoje}"></div>
+    <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button><button class="btn primary" onclick="saveSaidaReserva()">Salvar</button></div>
+  </div></div>`;
+}
+function saveSaidaReserva(){
+  const descricao=(document.getElementById('fSaidaDesc').value||'').trim()||'Saída';
+  const valor=+document.getElementById('fSaidaValor').value||0;
+  const data=document.getElementById('fSaidaData').value||todayStr();
+  if(valor>0){
+    S.reservaSaidas=S.reservaSaidas||[];
+    S.reservaSaidas.push({id:'rs'+Date.now(),reserva:extratoReserva,descricao,valor,data});
+    save();
+  }
+  document.getElementById('catModalRoot').innerHTML='';
+  renderExtratoReserva();
+}
+function delSaidaReserva(id){
+  S.reservaSaidas=(S.reservaSaidas||[]).filter(x=>x.id!==id);
+  save();
+  renderExtratoReserva();
 }
 function openReservaModal(){
   const r=S.reservas;
