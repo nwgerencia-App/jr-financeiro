@@ -1457,4 +1457,207 @@ function confirmCatModal(targetSelectId){
   if(!selEl){alert('Escolha uma cor para a categoria.'); return;}
   const color=selEl.dataset.color;
   S.catColors=S.catColors||{};
-  if(Object.values(S.catColors).includes(color)){alert('Essa cor 
+  if(Object.values(S.catColors).includes(color)){alert('Essa cor já está em uso por outra categoria. Escolha outra.'); return;}
+  S.customCats=S.customCats||[];
+  if(!S.customCats.includes(nome) && !CATS.includes(nome)) S.customCats.push(nome);
+  S.catColors[nome]=color;
+  save();
+  document.getElementById('catModalRoot').innerHTML='';
+  if(settingsSubScreen==='categorias') openCategoriasList();
+  if(targetSelectId){
+    const sel=document.getElementById(targetSelectId);
+    if(sel){
+      const opt=document.createElement('option'); opt.value=nome; opt.textContent=nome;
+      const sentinel=sel.querySelector('option[value="__new__"]');
+      if(sentinel) sel.insertBefore(opt,sentinel); else sel.appendChild(opt);
+      sel.value=nome;
+    }
+  }
+}
+function addMonths(dateStr,n){
+  const [y,m,d]=dateStr.split('-').map(Number);
+  const base=new Date(y,(m-1)+n,1);
+  const yy=base.getFullYear(), mm=base.getMonth();
+  const lastDay=new Date(yy,mm+1,0).getDate();
+  const dd=Math.min(d,lastDay);
+  return `${yy}-${String(mm+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+}
+function saveNovo(editId){
+  const isReceber=tab==='receber';
+  const nome=document.getElementById('fNome').value.trim()||'Sem nome';
+  const tipo=document.getElementById('fTipo').value||'Outros';
+  const pag=document.getElementById('fPag').value||'-';
+  const venc=document.getElementById('fVenc').value||`${curYear}-${String(curMonth+1).padStart(2,'0')}-28`;
+  const mIdx=(+venc.split('-')[1])-1, ano=venc.split('-')[0];
+  const referencia=`${MONTHS[mIdx]?MONTHS[mIdx].f:MONTHS[curMonth].f}/${ano}`;
+  const valor=+document.getElementById('fValor').value||0;
+  const statusPend=isReceber?'A Receber':'A Pagar';
+  const status=document.getElementById('fStatus').value||statusPend;
+  const list=isReceber?S.receber:S.pagar;
+  if(editId){
+    const it=list.find(x=>x.id===editId);
+    if(it){ if(isReceber)it.cliente=nome; else it.conta=nome; it.tipo=tipo; it.referencia=referencia; it.descricao=pag; it.venc=venc; it.valor=valor; it.status=status; }
+  } else {
+    const parcelasSel=document.getElementById('fParcelas').value;
+    const n=parcelasSel==='perder'?60:(+parcelasSel||1);
+    for(let k=0;k<n;k++){
+      const vencK=k===0?venc:addMonths(venc,k);
+      const mK=(+vencK.split('-')[1])-1, anoK=vencK.split('-')[0];
+      const refK=`${MONTHS[mK]?MONTHS[mK].f:MONTHS[curMonth].f}/${anoK}`;
+      let descK=pag;
+      if(parcelasSel==='perder') descK+=' (recorrente)';
+      else if(n>1) descK+=` (parcela ${k+1}/${n})`;
+      const item={id:'n'+Date.now()+'_'+k,tipo,referencia:refK,descricao:descK,venc:vencK,valor,status:k===0?status:statusPend};
+      if(isReceber){item.cliente=nome; S.receber.push(item);} else {item.conta=nome; S.pagar.push(item);}
+    }
+  }
+  save(); closeModal();
+  curYear=+ano;
+  curMonth=monthIndexFromRef(referencia);
+  render();
+}
+
+document.getElementById('fabAdd').addEventListener('click',()=>{ if(tab==='diario') openDiarioForm(); else openNovoModal(); });
+document.getElementById('settingsBtn').addEventListener('click',openSettings);
+document.querySelectorAll('nav.bottom button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab; render();}));
+function goTab(t){ tab=t; render(); }
+
+const TAB_ORDER=['resultado','diario','receber','pagar','gestao'];
+let swipeStartX=0, swipeStartY=0, swipeSkip=false;
+const contentEl=document.getElementById('content');
+contentEl.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1) return;
+  swipeStartX=e.touches[0].clientX;
+  swipeStartY=e.touches[0].clientY;
+  swipeSkip=!!e.target.closest('.tablewrap');
+},{passive:true});
+contentEl.addEventListener('touchend',e=>{
+  if(swipeSkip) return;
+  const t=e.changedTouches[0];
+  const dx=t.clientX-swipeStartX;
+  const dy=t.clientY-swipeStartY;
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){
+    const idx=TAB_ORDER.indexOf(tab);
+    if(dx<0 && idx<TAB_ORDER.length-1){ tab=TAB_ORDER[idx+1]; render(); }
+    else if(dx>0 && idx>0){ tab=TAB_ORDER[idx-1]; render(); }
+  }
+},{passive:true});
+function showLockScreen(){
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="formscreen" data-lock="lock" style="justify-content:center;">
+    <div style="padding:60px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:14px;">🔐</div>
+      <h2 style="margin:0 0 18px;">Digite sua senha</h2>
+      <input id="lockInput" type="password" inputmode="numeric" maxlength="4" style="text-align:center;font-size:22px;letter-spacing:8px;width:140px;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);" placeholder="••••">
+      <br><button class="btn primary" style="width:140px;margin-top:16px;" onclick="tryUnlock()">Entrar</button>
+      <div id="lockErr" style="color:#b3392a;font-size:12px;margin-top:10px;"></div>
+      <div style="margin-top:26px;"><button style="background:none;border:none;color:var(--muted);font-size:12.5px;text-decoration:underline;cursor:pointer;font-family:inherit;" onclick="openForgotPin()">Esqueci minha senha</button></div>
+    </div>
+  </div>`;
+}
+function tryUnlock(){
+  const v=document.getElementById('lockInput').value;
+  if(v===S.pin){ document.getElementById('modalRoot').innerHTML=''; render(); }
+  else { document.getElementById('lockErr').textContent='Senha incorreta.'; }
+}
+function openForgotPin(){
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="formscreen" data-lock="forgot" style="justify-content:center;">
+    <div style="padding:40px 24px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:14px;">⚠️</div>
+      <h2 style="margin:0 0 14px;">Esqueceu sua senha?</h2>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 24px;">Como os dados ficam só neste aparelho, não existe forma de confirmar sua identidade para recuperar a senha. A única opção é remover a senha — seus lançamentos, categorias e configurações continuam intactos, só a proteção por senha será desligada.</p>
+      <button class="btn primary" style="width:100%;margin-bottom:10px;" onclick="forgotPinReset()">Remover senha e continuar</button>
+      <button class="btn ghost" style="width:100%;" onclick="showLockScreen()">Voltar</button>
+    </div>
+  </div>`;
+}
+function forgotPinReset(){
+  S.pin=null; save();
+  document.getElementById('modalRoot').innerHTML='';
+  render();
+}
+function showOnboarding(){
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="formscreen" data-lock="onboarding">
+    <main style="display:flex; flex-direction:column; justify-content:center; padding-top:40px;">
+      <div style="text-align:center; margin-bottom:30px;">
+        <div style="font-size:44px; margin-bottom:10px;">💰</div>
+        <h2 style="margin:0 0 6px;">Bem-vindo(a)!</h2>
+        <div class="sub">Cadastre seu perfil para continuar. Seus dados ficam salvos apenas neste aparelho/navegador.</div>
+      </div>
+      <div class="ffield"><div class="fic blue">👤</div><div class="fbody"><label>Nome <span style="color:#c0392b">*</span></label><input id="obNome" type="text" placeholder="Seu nome"></div></div>
+      <div class="ffield"><div class="fic green">✉️</div><div class="fbody"><label>E-mail <span style="color:#c0392b">*</span></label><input id="obEmail" type="email" placeholder="seu@email.com"></div></div>
+      <div class="ffield"><div class="fic purple">🔐</div><div class="fbody"><label>Senha <span style="color:#c0392b">*</span></label><input id="obSenha" type="password" inputmode="numeric" maxlength="4" placeholder="•••• (4 dígitos)"></div></div>
+      <div id="obErr" style="color:#b3392a; font-size:12.5px; margin:-8px 0 10px;"></div>
+    </main>
+    <div class="formbtns" style="position:fixed;">
+      <button class="btn save" style="width:100%" onclick="finishOnboarding()">✅ Começar a usar</button>
+    </div>
+  </div>`;
+}
+function finishOnboarding(){
+  const nome=(document.getElementById('obNome').value||'').trim();
+  const email=(document.getElementById('obEmail').value||'').trim();
+  const senha=(document.getElementById('obSenha').value||'').trim();
+  if(!nome){document.getElementById('obErr').textContent='Digite seu nome para continuar.'; return;}
+  if(!email){document.getElementById('obErr').textContent='Digite seu e-mail para continuar.'; return;}
+  if(!senha||!/^\d{4}$/.test(senha)){document.getElementById('obErr').textContent='Digite uma senha de 4 números para continuar.'; return;}
+  S.perfil={nome,email};
+  S.pin=senha;
+  save();
+  document.getElementById('modalRoot').innerHTML='';
+  showLockScreen();
+}
+// ===== Botão Voltar (Android) + PWA =====
+function showToast(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t);}
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(showToast._t); showToast._t=setTimeout(()=>t.classList.remove('show'),2000);
+}
+// Fecha o que estiver aberto; devolve true se "consumiu" o Voltar
+function handleBack(){
+  const cm=document.getElementById('catModalRoot');
+  if(cm && cm.innerHTML.trim()){ closeCatModal(); return true; }
+  const mr=document.getElementById('modalRoot');
+  if(mr && mr.innerHTML.trim()){
+    const lock=mr.querySelector('[data-lock]');
+    if(lock){ if(lock.dataset.lock==='forgot') showLockScreen(); return true; }
+    const b=mr.querySelector('.backbtn');
+    if(b) b.click(); else closeModal();
+    return true;
+  }
+  if(tab!=='resultado'){ tab='resultado'; render(); return true; }
+  return false;
+}
+let exitTimer=null, guardArmed=false;
+// O "guard" é criado no primeiro toque (o Chrome ignora entradas de histórico criadas sem interação do usuário)
+function armGuard(){
+  if(guardArmed) return; guardArmed=true;
+  try{
+    if(!history.state || history.state.app!=='guard'){
+      history.replaceState({app:'base'},'');
+      history.pushState({app:'guard'},'');
+    }
+  }catch(e){}
+}
+['touchstart','pointerdown','click','keydown'].forEach(ev=>document.addEventListener(ev,armGuard,{once:true,passive:true,capture:true}));
+window.addEventListener('popstate',e=>{
+  if(e.state && e.state.app==='guard') return;
+  if(handleBack()){ history.pushState({app:'guard'},''); return; }
+  // Já está na tela inicial sem nada aberto: avisa; um segundo Voltar em 2s sai de verdade
+  showToast('Pressione voltar novamente para sair');
+  clearTimeout(exitTimer);
+  exitTimer=setTimeout(()=>{ if(!history.state || history.state.app!=='guard') history.pushState({app:'guard'},''); },2000);
+});
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('/sw.js').catch(()=>{}); });
+}
+
+if(!S.perfil || !S.perfil.nome){ render(); showOnboarding(); }
+else if(S.pin){ showLockScreen(); }
+else { render(); }
+</script>
+</body>
+</html>
