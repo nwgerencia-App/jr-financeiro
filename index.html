@@ -12,7 +12,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwZjFiMzMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMjM3NWYiLz4KPC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMzgiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTAiIGZpbGw9IiNlOGE1M2QiLz4KPHRleHQgeD0iOTAiIHk9IjExNCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjY2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTIyMDNkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4kPC90ZXh0Pgo8L3N2Zz4K">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --cream:#f5f2ea; --card:#ffffff; --navy:#26365a; --navy2:#26324a;
@@ -326,6 +326,48 @@ header.hmain .hic{box-shadow:none;}
   :root:not([data-theme="light"]) .hero.tint-amber,:root:not([data-theme="light"]) .rcard.tint-amber{background:linear-gradient(135deg,#3a2f18,#332a15); border-color:#4a3c1e;}
   :root:not([data-theme="light"]) .hero.tint-blue,:root:not([data-theme="light"]) .rcard.tint-blue{background:linear-gradient(135deg,#152238,#111c2e); border-color:#1e3252;}
 }
+
+/* ===== Novo card hero (Início, Diário, A Receber, A Pagar) ===== */
+.hero2{
+  position:relative; overflow:hidden; border-radius:26px; padding:18px 16px 14px; margin-bottom:16px;
+  border:1px solid var(--border); background:var(--card);
+  --ac:#217a4b; --acbg:rgba(47,158,95,.18); --panel:rgba(255,255,255,.78); --sep:rgba(0,0,0,.10);
+}
+.hero2.t-blue{background:linear-gradient(135deg,#eaf1fb,#dde9f9); border-color:#c9dcf5;}
+.hero2.t-green{background:linear-gradient(135deg,#e5f6ea,#d5f0dd); border-color:#bfe4cb;}
+.hero2.t-red{background:linear-gradient(135deg,#fbeae7,#f6d9d4); border-color:#eec3bc; --ac:#b3392a; --acbg:rgba(217,105,90,.20);}
+.hero2.t-amber{background:linear-gradient(135deg,#fdf3e0,#fbe8c6); border-color:#f3dba8; --ac:#b9812e; --acbg:rgba(232,165,61,.24);}
+.hero2.neg{--ac:#b3392a; --acbg:rgba(217,105,90,.20);}
+:root[data-theme="dark"] .hero2{--panel:rgba(255,255,255,.06); --sep:rgba(255,255,255,.12); --ac:#5fd38d; --acbg:rgba(95,211,141,.16);}
+:root[data-theme="dark"] .hero2.t-blue{background:linear-gradient(135deg,#152238,#111c2e); border-color:#1e3252;}
+:root[data-theme="dark"] .hero2.t-green{background:linear-gradient(135deg,#173325,#132c20); border-color:#1f4531;}
+:root[data-theme="dark"] .hero2.t-red{background:linear-gradient(135deg,#3a2019,#331b15); border-color:#4a2a20; --ac:#ff9d8f; --acbg:rgba(255,157,143,.16);}
+:root[data-theme="dark"] .hero2.t-amber{background:linear-gradient(135deg,#3a2f18,#332a15); border-color:#4a3c1e; --ac:#e8c887; --acbg:rgba(232,200,135,.16);}
+:root[data-theme="dark"] .hero2.neg{--ac:#ff9d8f; --acbg:rgba(255,157,143,.16);}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .hero2{--panel:rgba(255,255,255,.06); --sep:rgba(255,255,255,.12); --ac:#5fd38d; --acbg:rgba(95,211,141,.16);}
+  :root:not([data-theme="light"]) .hero2.t-blue{background:linear-gradient(135deg,#152238,#111c2e); border-color:#1e3252;}
+  :root:not([data-theme="light"]) .hero2.t-green{background:linear-gradient(135deg,#173325,#132c20); border-color:#1f4531;}
+  :root:not([data-theme="light"]) .hero2.t-red{background:linear-gradient(135deg,#3a2019,#331b15); border-color:#4a2a20; --ac:#ff9d8f; --acbg:rgba(255,157,143,.16);}
+  :root:not([data-theme="light"]) .hero2.t-amber{background:linear-gradient(135deg,#3a2f18,#332a15); border-color:#4a3c1e; --ac:#e8c887; --acbg:rgba(232,200,135,.16);}
+  :root:not([data-theme="light"]) .hero2.neg{--ac:#ff9d8f; --acbg:rgba(255,157,143,.16);}
+}
+.hero2 .h2-blob{position:absolute; right:-34px; top:-26px; width:170px; height:130px; background:var(--acbg); border-radius:58% 42% 30% 70% / 60% 30% 70% 40%; pointer-events:none;}
+.hero2 .h2-blobic{position:absolute; right:22px; top:18px; color:var(--ac); pointer-events:none;}
+.hero2 .h2-blobic .i{width:38px; height:38px; stroke-width:2.1;}
+.hero2 .h2-top{position:relative; display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+.hero2 .h2-tic{color:var(--ac); display:flex; flex-shrink:0;}
+.hero2 .h2-tic .i{width:26px; height:26px;}
+.hero2 .h2-lbl{font-size:15.5px; font-weight:600; color:var(--text);}
+.hero2 .h2-val{position:relative; font-family:'Inter',system-ui,sans-serif; font-weight:800; font-size:32px; letter-spacing:-.8px; color:var(--ac); white-space:nowrap; margin:2px 0 14px; padding-right:60px;}
+.hero2 .h2-panel{position:relative; display:flex; background:var(--panel); border-radius:18px; padding:12px 4px;}
+.hero2 .h2-st{flex:1; min-width:0; padding:0 10px; border-left:1px solid var(--sep);}
+.hero2 .h2-st:first-child{border-left:none;}
+.hero2 .h2-st-top{display:flex; align-items:center; gap:6px; margin-bottom:6px; min-width:0;}
+.hero2 .h2-sic{width:26px; height:26px; border-radius:50%; background:var(--acbg); color:var(--ac); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.hero2 .h2-sic .i{width:14px; height:14px; stroke-width:2.1;}
+.hero2 .h2-slbl{font-size:10.5px; font-weight:500; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.hero2 .h2-st b{display:block; font-size:12.5px; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 </style>
 </head>
 <body>
@@ -368,8 +410,20 @@ const ICO={
   chart:_svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
   trend:_svg('<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>'),
   wallet:_svg('<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1" fill="currentColor"/>'),
-  bank:_svg('<path d="M3 10 12 4l9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>')
+  bank:_svg('<path d="M3 10 12 4l9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>'),
+  card:_svg('<rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/>'),
+  check:_svg('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>')
 };
+// Card hero padrão (Início, Diário, A Receber, A Pagar)
+function heroHtml(o){
+  const stats=o.stats.map(s=>`<div class="h2-st"${s.go?` onclick="event.stopPropagation();goTab('${s.go}')" style="cursor:pointer;"`:''}><div class="h2-st-top"><span class="h2-sic">${s.icon}</span><span class="h2-slbl">${s.label}</span></div><b>${s.val}</b></div>`).join('');
+  return `<div class="hero2 ${o.cls}"${o.go?` onclick="goTab('${o.go}')" style="cursor:pointer;"`:''}>
+    <div class="h2-blob"></div><div class="h2-blobic">${o.blobIcon}</div>
+    <div class="h2-top"><span class="h2-tic">${o.icon}</span><span class="h2-lbl">${o.label}</span></div>
+    <div class="h2-val">${o.value}</div>
+    <div class="h2-panel">${stats}</div>
+  </div>`;
+}
 function shiftPeriod(d){
   if(tab==='diario'){
     const [y,m,dd]=diaSel.split('-').map(Number);
@@ -480,14 +534,18 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
   const totalDone=items.filter(e=>e.status===doneLabel).reduce((s,e)=>s+e.valor,0);
   const isReceber=pendLabel==='A Receber';
   const totGeral=totalPend+totalDone;
-  let html=`<div class="hero ${isReceber?'tint-green':'tint-red'}">
-    <div class="hero-lbl">Total do mês</div>
-    <div class="hero-val">${brl(totGeral)}</div>
-    <div class="hero-stats">
-      <div class="hero-st"><small>${isReceber?'A receber':'A pagar'}</small><b>${brl(totalPend)}</b></div>
-      <div class="hero-st"><small>${isReceber?'Recebido':'Pago'}</small><b>${brl(totalDone)}</b></div>
-    </div>
-  </div>`;
+  let html=heroHtml({
+    cls:isReceber?'t-green':'t-red',
+    icon:isReceber?ICO.down:ICO.up,
+    blobIcon:isReceber?ICO.trend:ICO.chart,
+    label:'Total do mês',
+    value:brl(totGeral),
+    stats:[
+      {icon:isReceber?ICO.down:ICO.up,label:isReceber?'A receber':'A pagar',val:brl(totalPend)},
+      {icon:ICO.check,label:isReceber?'Recebido':'Pago',val:brl(totalDone)},
+      {icon:ICO.receipt,label:'Lançamentos',val:String(items.length)}
+    ]
+  });
   html+=catChartHtml(items,isReceber);
   html+='<div class="sectionh">Últimos lançamentos</div>';
   if(!items.length){html+='<div class="empty"><div class="eic">📄➕</div><div class="et">Nenhum lançamento neste mês.</div><div class="es">Toque em "Novo lançamento" para adicionar.</div></div>';}
@@ -554,15 +612,22 @@ function renderDiario(c){
   const monthItems=diarioItemsForMonth(diaSel);
   const totalMes=monthItems.reduce((s,e)=>s+e.valor,0);
   const saldo=(S.capitalGiro||0)-totalMes;
+  const diasComGastoMes=new Set(monthItems.map(e=>e.data)).size;
+  const mediaDiaMes=diasComGastoMes?totalMes/diasComGastoMes:0;
   const chartItems=diarioVerTodas?monthItems:dayItems;
   const chartTotalLabel=diarioVerTodas?'total do mês':'total do dia';
-  let html=`<div class="hero tint-amber">
-    <div class="hero-lbl">Gasto no dia</div>
-    <div class="hero-val">${brl(totalDia)}</div>
-    <div class="hero-stats">
-      <div class="hero-st"><small>Total no mês</small><b>${brl(totalMes)}</b></div>
-    </div>
-  </div>`;
+  let html=heroHtml({
+    cls:'t-amber',
+    icon:ICO.cal,
+    blobIcon:ICO.receipt,
+    label:'Gasto no dia',
+    value:brl(totalDia),
+    stats:[
+      {icon:ICO.cal,label:'Total no mês',val:brl(totalMes)},
+      {icon:ICO.receipt,label:'Lançamentos',val:String(dayItems.length)},
+      {icon:ICO.chart,label:'Média/dia',val:brl(mediaDiaMes)}
+    ]
+  });
   html+=diarioChartHtml(chartItems,chartTotalLabel);
   html+=`<div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;">
     <span>Lançamentos do dia</span>
@@ -838,21 +903,21 @@ function renderInicio(c){
   const diasComGasto=new Set((S.diarios||[]).filter(e=>e.data&&e.data.slice(0,7)===ymKey).map(e=>e.data)).size;
   const mediaDia=diasComGasto?totalDiario/diasComGasto:0;
 
-  const cardHead=(cic,icon,chev=true)=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="cic ${cic}" style="margin-bottom:0;">${icon}</div>${chev?'<span style="color:var(--muted);font-size:15px;">›</span>':''}</div>`;
-  const miniRow=(l1,v1,c1,l2,v2,c2)=>`<div style="display:flex;gap:8px;margin-top:10px;border-top:1px solid var(--border);padding-top:8px;">
-        <div style="flex:1;min-width:0;"><div style="color:var(--muted);font-size:9.5px;white-space:nowrap;">${l1}</div><div style="font-weight:700;font-size:11.5px;color:${c1};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v1}</div></div>
-        <div style="flex:1;min-width:0;"><div style="color:var(--muted);font-size:9.5px;white-space:nowrap;">${l2}</div><div style="font-weight:700;font-size:11.5px;color:${c2};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v2}</div></div>
-      </div>`;
+  const heroInicio=heroHtml({
+    cls:'t-blue'+(lucro<0?' neg':''),
+    go:'gestao',
+    icon:ICO.cal,
+    blobIcon:ICO.trend,
+    label:'Resultado do mês',
+    value:`${lucro>=0?'+ ':'- '}${brl(Math.abs(lucro))}`,
+    stats:[
+      {icon:ICO.down,label:'A receber',val:brl(cur.fat),go:'receber'},
+      {icon:ICO.card,label:'A pagar',val:brl(cur.desp),go:'pagar'},
+      {icon:ICO.cal,label:'Diários',val:brl(totalDiario),go:'diario'}
+    ]
+  });
 
-  c.innerHTML=`<div class="hero tint-blue" onclick="goTab('gestao')" style="cursor:pointer;">
-    <div class="hero-lbl">Resultado do mês</div>
-    <div class="hero-val ${lucro>=0?'pos':'neg'}">${lucro>=0?'+ ':'- '}${brl(Math.abs(lucro))}</div>
-    <div class="hero-stats">
-      <div class="hero-st" onclick="event.stopPropagation();goTab('receber')"><small>A receber</small><b>${brl(cur.fat)}</b></div>
-      <div class="hero-st" onclick="event.stopPropagation();goTab('pagar')"><small>A pagar</small><b>${brl(cur.desp)}</b></div>
-      <div class="hero-st" onclick="event.stopPropagation();goTab('diario')"><small>Diários</small><b>${brl(totalDiario)}</b></div>
-    </div>
-  </div>
+  c.innerHTML=heroInicio+`
   <div class="chart">
     <div class="lbl">Movimentação Financeira</div>
     <div class="sub" style="margin-bottom:16px;">${MONTHS[curMonth].f}/${curYear}</div>
