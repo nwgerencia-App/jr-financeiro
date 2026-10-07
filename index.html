@@ -529,9 +529,7 @@ function render(){
 }
 
 function renderList(c,list,nameKey,pendLabel,doneLabel){
-  const items=list
-    .filter(e=>monthIndexFromRef(e.referencia)===curMonth&&yearFromRef(e.referencia)===String(curYear))
-    .sort((a,b)=>((a.status===doneLabel)-(b.status===doneLabel))||a.venc.localeCompare(b.venc));
+  const items=list.filter(e=>monthIndexFromRef(e.referencia)===curMonth&&yearFromRef(e.referencia)===String(curYear));
   const totalPend=items.filter(e=>e.status===pendLabel).reduce((s,e)=>s+e.valor,0);
   const totalDone=items.filter(e=>e.status===doneLabel).reduce((s,e)=>s+e.valor,0);
   const isReceber=pendLabel==='A Receber';
@@ -1457,4 +1455,6 @@ function confirmCatModal(targetSelectId){
   if(!nome){closeCatModal(targetSelectId); return;}
   const selEl=document.querySelector('#swatchGrid .swatch.sel');
   if(!selEl){alert('Escolha uma cor para a categoria.'); return;}
-  const color=selEl.dataset.co
+  const color=selEl.dataset.color;
+  S.catColors=S.catColors||{};
+  if(Object.values(S.catColors).includes(color)){alert('Essa cor 
