@@ -548,9 +548,15 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
   });
   html+=catChartHtml(items,isReceber);
   html+='<div class="sectionh">Últimos lançamentos</div>';
-  if(!items.length){html+='<div class="empty"><div class="eic">📄➕</div><div class="et">Nenhum lançamento neste mês.</div><div class="es">Toque em "Novo lançamento" para adicionar.</div></div>';}
+  // Ordena por data de vencimento; pagos/recebidos vão para o fim da lista
+  const sortedItems=[...items].sort((a,b)=>{
+    const da=a.status===doneLabel?1:0, db=b.status===doneLabel?1:0;
+    if(da!==db) return da-db;
+    return (a.venc||'').localeCompare(b.venc||'');
+  });
+  if(!sortedItems.length){html+='<div class="empty"><div class="eic">📄➕</div><div class="et">Nenhum lançamento neste mês.</div><div class="es">Toque em "Novo lançamento" para adicionar.</div></div>';}
   else{
-    html+='<div class="list">'+items.map(e=>`
+    html+='<div class="list">'+sortedItems.map(e=>`
       <div class="row" onclick="openNovoModal('${e.id}')">
         <div class="left">
           <div class="ric">${iconFor(e.tipo)}</div>
