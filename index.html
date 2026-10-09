@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-title" content="Financeiro">
 <meta name="theme-color" content="#26365a">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwZjFiMzMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMjM3NWYiLz4KPC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMzgiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTAiIGZpbGw9IiNlOGE1M2QiLz4KPHRleHQgeD0iOTAiIHk9IjExNCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjY2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTIyMDNkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4kPC90ZXh0Pgo8L3N2Zz4K">
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -398,6 +398,19 @@ header.hmain .hic{box-shadow:none;}
   :root:not([data-theme="light"]) .rsv.amber{--rbg:linear-gradient(135deg,#3a2f18,#332a15); --rb:#4a3c1e; --rt:#f6e2b4; --rv:#e8c887; --rs:#cdb88a; --rblob:rgba(232,200,135,.14);}
   :root:not([data-theme="light"]) .rsv.red{--rbg:linear-gradient(135deg,#3a2019,#331b15); --rb:#4a2a20; --rt:#ffd3cc; --rv:#ff9d8f; --rs:#d9a8a0; --rblob:rgba(255,157,143,.14);}
 }
+
+/* ===== Banner de instalação do app ===== */
+.instbar{position:fixed; left:12px; right:12px; top:calc(10px + env(safe-area-inset-top,0px)); max-width:496px; margin:0 auto; z-index:70; background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:20px; padding:12px; display:flex; align-items:center; gap:12px; box-shadow:0 14px 34px rgba(20,30,55,.28); animation:instIn .35s ease;}
+@keyframes instIn{from{opacity:0; transform:translateY(-14px);}to{opacity:1; transform:none;}}
+.instbar .inst-ic{width:44px; height:44px; border-radius:13px; flex-shrink:0; background:linear-gradient(135deg,#0f1b33,#22375f); display:flex; align-items:center; justify-content:center;}
+.instbar .inst-ic span{width:26px; height:26px; border-radius:50%; background:#e8a53d; color:#122040; font-family:'Playfair Display',Georgia,serif; font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center; line-height:1;}
+.instbar .inst-tx{flex:1; min-width:0;}
+.instbar .inst-tx b{display:block; font-size:13.5px; margin-bottom:2px;}
+.instbar .inst-tx small{display:block; font-size:11.5px; color:var(--muted); line-height:1.35;}
+.instbar .inst-btn{background:var(--navy); color:#fff; border:none; border-radius:12px; padding:10px 14px; font-family:inherit; font-weight:700; font-size:12.5px; cursor:pointer; flex-shrink:0;}
+.instbar .inst-x{background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; padding:4px; flex-shrink:0; align-self:flex-start;}
+:root[data-theme="dark"] .instbar .inst-btn{background:#8fb3ff; color:#15181f;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .instbar .inst-btn{background:#8fb3ff; color:#15181f;}}
 </style>
 </head>
 <body>
@@ -1705,7 +1718,48 @@ window.addEventListener('popstate',e=>{
   exitTimer=setTimeout(()=>{ if(!history.state || history.state.app!=='guard') history.pushState({app:'guard'},''); },2000);
 });
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
-  window.addEventListener('load',()=>{ navigator.serviceWorker.register('/sw.js').catch(()=>{}); });
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+
+// ===== Instalar o app na tela inicial (PWA) =====
+let deferredInstall=null;
+let instClosed=false; // só vale enquanto a página estiver aberta
+function isStandalone(){return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function isAndroid(){return /android/i.test(navigator.userAgent);}
+function installDismissed(){return instClosed;}
+function hideInstallBanner(){const b=document.getElementById('instBar'); if(b) b.remove();}
+function dismissInstall(){instClosed=true; hideInstallBanner();}
+function showInstallBanner(mode){
+  if(isStandalone()||installDismissed()||document.getElementById('instBar')) return;
+  let txt,btn='';
+  if(mode==='android'){
+    txt='<b>Instale o Financeiro</b><small>Tenha o app na tela inicial do seu celular, sem ocupar espaço.</small>';
+    btn='<button class="inst-btn" onclick="doInstall()">Instalar</button>';
+  } else if(mode==='ios'){
+    txt='<b>Instale o Financeiro</b><small>No Safari, toque em Compartilhar (⬆️) e depois em “Adicionar à Tela de Início”.</small>';
+  } else {
+    txt='<b>Instale o Financeiro</b><small>No Chrome, toque no menu (⋮) e escolha “Instalar app” ou “Adicionar à tela inicial”.</small>';
+  }
+  const el=document.createElement('div');
+  el.id='instBar'; el.className='instbar';
+  el.innerHTML='<div class="inst-ic"><span>$</span></div><div class="inst-tx">'+txt+'</div>'+btn+'<button class="inst-x" aria-label="Fechar" onclick="dismissInstall()">✕</button>';
+  document.body.appendChild(el);
+}
+async function doInstall(){
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  try{ await deferredInstall.userChoice; }catch(e){}
+  deferredInstall=null; hideInstallBanner();
+}
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredInstall=e;
+  hideInstallBanner(); showInstallBanner('android');
+});
+window.addEventListener('appinstalled',()=>{deferredInstall=null; hideInstallBanner(); showToast('App instalado!');});
+if(!isStandalone()){
+  if(isIOS()) setTimeout(()=>showInstallBanner('ios'),1200);
+  else if(isAndroid()) setTimeout(()=>{ if(!deferredInstall) showInstallBanner('manual'); },4000);
 }
 
 if(!S.perfil || !S.perfil.nome){ render(); showOnboarding(); }
