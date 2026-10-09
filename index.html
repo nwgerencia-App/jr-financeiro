@@ -1781,7 +1781,7 @@ function renderInstallGate(){
   const step=(n,t)=>`<div class="g-step"><span class="g-n">${n}</span><div>${t}</div></div>`;
   let body;
   if(appInstalled){
-    body=`${logo}<h2>App instalado! 🎉</h2><p>Agora é só abrir o <b>Financeiro</b> pelo ícone na tela inicial do seu celular.</p>`;
+    body=`${logo}<h2>App instalado! 🎉</h2><p>Abrindo o <b>Financeiro</b>…</p><button class="g-btn" onclick="openInstalledApp()">🚀 Abrir o Financeiro</button><div class="g-note" style="margin-top:12px;">Se não abrir sozinho, toque no botão acima ou abra pelo ícone na tela inicial do seu celular.</div>`;
   } else if(isInAppBrowser()){
     body=`${logo}<h2>Abra no navegador</h2><p>Este navegador interno não permite instalar o app. Siga os passos:</p>
       <div class="g-steps">${step(1,'Toque nos <b>três pontinhos</b> (⋮) ou no ícone de compartilhar, no canto da tela.')}${step(2,isIOS()?'Escolha <b>“Abrir no Safari”</b>.':'Escolha <b>“Abrir no Chrome”</b> (ou “Abrir no navegador”).')}${step(3,'Na tela que abrir, instale o app.')}</div>`;
@@ -1793,6 +1793,17 @@ function renderInstallGate(){
   }
   if(!appInstalled) body+=`<div class="g-note">Já instalou? Abra o Financeiro pelo ícone na tela inicial do celular.</div>`;
   el.innerHTML=body;
+}
+// Tenta abrir o app recém-instalado (o Android decide se entrega ao app instalado)
+function openInstalledApp(){
+  try{
+    const u=location.pathname+location.search;
+    if(isAndroid()){
+      location.href='intent://'+location.host+u+'#Intent;scheme='+location.protocol.replace(':','')+';action=android.intent.action.VIEW;end';
+    } else {
+      window.open(location.href,'_blank');
+    }
+  }catch(e){}
 }
 async function doInstall(){
   if(!deferredInstall){
@@ -1807,7 +1818,7 @@ async function doInstall(){
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault(); deferredInstall=e; renderInstallGate();
 });
-window.addEventListener('appinstalled',()=>{ appInstalled=true; deferredInstall=null; renderInstallGate(); });
+window.addEventListener('appinstalled',()=>{ appInstalled=true; deferredInstall=null; renderInstallGate(); setTimeout(openInstalledApp,1200); });
 if(needsInstallGate()){ renderInstallGate(); }
 
 if(needsInstallGate()){ /* tela de instalação obrigatória cobre o app */ }
