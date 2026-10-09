@@ -1765,7 +1765,11 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
 
 // ===== Instalação obrigatória do app (PWA) =====
 let deferredInstall=null, appInstalled=false;
+const INSTALLED_KEY='fin_app_installed';
+function markInstalled(v){try{ if(v) localStorage.setItem(INSTALLED_KEY,'1'); else localStorage.removeItem(INSTALLED_KEY); }catch(e){}}
+function wasInstalled(){try{return localStorage.getItem(INSTALLED_KEY)==='1';}catch(e){return false;}}
 function isStandalone(){return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}
+if(isStandalone()) markInstalled(true);
 function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
 function isAndroid(){return /android/i.test(navigator.userAgent);}
 function isInAppBrowser(){return /FBAN|FBAV|Instagram|WhatsApp|Line\/|MicroMessenger|Snapchat|TikTok|; wv\)/i.test(navigator.userAgent);}
@@ -1788,6 +1792,8 @@ function renderInstallGate(){
   } else if(isIOS()){
     body=`${logo}<h2>Instale o app para continuar</h2><p>O Financeiro precisa ser instalado na tela inicial do seu iPhone. Leva 10 segundos:</p>
       <div class="g-steps">${step(1,'Abra este link no <b>Safari</b>, se estiver em outro navegador.')}${step(2,'Toque em <b>Compartilhar</b> (o quadrado com a seta ⬆️ na barra do Safari).')}${step(3,'Role e toque em <b>“Adicionar à Tela de Início”</b> e depois em <b>Adicionar</b>.')}${step(4,'Abra o <b>Financeiro</b> pelo ícone que apareceu na tela inicial.')}</div>`;
+  } else if(wasInstalled()){
+    body=`${logo}<h2>O app já está instalado</h2><p>Abra o <b>Financeiro</b> pelo ícone na tela inicial do seu celular, ou toque no botão abaixo.</p><button class="g-btn" onclick="openInstalledApp()">🚀 Abrir o Financeiro</button><div class="g-note" style="margin-top:14px;"><a href="#" style="color:var(--muted);" onclick="markInstalled(false);renderInstallGate();return false;">Não tenho o app instalado</a></div>`;
   } else {
     body=`${logo}<h2>Instale o app para continuar</h2><p>Para usar o <b>Financeiro</b>, ele precisa estar instalado no seu celular. É rápido e não ocupa espaço.</p><button class="g-btn" onclick="doInstall()">📲 Instalar agora</button><div id="gWait" class="g-note" style="margin-top:12px;"></div>`;
   }
@@ -1816,9 +1822,9 @@ async function doInstall(){
   deferredInstall=null; renderInstallGate();
 }
 window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault(); deferredInstall=e; renderInstallGate();
+  e.preventDefault(); deferredInstall=e;
 });
-window.addEventListener('appinstalled',()=>{ appInstalled=true; deferredInstall=null; renderInstallGate(); setTimeout(openInstalledApp,1200); });
+window.addEventListener('appinstalled',()=>{ markInstalled(true); appInstalled=true; deferredInstall=null; renderInstallGate(); setTimeout(openInstalledApp,1200); });
 if(needsInstallGate()){ renderInstallGate(); }
 
 if(needsInstallGate()){ /* tela de instalação obrigatória cobre o app */ }
