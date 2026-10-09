@@ -453,6 +453,43 @@ nav.bottom{max-width:calc(var(--maxw) - 24px);}
   nav.bottom button{font-size:12px;}
   .fab{font-size:14.5px;}
 }
+
+
+/* ===== Alertas de vencimento ===== */
+.vb{display:inline-block; margin-top:4px; margin-right:4px; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px;}
+.vb.late{background:#fbe0dc; color:#a8352a;}
+.vb.today{background:#fde9c6; color:#8a5a0a;}
+.vb.soon{background:#e0ebfb; color:#2d5aa8;}
+.valert{display:flex; align-items:center; gap:10px; border-radius:16px; padding:12px 14px; margin:-4px 0 14px; cursor:pointer; font-size:12.5px; font-weight:600; line-height:1.45; border:1px solid var(--border);}
+.valert .vx{flex:1; min-width:0;}
+.valert .chev{opacity:.6; font-size:18px;}
+.valert.late{background:#fbeae7; border-color:#eec3bc; color:#a8352a;}
+.valert.today{background:#fdf3e0; border-color:#f3dba8; color:#8a5a0a;}
+.valert.soon{background:#eaf1fb; border-color:#c9dcf5; color:#2d5aa8;}
+.vcard{background:var(--card); border:1px solid var(--border); border-radius:18px; padding:14px 16px; margin:-4px 0 16px;}
+.vc-h{font-weight:700; font-size:14px; margin-bottom:8px;}
+.vc-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--border); cursor:pointer;}
+.vc-row .vc-l{font-weight:600; font-size:13px; width:68px; flex-shrink:0;}
+.vc-row .vc-chips{flex:1; min-width:0; display:flex; flex-wrap:wrap; gap:2px;}
+.vc-row .vb{margin-top:0;}
+.vc-row .chev{color:var(--muted); font-size:18px;}
+.vc-link{margin-top:6px; padding-top:10px; border-top:1px solid var(--border); font-size:12.5px; font-weight:600; color:var(--navy); cursor:pointer;}
+:root[data-theme="dark"] .vb.late{background:#4a2a20; color:#ffb3a8;}
+:root[data-theme="dark"] .vb.today{background:#4a3c1e; color:#e8c887;}
+:root[data-theme="dark"] .vb.soon{background:#1e3252; color:#9fc0ff;}
+:root[data-theme="dark"] .valert.late{background:#3a2019; border-color:#4a2a20; color:#ffb3a8;}
+:root[data-theme="dark"] .valert.today{background:#3a2f18; border-color:#4a3c1e; color:#e8c887;}
+:root[data-theme="dark"] .valert.soon{background:#152238; border-color:#1e3252; color:#9fc0ff;}
+:root[data-theme="dark"] .vc-link{color:#8fb3ff;}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .vb.late{background:#4a2a20; color:#ffb3a8;}
+  :root:not([data-theme="light"]) .vb.today{background:#4a3c1e; color:#e8c887;}
+  :root:not([data-theme="light"]) .vb.soon{background:#1e3252; color:#9fc0ff;}
+  :root:not([data-theme="light"]) .valert.late{background:#3a2019; border-color:#4a2a20; color:#ffb3a8;}
+  :root:not([data-theme="light"]) .valert.today{background:#3a2f18; border-color:#4a3c1e; color:#e8c887;}
+  :root:not([data-theme="light"]) .valert.soon{background:#152238; border-color:#1e3252; color:#9fc0ff;}
+  :root:not([data-theme="light"]) .vc-link{color:#8fb3ff;}
+}
 </style>
 </head>
 <body>
@@ -551,13 +588,14 @@ function load(){
     if(s.capitalGiro===undefined) s.capitalGiro=0;
     if(!s.customFormas) s.customFormas=[];
     if(s.notifPref===undefined) s.notifPref=true;
+    if(s.notifDias===undefined) s.notifDias=3;
     if(s.pin===undefined) s.pin=null;
     if(!s.perfil) s.perfil={nome:'',email:''};
     if(!s.reservaSaidas) s.reservaSaidas=[];
     return s;
   }catch(e){return seed();}
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} agendaSyncNotif();}
 let tab='resultado';
 const hojeInicial=new Date();
 let curMonth=hojeInicial.getMonth(); // mês atual de verdade
@@ -631,6 +669,7 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
       {icon:ICO.receipt,label:'Lançamentos',val:String(items.length)}
     ]
   });
+  html+=alertaTipoHtml(isReceber?'r':'p');
   html+=catChartHtml(items,isReceber);
   html+='<div class="sectionh">Últimos lançamentos</div>';
   // Ordena por data de vencimento; pagos/recebidos vão para o fim da lista
@@ -649,6 +688,7 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
             <div class="cli">${e[nameKey]}</div>
             <div class="sub">${e.tipo} · ${e.descricao}</div>
             <div class="sub">📅 Venc. ${fmtVenc(e.venc)}</div>
+            ${vencBadgeHtml(e)}
           </div>
         </div>
         <div class="right">
@@ -1008,7 +1048,7 @@ function renderInicio(c){
     ]
   });
 
-  c.innerHTML=heroInicio+`
+  c.innerHTML=heroInicio+inicioVencHtml()+`
   <div class="chart">
     <div class="lbl">Movimentação Financeira</div>
     <div class="sub" style="margin-bottom:16px;">${MONTHS[curMonth].f}/${curYear}</div>
@@ -1333,19 +1373,6 @@ function addForma(){
   S.customFormas=S.customFormas||[];
   if(!S.customFormas.includes(nome) && !PAGS.includes(nome)) S.customFormas.push(nome);
   save(); openFormasList();
-}
-function openNotifSettings(){
-  const on=S.notifPref!==false;
-  const body=`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;">
-      <div><b style="font-size:14px;">Lembretes de vencimento</b><div class="sub" style="margin-top:4px;">Avisos sobre contas a pagar e receber</div></div>
-      <label style="position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;">
-        <input type="checkbox" ${on?'checked':''} onchange="S.notifPref=this.checked;save();openNotifSettings();" style="opacity:0;width:0;height:0;">
-        <span style="position:absolute;inset:0;background:${on?'#2f9e5f':'#ccc'};border-radius:26px;"></span>
-        <span style="position:absolute;top:3px;left:${on?'23px':'3px'};width:20px;height:20px;background:#fff;border-radius:50%;"></span>
-      </label>
-    </div>
-    <div class="es" style="margin-top:12px;padding:0 4px;">Notificações push exigem instalar o app na tela de início e dependem do navegador — este é um controle de preferência salvo neste aparelho.</div>`;
-  subScreen('🔔','Notificações e lembretes','Alertas do aplicativo', body);
 }
 function openPinSettings(){
   const hasPin=!!S.pin;
@@ -1763,6 +1790,206 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
 }
 
+// ===== Alertas e notificações de vencimento =====
+function diasEntre(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000);}
+function notifDias(){return S.notifDias===undefined?3:(+S.notifDias||0);}
+function vencClasse(df){ if(df<0) return 'late'; if(df===0) return 'today'; if(df<=notifDias()) return 'soon'; return null; }
+function vencTexto(df){
+  if(df<0){const n=-df; return 'Em atraso há '+n+(n===1?' dia':' dias');}
+  if(df===0) return 'Vence hoje';
+  if(df===1) return 'Vence amanhã';
+  return 'Vence em '+df+' dias';
+}
+function vencBadgeHtml(e){
+  const pend=(e.status==='A Pagar'||e.status==='A Receber');
+  if(!pend||!e.venc) return '';
+  const df=diasEntre(todayStr(),e.venc), c=vencClasse(df);
+  return c?`<div class="vb ${c}">${vencTexto(df)}</div>`:'';
+}
+// contas pendentes que estão atrasadas, vencem hoje ou vencem nos próximos dias (t: 'p', 'r' ou nada = ambos)
+function vencPendentes(t){
+  const out=[], hoje=todayStr();
+  if(t!=='r') S.pagar.forEach(e=>{ if(e.status==='A Pagar'&&e.venc) out.push({t:'p',e}); });
+  if(t!=='p') S.receber.forEach(e=>{ if(e.status==='A Receber'&&e.venc) out.push({t:'r',e}); });
+  out.forEach(x=>{x.df=diasEntre(hoje,x.e.venc); x.c=vencClasse(x.df);});
+  return out.filter(x=>x.c).sort((a,b)=>a.e.venc.localeCompare(b.e.venc));
+}
+function vencContagem(t){
+  const l=vencPendentes(t);
+  return {late:l.filter(x=>x.c==='late').length,today:l.filter(x=>x.c==='today').length,soon:l.filter(x=>x.c==='soon').length,total:l.length};
+}
+function vencChipsHtml(c){
+  let h='';
+  if(c.late) h+=`<span class="vb late">${c.late} em atraso</span>`;
+  if(c.today) h+=`<span class="vb today">${c.today} hoje</span>`;
+  if(c.soon) h+=`<span class="vb soon">${c.soon} em breve</span>`;
+  return h;
+}
+// faixa de alerta no topo das telas A Receber / A Pagar
+function alertaTipoHtml(t){
+  const c=vencContagem(t); if(!c.total) return '';
+  const cls=c.late?'late':(c.today?'today':'soon'), partes=[];
+  if(c.late) partes.push('🔴 '+c.late+(t==='p'?(c.late>1?' contas em atraso':' conta em atraso'):(c.late>1?' recebimentos em atraso':' recebimento em atraso')));
+  if(c.today) partes.push('🟠 '+c.today+(c.today>1?' vencem hoje':' vence hoje'));
+  if(c.soon) partes.push('🟡 '+c.soon+' em breve');
+  return `<div class="valert ${cls}" onclick="openVencimentos('${t}')"><div class="vx">${partes.join(' · ')}</div><span class="chev">›</span></div>`;
+}
+// cartão de vencimentos na tela Início
+function inicioVencHtml(){
+  const cp=vencContagem('p'), cr=vencContagem('r');
+  if(!cp.total&&!cr.total) return '';
+  const row=(t,lbl,c)=>c.total?`<div class="vc-row" onclick="openVencimentos('${t}')"><span class="vc-l">${lbl}</span><span class="vc-chips">${vencChipsHtml(c)}</span><span class="chev">›</span></div>`:'';
+  const perm=('Notification' in window)?Notification.permission:'denied';
+  const link=(perm==='default'&&S.notifPref!==false)?`<div class="vc-link" onclick="openNotifSettings()">🔔 Ativar notificações no celular ›</div>`:'';
+  return `<div class="vcard"><div class="vc-h">🔔 Vencimentos</div>${row('p','A pagar',cp)}${row('r','A receber',cr)}${link}</div>`;
+}
+let vencFiltro;
+function openVencimentos(t){
+  vencFiltro=t;
+  const lista=vencPendentes(t), d=notifDias();
+  const grupos=[['late','🔴 Em atraso'],['today','🟠 Vencem hoje'],['soon','🟡 Próximos '+d+(d===1?' dia':' dias')]];
+  let body='';
+  grupos.forEach(([cls,tit])=>{
+    const itens=lista.filter(x=>x.c===cls); if(!itens.length) return;
+    body+=`<div class="sectionh">${tit} (${itens.length})</div><div class="list" style="margin-bottom:16px;">`+itens.map(x=>{
+      const e=x.e, p=x.t==='p';
+      return `<div class="row" onclick="irParaItem('${x.t}','${e.id}')">
+        <div class="left"><div class="ric">${iconFor(e.tipo)}</div><div class="info">
+          <div class="cli">${p?e.conta:e.cliente}</div>
+          <div class="sub">${p?'A pagar':'A receber'} · ${fmtVenc(e.venc)}</div>
+          <div class="vb ${x.c}">${vencTexto(x.df)}</div>
+        </div></div>
+        <div class="right"><div class="valor" style="color:${p?'#b3392a':'#217a4b'}">${brl(e.valor)}</div>
+          <button class="delbtn" title="${p?'Marcar como pago':'Marcar como recebido'}" onclick="event.stopPropagation();quitarVenc('${x.t}','${e.id}')">✓ ${p?'Pago':'Recebido'}</button></div>
+      </div>`;
+    }).join('')+'</div>';
+  });
+  if(!lista.length) body='<div class="empty"><div class="eic">✅</div><div class="et">Tudo em dia!</div><div class="es">Nenhuma conta atrasada ou perto de vencer.</div></div>';
+  const sub=t==='p'?'Contas a pagar':(t==='r'?'Contas a receber':'A pagar e a receber');
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="formscreen">
+    <header class="top">
+      <div class="htitle">
+        <button class="backbtn" onclick="closeModal(); render();">←</button>
+        <div class="hic" style="background:rgba(255,255,255,.14)">🔔</div>
+        <div><h1>Vencimentos</h1><div class="month">${sub}</div></div>
+      </div>
+    </header>
+    <main>${body}</main>
+  </div>`;
+}
+function irParaItem(t,id){
+  const it=(t==='p'?S.pagar:S.receber).find(x=>x.id===id); if(!it) return;
+  curYear=+yearFromRef(it.referencia); curMonth=monthIndexFromRef(it.referencia);
+  tab=t==='p'?'pagar':'receber';
+  closeModal(); render();
+}
+function quitarVenc(t,id){
+  const it=(t==='p'?S.pagar:S.receber).find(x=>x.id===id); if(!it) return;
+  it.status=t==='p'?'Pago':'Recebido';
+  save(); openVencimentos(vencFiltro);
+}
+
+// ----- Notificações do celular (lembretes de vencimento) -----
+function idbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open('fin_notif',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);});}
+function idbGet(k){return idbOpen().then(db=>new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error);}));}
+function idbSet(k,v){return idbOpen().then(db=>new Promise((res,rej)=>{const t=db.transaction('kv','readwrite'); t.objectStore('kv').put(v,k); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error);}));}
+function montarDadosNotif(){
+  const items=[];
+  S.pagar.forEach(e=>{ if(e.status==='A Pagar'&&e.venc) items.push({t:'p',venc:e.venc}); });
+  S.receber.forEach(e=>{ if(e.status==='A Receber'&&e.venc) items.push({t:'r',venc:e.venc}); });
+  return {ativo:S.notifPref!==false,dias:notifDias(),items};
+}
+var _syncT=null;
+function agendaSyncNotif(){ clearTimeout(_syncT); _syncT=setTimeout(syncNotifData,400); }
+// copia os vencimentos para um lugar que o service worker também enxerga (para avisar com o app fechado)
+function syncNotifData(){ if(!window.indexedDB) return Promise.resolve(); return idbSet('dados',montarDadosNotif()).catch(()=>{}); }
+function montarAviso(d,hoje){
+  if(!d||!d.ativo) return null;
+  const c={ap:0,hp:0,pp:0,ar:0,hr:0,pr:0};
+  (d.items||[]).forEach(i=>{const df=diasEntre(hoje,i.venc), p=i.t==='p'; if(df<0) p?c.ap++:c.ar++; else if(df===0) p?c.hp++:c.hr++; else if(df<=d.dias) p?c.pp++:c.pr++;});
+  const L=[], s=n=>n>1?'s':'', dd=d.dias+(d.dias===1?' dia':' dias');
+  if(c.ap) L.push('🔴 '+c.ap+' conta'+s(c.ap)+' a pagar em atraso');
+  if(c.hp) L.push('🟠 '+c.hp+' conta'+s(c.hp)+' a pagar '+(c.hp>1?'vencem':'vence')+' hoje');
+  if(c.pp) L.push('🟡 '+c.pp+' conta'+s(c.pp)+' a pagar nos próximos '+dd);
+  if(c.ar) L.push('🔴 '+c.ar+' recebimento'+s(c.ar)+' em atraso');
+  if(c.hr) L.push('🟢 '+c.hr+' recebimento'+s(c.hr)+' previsto'+s(c.hr)+' para hoje');
+  if(c.pr) L.push('🔵 '+c.pr+' recebimento'+s(c.pr)+' nos próximos '+dd);
+  return L.length?{title:'Vencimentos – Financeiro',body:L.join('\n')}:null;
+}
+function notifOpts(body,tag){return {body,icon:'icon-192.png',badge:'icon-192.png',tag,renotify:true};}
+// mostra no máximo um aviso por dia
+async function checkVencimentos(){
+  try{
+    if(!('Notification' in window)||Notification.permission!=='granted') return;
+    const hoje=todayStr(), av=montarAviso(montarDadosNotif(),hoje);
+    if(!av) return;
+    if(await idbGet('ultimo').catch(()=>null)===hoje) return;
+    const reg=('serviceWorker' in navigator)?await navigator.serviceWorker.getRegistration():null;
+    if(reg) await reg.showNotification(av.title,notifOpts(av.body,'vencimentos'));
+    else new Notification(av.title,notifOpts(av.body,'vencimentos'));
+    await idbSet('ultimo',hoje);
+  }catch(e){}
+}
+async function enviarTesteNotif(){
+  try{
+    const reg=('serviceWorker' in navigator)?await navigator.serviceWorker.getRegistration():null;
+    const op=notifOpts('Pronto! É assim que você será avisado dos vencimentos.','teste');
+    if(reg) await reg.showNotification('Financeiro – teste',op); else new Notification('Financeiro – teste',op);
+    showToast('Notificação enviada');
+  }catch(e){ showToast('Não foi possível enviar agora'); }
+}
+// Android (app instalado): pede ao Chrome para checar os vencimentos de vez em quando, mesmo com o app fechado
+async function registrarPeriodicSync(){
+  try{
+    if(!('serviceWorker' in navigator)) return;
+    const reg=await navigator.serviceWorker.ready;
+    if(!('periodicSync' in reg)) return;
+    if(S.notifPref!==false && Notification.permission==='granted'){
+      const st=await navigator.permissions.query({name:'periodic-background-sync'});
+      if(st.state==='granted') await reg.periodicSync.register('vencimentos',{minInterval:12*60*60*1000});
+    } else { await reg.periodicSync.unregister('vencimentos'); }
+  }catch(e){}
+}
+function toggleNotif(v){
+  S.notifPref=v; save(); syncNotifData();
+  if(v && ('Notification' in window) && Notification.permission==='default') pedirNotif(); else { registrarPeriodicSync(); openNotifSettings(); }
+}
+function setNotifDias(v){ S.notifDias=+v||0; save(); syncNotifData(); render(); }
+function pedirNotif(){
+  Promise.resolve(Notification.requestPermission()).then(p=>{
+    openNotifSettings(); syncNotifData();
+    if(p==='granted'){ checkVencimentos(); registrarPeriodicSync(); }
+  });
+}
+function openNotifSettings(){
+  const on=S.notifPref!==false;
+  const perm=('Notification' in window)?Notification.permission:'unsupported';
+  const d=notifDias();
+  const opts=[[0,'No dia do vencimento'],[1,'1 dia antes'],[2,'2 dias antes'],[3,'3 dias antes'],[5,'5 dias antes'],[7,'7 dias antes']].map(([v,l])=>`<option value="${v}" ${v===d?'selected':''}>${l}</option>`).join('');
+  let permHtml;
+  if(perm==='granted') permHtml=`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;">✅ Notificações do celular ativadas</div><button class="btn ghost" style="width:100%;margin-top:10px;" onclick="enviarTesteNotif()">🔔 Enviar notificação de teste</button>`;
+  else if(perm==='default') permHtml=`<button class="btn primary" style="width:100%;" onclick="pedirNotif()">🔔 Permitir notificações</button>`;
+  else if(perm==='denied') permHtml=`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.5;">🚫 As notificações estão bloqueadas. Libere nas configurações do aplicativo ou do site no seu celular e abra o app de novo.</div>`;
+  else permHtml=`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;">Este navegador não permite notificações. Os alertas continuam aparecendo dentro do app.</div>`;
+  const body=`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;">
+      <div><b style="font-size:14px;">Lembretes de vencimento</b><div class="sub" style="margin-top:4px;">Contas a pagar e a receber</div></div>
+      <label style="position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;">
+        <input type="checkbox" ${on?'checked':''} onchange="toggleNotif(this.checked)" style="opacity:0;width:0;height:0;">
+        <span style="position:absolute;inset:0;background:${on?'#2f9e5f':'#ccc'};border-radius:26px;"></span>
+        <span style="position:absolute;top:3px;left:${on?'23px':'3px'};width:20px;height:20px;background:#fff;border-radius:50%;"></span>
+      </label>
+    </div>
+    <div class="ffield" style="margin-top:20px;"><div class="fic orange">⏰</div><div class="fbody"><label>Avisar com antecedência</label><select onchange="setNotifDias(this.value)">${opts}</select></div></div>
+    ${on?permHtml:''}
+    <div class="es" style="margin-top:14px;padding:0 4px;text-align:left;">Os alertas de contas em atraso e perto de vencer aparecem sempre dentro do app. As notificações do celular chegam quando você abre o app e, no Android com o app instalado, o Chrome também pode avisar com o app fechado, sem horário exato. No iPhone, instale o app na tela de início e permita as notificações.</div>`;
+  subScreen('🔔','Notificações e lembretes','Alertas de vencimento', body);
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && S.perfil && S.perfil.nome && !needsInstallGate()){ render(); checkVencimentos(); }
+});
+setInterval(()=>{ if(S.perfil&&S.perfil.nome&&!needsInstallGate()) checkVencimentos(); },30*60*1000);
+
 // ===== Instalação obrigatória do app (PWA) =====
 let deferredInstall=null, appInstalled=false;
 const INSTALLED_KEY='fin_app_installed';
@@ -1839,6 +2066,7 @@ if(needsInstallGate()){ /* tela de instalação obrigatória cobre o app */ }
 else if(!S.perfil || !S.perfil.nome){ render(); showOnboarding(); }
 else if(S.pin){ showLockScreen(); }
 else { render(); }
+if(!needsInstallGate() && S.perfil && S.perfil.nome){ syncNotifData(); setTimeout(()=>{ checkVencimentos(); registrarPeriodicSync(); },1500); }
 </script>
 </body>
 </html>
