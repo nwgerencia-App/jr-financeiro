@@ -743,8 +743,12 @@ function renderDiario(c){
   const monthItems=diarioItemsForMonth(diaSel);
   const totalMes=monthItems.reduce((s,e)=>s+e.valor,0);
   const saldo=(S.capitalGiro||0)-totalMes;
-  const diasComGastoMes=new Set(monthItems.map(e=>e.data)).size;
-  const mediaDiaMes=diasComGastoMes?totalMes/diasComGastoMes:0;
+  // média diária do mês: total do mês dividido pelos dias do mês (no mês atual, só até hoje)
+  const [anoDia,mesDia]=diaSel.split('-').map(Number);
+  const hojeMedia=new Date();
+  const ehMesAtual=(hojeMedia.getFullYear()===anoDia && hojeMedia.getMonth()+1===mesDia);
+  const diasBaseMedia=ehMesAtual?hojeMedia.getDate():new Date(anoDia,mesDia,0).getDate();
+  const mediaDiaMes=diasBaseMedia?totalMes/diasBaseMedia:0;
   const chartItems=diarioVerTodas?monthItems:dayItems;
   const chartTotalLabel=diarioVerTodas?'total do mês':'total do dia';
   let html=heroHtml({
