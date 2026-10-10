@@ -1859,8 +1859,7 @@ function openVencimentos(t){
           <div class="sub">${p?'A pagar':'A receber'} · ${fmtVenc(e.venc)}</div>
           <div class="vb ${x.c}">${vencTexto(x.df)}</div>
         </div></div>
-        <div class="right"><div class="valor" style="color:${p?'#b3392a':'#217a4b'}">${brl(e.valor)}</div>
-          <button class="delbtn" title="${p?'Marcar como pago':'Marcar como recebido'}" onclick="event.stopPropagation();quitarVenc('${x.t}','${e.id}')">✓ ${p?'Pago':'Recebido'}</button></div>
+        <div class="right"><div class="valor" style="color:${p?'#b3392a':'#217a4b'}">${brl(e.valor)}</div></div>
       </div>`;
     }).join('')+'</div>';
   });
@@ -1883,11 +1882,6 @@ function irParaItem(t,id){
   curYear=+yearFromRef(it.referencia); curMonth=monthIndexFromRef(it.referencia);
   tab=t==='p'?'pagar':'receber';
   closeModal(); render();
-}
-function quitarVenc(t,id){
-  const it=(t==='p'?S.pagar:S.receber).find(x=>x.id===id); if(!it) return;
-  it.status=t==='p'?'Pago':'Recebido';
-  save(); openVencimentos(vencFiltro);
 }
 
 // ----- Notificações do celular (lembretes de vencimento) -----
