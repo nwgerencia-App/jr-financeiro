@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
 <meta name="theme-color" content="#26365a">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwZjFiMzMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMjM3NWYiLz4KPC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMzgiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTAiIGZpbGw9IiNlOGE1M2QiLz4KPHRleHQgeD0iOTAiIHk9IjExNCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjY2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTIyMDNkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4kPC90ZXh0Pgo8L3N2Zz4K">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -490,9 +490,34 @@ nav.bottom{max-width:calc(var(--maxw) - 24px);}
   :root:not([data-theme="light"]) .valert.soon{background:#152238; border-color:#1e3252; color:#9fc0ff;}
   :root:not([data-theme="light"]) .vc-link{color:#8fb3ff;}
 }
+
+/* ===== Capa (splash, bloqueio e cadastro) ===== */
+.splash,.formscreen.cover,.ob-hero{background:radial-gradient(circle at 100% 0%, rgba(74,222,128,.95) 0%, rgba(16,179,160,.75) 24%, rgba(16,120,170,0) 62%), linear-gradient(180deg,#0a4aa0 0%,#08327a 52%,#061f58 100%);}
+.splash{position:fixed; inset:0; z-index:500; display:flex; align-items:center; justify-content:center; text-align:center; color:#fff; transition:opacity .5s ease, transform .5s ease;}
+.splash.out{opacity:0; transform:scale(1.03); pointer-events:none;}
+.sp-in{display:flex; flex-direction:column; align-items:center; animation:spin .7s ease-out both;}
+@keyframes spin{from{opacity:0; transform:translateY(14px) scale(.96);}to{opacity:1; transform:none;}}
+.sp-t{font-family:'Inter',system-ui,sans-serif; font-weight:800; font-size:40px; letter-spacing:-.5px; margin-top:8px;}
+.sp-s{font-size:15px; opacity:.82; margin-top:8px;}
+.cover-svg{display:block;}
+.cover-svg .sp-bar{transform-box:fill-box; transform-origin:50% 100%; animation:spbar .8s cubic-bezier(.2,.8,.2,1) both;}
+.cover-svg .sp-b1{animation-delay:.25s;} .cover-svg .sp-b2{animation-delay:.4s;} .cover-svg .sp-b3{animation-delay:.55s;}
+@keyframes spbar{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+.cover-svg .sp-arrow{stroke-dasharray:200; stroke-dashoffset:200; animation:sparrow 1s ease-out .7s forwards;}
+@keyframes sparrow{to{stroke-dashoffset:0;}}
+.cover-svg .sp-head{opacity:0; animation:sphead .3s ease-out 1.55s forwards;}
+@keyframes sphead{to{opacity:1;}}
+.formscreen.cover{color:#fff;}
+.formscreen.cover h2{color:#fff;}
+.formscreen.cover .btn.primary{background:#22c55e; color:#052e16;}
+.ob-hero{border-radius:26px; padding:22px 16px 20px; margin-bottom:18px; text-align:center; color:#fff; display:flex; flex-direction:column; align-items:center;}
+.ob-hero .ob-t{font-family:'Inter',system-ui,sans-serif; font-weight:800; font-size:28px; letter-spacing:-.4px; margin-top:4px;}
+.ob-hero .ob-s{font-size:13.5px; opacity:.85; margin-top:4px;}
 </style>
 </head>
 <body>
+<div id="splash" class="splash"></div>
+<script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.remove();},6000);</script>
 <div id="app">
   <header class="top hmain">
     <div class="hrow">
@@ -1683,14 +1708,14 @@ contentEl.addEventListener('touchend',e=>{
 },{passive:true});
 function showLockScreen(){
   document.getElementById('modalRoot').innerHTML=`
-  <div class="formscreen" data-lock="lock" style="justify-content:center;">
+  <div class="formscreen cover" data-lock="lock" style="justify-content:center;">
     <div style="padding:60px 24px;text-align:center;">
-      <div style="font-size:40px;margin-bottom:14px;">🔐</div>
+      <div style="display:flex;justify-content:center;margin-bottom:6px;">${coverSvg(130)}</div>
       <h2 style="margin:0 0 18px;">Digite sua senha</h2>
       <input id="lockInput" type="password" inputmode="numeric" maxlength="4" style="text-align:center;font-size:22px;letter-spacing:8px;width:140px;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);" placeholder="••••">
       <br><button class="btn primary" style="width:140px;margin-top:16px;" onclick="tryUnlock()">Entrar</button>
-      <div id="lockErr" style="color:#b3392a;font-size:12px;margin-top:10px;"></div>
-      <div style="margin-top:26px;"><button style="background:none;border:none;color:var(--muted);font-size:12.5px;text-decoration:underline;cursor:pointer;font-family:inherit;" onclick="openForgotPin()">Esqueci minha senha</button></div>
+      <div id="lockErr" style="color:#ffb3a8;font-size:12px;margin-top:10px;"></div>
+      <div style="margin-top:26px;"><button style="background:none;border:none;color:rgba(255,255,255,.8);font-size:12.5px;text-decoration:underline;cursor:pointer;font-family:inherit;" onclick="openForgotPin()">Esqueci minha senha</button></div>
     </div>
   </div>`;
 }
@@ -1701,11 +1726,11 @@ function tryUnlock(){
 }
 function openForgotPin(){
   document.getElementById('modalRoot').innerHTML=`
-  <div class="formscreen" data-lock="forgot" style="justify-content:center;">
+  <div class="formscreen cover" data-lock="forgot" style="justify-content:center;">
     <div style="padding:40px 24px;text-align:center;">
       <div style="font-size:36px;margin-bottom:14px;">⚠️</div>
       <h2 style="margin:0 0 14px;">Esqueceu sua senha?</h2>
-      <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 24px;">Como os dados ficam só neste aparelho, não existe forma de confirmar sua identidade para recuperar a senha. A única opção é remover a senha — seus lançamentos, categorias e configurações continuam intactos, só a proteção por senha será desligada.</p>
+      <p style="font-size:13.5px;color:rgba(255,255,255,.85);line-height:1.6;margin:0 0 24px;">Como os dados ficam só neste aparelho, não existe forma de confirmar sua identidade para recuperar a senha. A única opção é remover a senha — seus lançamentos, categorias e configurações continuam intactos, só a proteção por senha será desligada.</p>
       <button class="btn primary" style="width:100%;margin-bottom:10px;" onclick="forgotPinReset()">Remover senha e continuar</button>
       <button class="btn ghost" style="width:100%;" onclick="showLockScreen()">Voltar</button>
     </div>
@@ -1719,9 +1744,9 @@ function forgotPinReset(){
 function showOnboarding(){
   document.getElementById('modalRoot').innerHTML=`
   <div class="formscreen" data-lock="onboarding">
-    <main style="display:flex; flex-direction:column; justify-content:center; padding-top:40px;">
-      <div style="text-align:center; margin-bottom:30px;">
-        <div style="font-size:44px; margin-bottom:10px;">💰</div>
+    <main style="display:flex; flex-direction:column; padding-top:20px;">
+      <div class="ob-hero">${coverSvg(150)}<div class="ob-t">Financeiro</div><div class="ob-s">Controle financeiro pessoal</div></div>
+      <div style="text-align:center; margin-bottom:26px;">
         <h2 style="margin:0 0 6px;">Bem-vindo(a)!</h2>
         <div class="sub">Cadastre seu perfil para continuar. Seus dados ficam salvos apenas neste aparelho/navegador.</div>
       </div>
@@ -1985,6 +2010,39 @@ document.addEventListener('visibilitychange',()=>{
   if(!document.hidden && S.perfil && S.perfil.nome && !needsInstallGate()){ render(); checkVencimentos(); }
 });
 setInterval(()=>{ if(S.perfil&&S.perfil.nome&&!needsInstallGate()) checkVencimentos(); },30*60*1000);
+
+// ===== Capa do app =====
+let _cvN=0;
+function coverSvg(w){
+  const k='cv'+(++_cvN);
+  return `<svg class="cover-svg" width="${w}" height="${w}" viewBox="0 0 240 240" aria-hidden="true">
+  <defs>
+    <linearGradient id="${k}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#1e40af"/></linearGradient>
+    <linearGradient id="${k}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6ee7a0"/><stop offset="1" stop-color="#16a34a"/></linearGradient>
+    <linearGradient id="${k}c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#059669"/></linearGradient>
+  </defs>
+  <path d="M33.4 172A100 100 0 1 1 214 156.2" fill="none" stroke="#2fd58a" stroke-width="4" stroke-linecap="round"/>
+  <rect x="64" y="98" width="112" height="44" rx="10" fill="#0b2a6b"/>
+  <rect class="sp-bar sp-b1" x="80" y="108" width="18" height="40" rx="3" fill="url(#${k}b)"/>
+  <rect class="sp-bar sp-b2" x="104" y="96" width="18" height="52" rx="3" fill="url(#${k}b)"/>
+  <rect class="sp-bar sp-b3" x="128" y="82" width="18" height="66" rx="3" fill="url(#${k}b)"/>
+  <path class="sp-arrow" d="M84 88L110 70L130 80L172 46" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="sp-head" d="M160 46H172V58" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="62" y="124" width="116" height="76" rx="14" fill="url(#${k}w)"/>
+  <rect x="68" y="130" width="104" height="64" rx="10" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="138" y="150" width="50" height="26" rx="13" fill="#2563eb" stroke="#fff" stroke-opacity=".25"/>
+  <circle cx="154" cy="163" r="6" fill="#e0f2fe"/>
+  <circle cx="178" cy="196" r="24" fill="url(#${k}c)"/>
+  <circle cx="178" cy="196" r="18" fill="none" stroke="#bbf7d0" stroke-opacity=".6" stroke-width="1.5"/>
+  <text x="178" y="206" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="26" fill="#fff">$</text>
+</svg>`;
+}
+function showSplash(){
+  const el=document.getElementById('splash'); if(!el) return;
+  el.innerHTML=`<div class="sp-in">${coverSvg(210)}<div class="sp-t">Financeiro</div><div class="sp-s">Controle financeiro pessoal</div></div>`;
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),550); },2000);
+}
+showSplash();
 
 // ===== Instalação obrigatória do app (PWA) =====
 let deferredInstall=null, appInstalled=false;
