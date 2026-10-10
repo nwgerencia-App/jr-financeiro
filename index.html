@@ -1770,25 +1770,22 @@ function handleBack(){
   if(tab!=='resultado'){ tab='resultado'; render(); return true; }
   return false;
 }
-let exitTimer=null, guardArmed=false;
-// O "guard" é criado no primeiro toque (o Chrome ignora entradas de histórico criadas sem interação do usuário)
-function armGuard(){
-  if(guardArmed) return; guardArmed=true;
+// Botão Voltar do celular: só volta telas do app e nunca fecha o aplicativo.
+// O Chrome ignora entradas de histórico criadas sem toque do usuário, então a "trava" é refeita a cada toque.
+function ensureGuard(){
   try{
-    if(!history.state || history.state.app!=='guard'){
-      history.replaceState({app:'base'},'');
+    const st=history.state;
+    if(!st || st.app!=='guard'){
+      if(!st || st.app!=='base') history.replaceState({app:'base'},'');
       history.pushState({app:'guard'},'');
     }
   }catch(e){}
 }
-['touchstart','pointerdown','click','keydown'].forEach(ev=>document.addEventListener(ev,armGuard,{once:true,passive:true,capture:true}));
+['touchstart','pointerdown','click','keydown'].forEach(ev=>document.addEventListener(ev,ensureGuard,{passive:true,capture:true}));
 window.addEventListener('popstate',e=>{
   if(e.state && e.state.app==='guard') return;
-  if(handleBack()){ history.pushState({app:'guard'},''); return; }
-  // Já está na tela inicial sem nada aberto: avisa; um segundo Voltar em 2s sai de verdade
-  showToast('Pressione voltar novamente para sair');
-  clearTimeout(exitTimer);
-  exitTimer=setTimeout(()=>{ if(!history.state || history.state.app!=='guard') history.pushState({app:'guard'},''); },2000);
+  handleBack(); // fecha tela/janela aberta ou volta para o Início; no Início não faz nada
+  try{ history.pushState({app:'guard'},''); }catch(err){}
 });
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
