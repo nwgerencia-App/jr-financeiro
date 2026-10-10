@@ -1,5 +1,5 @@
 // Service worker do Financeiro: abre mesmo sem internet, pega atualizações e mostra avisos de vencimento.
-const CACHE = 'financeiro-v4';
+const CACHE = 'financeiro-v5';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
