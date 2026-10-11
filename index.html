@@ -568,6 +568,13 @@ table.gestao td.num-zero{color:var(--muted);}
 
 /* ===== Frase do cartão da reserva: "X% do lucro do mês" (sempre completa, quebra linha se precisar) ===== */
 .rsv-sub{padding-right:0; min-height:0; white-space:normal; overflow:visible; text-overflow:clip; font-weight:600;}
+
+/* ===== Escolha de escopo (parcelados) ===== */
+.escopo-btn{display:block; width:100%; text-align:left; background:var(--cream); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; font-family:inherit; color:var(--text); cursor:pointer; -webkit-tap-highlight-color:transparent;}
+.escopo-btn:active{transform:scale(.99);}
+.escopo-btn b{display:block; font-size:14px;}
+.escopo-btn small{display:block; font-size:12px; color:var(--muted); margin-top:2px;}
+.escopo-btn.danger b{color:#b3392a;}
 </style>
 </head>
 <body>
@@ -1021,6 +1028,10 @@ function toggleStatus(t,id,pend,done){
   showToast(it.status===done?(t==='receber'?'Marcado como recebido ✓':'Marcado como pago ✓'):(t==='receber'?'Voltou para "a receber"':'Voltou para "a pagar"'));
 }
 function delItem(t,id){
+  const list=t==='receber'?S.receber:S.pagar;
+  const it=list.find(x=>x.id===id);
+  const grupo=it?grupoOrdenado(list,it):[];
+  if(it && grupo.length>1){ abrirEscopoExclusao(t,id); return; }
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
     <h2>Excluir lançamento</h2>
     <p style="font-size:14px;color:var(--text);margin:0 0 18px;">Excluir este lançamento?</p>
@@ -1030,6 +1041,67 @@ function delItem(t,id){
 function confirmDelItem(t,id){
   if(t==='receber')S.receber=S.receber.filter(x=>x.id!==id); else S.pagar=S.pagar.filter(x=>x.id!==id);
   save(); document.getElementById('catModalRoot').innerHTML=''; render();
+}
+// ----- Lançamentos parcelados / recorrentes: série de lançamentos -----
+function parcelaInfo(e){
+  const d=e.descricao||'';
+  let m=d.match(/^(.*) \(parcela (\d+)\/(\d+)\)$/);
+  if(m) return {base:m[1],n:+m[2],total:+m[3]};
+  m=d.match(/^(.*) \(recorrente\)$/);
+  if(m) return {base:m[1],n:0,total:0,rec:true};
+  return null;
+}
+function sufixoDe(e){ const m=(e.descricao||'').match(/( \(parcela \d+\/\d+\)| \(recorrente\))$/); return m?m[1]:''; }
+function grupoDe(list,e){
+  if(e.grupo) return list.filter(x=>x.grupo===e.grupo);
+  const pi=parcelaInfo(e); if(!pi) return [e];
+  const nome=e.cliente||e.conta;
+  return list.filter(x=>{
+    const p=parcelaInfo(x);
+    return p && p.base===pi.base && p.total===pi.total && !!p.rec===!!pi.rec && (x.cliente||x.conta)===nome && x.tipo===e.tipo && x.valor===e.valor;
+  });
+}
+function grupoOrdenado(list,e){ return [...grupoDe(list,e)].sort((a,b)=>(a.venc||'').localeCompare(b.venc||'')); }
+function vencPadrao(){
+  // dia 30 do mês exibido (em fevereiro, o último dia do mês)
+  const ultimo=new Date(curYear,curMonth+1,0).getDate();
+  return `${curYear}-${String(curMonth+1).padStart(2,'0')}-${String(Math.min(30,ultimo)).padStart(2,'0')}`;
+}
+function refFromVenc(v){ const mi=(+v.split('-')[1])-1; return `${MONTHS[mi]?MONTHS[mi].f:MONTHS[curMonth].f}/${v.split('-')[0]}`; }
+function escopoBotoes(grupo,idx,fn,danger){
+  const total=grupo.length, prox=total-idx;
+  const b=(titulo,sub,esc)=>`<button class="escopo-btn${danger?' danger':''}" onclick="${fn}('${esc}')"><b>${titulo}</b><small>${sub}</small></button>`;
+  let h=b('Somente esta','Só o lançamento selecionado','um');
+  if(prox>1 && prox<total) h+=b('Esta e as próximas',prox+' lançamentos, a partir deste','prox');
+  h+=b('Todas',total+' lançamentos da série','todas');
+  return h;
+}
+let escopoDel=null;
+function abrirEscopoExclusao(t,id){
+  const list=t==='receber'?S.receber:S.pagar;
+  const it=list.find(x=>x.id===id); const grupo=grupoOrdenado(list,it);
+  const idx=Math.max(0,grupo.findIndex(x=>x.id===id));
+  escopoDel={t,id};
+  document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
+    <h2>Excluir lançamento parcelado</h2>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;">Este lançamento faz parte de uma série de ${grupo.length}. O que você quer excluir?</p>
+    ${escopoBotoes(grupo,idx,'confirmDelEscopo',true)}
+    <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button></div>
+  </div></div>`;
+}
+function confirmDelEscopo(esc){
+  if(!escopoDel) return;
+  const {t,id}=escopoDel;
+  const list=t==='receber'?S.receber:S.pagar;
+  const it=list.find(x=>x.id===id); if(!it){ closeCatModal(); return; }
+  const grupo=grupoOrdenado(list,it);
+  const idx=Math.max(0,grupo.findIndex(x=>x.id===id));
+  const alvos=esc==='todas'?grupo:(esc==='prox'?grupo.slice(idx):[it]);
+  const ids=new Set(alvos.map(x=>x.id));
+  const resto=list.filter(x=>!ids.has(x.id));
+  if(t==='receber') S.receber=resto; else S.pagar=resto;
+  escopoDel=null; save(); document.getElementById('catModalRoot').innerHTML=''; render();
+  showToast(alvos.length>1?alvos.length+' lançamentos excluídos':'Lançamento excluído');
 }
 
 function monthTotals(){
@@ -1619,11 +1691,11 @@ function openNovoModal(editId){
   const isReceber=tab==='receber';
   const list=isReceber?S.receber:S.pagar;
   const ed=editId?list.find(x=>x.id===editId):null;
-  const venc0=ed?ed.venc:`${curYear}-${String(curMonth+1).padStart(2,'0')}-28`;
+  const venc0=ed?ed.venc:vencPadrao();
   const nomeVal=ed?(ed.cliente||ed.conta||''):'';
   const valorVal=ed?ed.valor:'';
   const tipoVal=ed?ed.tipo:'';
-  const pagVal=ed?ed.descricao:'';
+  const pagVal=ed?(parcelaInfo(ed)?parcelaInfo(ed).base:ed.descricao):'';
   const statusPend=isReceber?'A Receber':'A Pagar';
   const statusDone=isReceber?'Recebido':'Pago';
   const statusVal=ed?ed.status:statusPend;
@@ -1780,40 +1852,85 @@ function addMonths(dateStr,n){
   const dd=Math.min(d,lastDay);
   return `${yy}-${String(mm+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
 }
+let pendingEdit=null;
 function saveNovo(editId){
   const isReceber=tab==='receber';
+  const t=isReceber?'receber':'pagar';
   const nome=document.getElementById('fNome').value.trim()||'Sem nome';
   const tipo=document.getElementById('fTipo').value||'Outros';
   const pag=document.getElementById('fPag').value||'-';
-  const venc=document.getElementById('fVenc').value||`${curYear}-${String(curMonth+1).padStart(2,'0')}-28`;
-  const mIdx=(+venc.split('-')[1])-1, ano=venc.split('-')[0];
-  const referencia=`${MONTHS[mIdx]?MONTHS[mIdx].f:MONTHS[curMonth].f}/${ano}`;
+  const venc=document.getElementById('fVenc').value||vencPadrao();
   const valor=+document.getElementById('fValor').value||0;
   const statusPend=isReceber?'A Receber':'A Pagar';
   const status=document.getElementById('fStatus').value||statusPend;
   const list=isReceber?S.receber:S.pagar;
   if(editId){
     const it=list.find(x=>x.id===editId);
-    if(it){ if(isReceber)it.cliente=nome; else it.conta=nome; it.tipo=tipo; it.referencia=referencia; it.descricao=pag; it.venc=venc; it.valor=valor; it.status=status; }
-  } else {
-    const parcelasSel=document.getElementById('fParcelas').value;
-    const n=parcelasSel==='perder'?60:(+parcelasSel||1);
-    for(let k=0;k<n;k++){
-      const vencK=k===0?venc:addMonths(venc,k);
-      const mK=(+vencK.split('-')[1])-1, anoK=vencK.split('-')[0];
-      const refK=`${MONTHS[mK]?MONTHS[mK].f:MONTHS[curMonth].f}/${anoK}`;
-      let descK=pag;
-      if(parcelasSel==='perder') descK+=' (recorrente)';
-      else if(n>1) descK+=` (parcela ${k+1}/${n})`;
-      const item={id:'n'+Date.now()+'_'+k,tipo,referencia:refK,descricao:descK,venc:vencK,valor,status:k===0?status:statusPend};
-      if(isReceber){item.cliente=nome; S.receber.push(item);} else {item.conta=nome; S.pagar.push(item);}
-    }
+    if(!it){ closeModal(); return; }
+    const p={t,id:editId,nome,tipo,pag,venc,valor,status};
+    if(grupoDe(list,it).length>1){ pendingEdit=p; abrirEscopoEdicao(); return; } // pergunta: só esta, esta e próximas ou todas
+    aplicarEdicao(p,'um');
+    return;
+  }
+  const mIdx=(+venc.split('-')[1])-1, ano=venc.split('-')[0];
+  const referencia=refFromVenc(venc);
+  const parcelasSel=document.getElementById('fParcelas').value;
+  const n=parcelasSel==='perder'?60:(+parcelasSel||1);
+  const grp=n>1?('g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)):null;
+  for(let k=0;k<n;k++){
+    const vencK=k===0?venc:addMonths(venc,k);
+    const refK=refFromVenc(vencK);
+    let descK=pag;
+    if(parcelasSel==='perder') descK+=' (recorrente)';
+    else if(n>1) descK+=` (parcela ${k+1}/${n})`;
+    const item={id:'n'+Date.now()+'_'+k,tipo,referencia:refK,descricao:descK,venc:vencK,valor,status:k===0?status:statusPend};
+    if(grp) item.grupo=grp;
+    if(isReceber){item.cliente=nome; S.receber.push(item);} else {item.conta=nome; S.pagar.push(item);}
   }
   save(); closeModal();
   curYear=+ano;
   curMonth=monthIndexFromRef(referencia);
   render();
 }
+// aplica a edição: escopo 'um' (só esta), 'prox' (esta e as próximas) ou 'todas'
+function aplicarEdicao(p,escopo){
+  const list=p.t==='receber'?S.receber:S.pagar;
+  const it=list.find(x=>x.id===p.id); if(!it) return;
+  const nomeKey=p.t==='receber'?'cliente':'conta';
+  const grupo=grupoOrdenado(list,it);
+  const idx=Math.max(0,grupo.findIndex(x=>x.id===it.id));
+  if(grupo.length>1){ const gid='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); grupo.forEach(x=>{ if(!x.grupo) x.grupo=gid; }); }
+  const alvos=escopo==='todas'?grupo:(escopo==='prox'?grupo.slice(idx):[it]);
+  const mudouData=p.venc!==it.venc;
+  alvos.forEach(x=>{
+    x[nomeKey]=p.nome; x.tipo=p.tipo; x.valor=p.valor;
+    x.descricao=p.pag+sufixoDe(x);
+    if(mudouData){ const off=grupo.indexOf(x)-idx; x.venc=off===0?p.venc:addMonths(p.venc,off); x.referencia=refFromVenc(x.venc); }
+  });
+  it.status=p.status;          // pago/recebido vale só para a parcela editada
+  it.referencia=refFromVenc(it.venc);
+  pendingEdit=null;
+  save();
+  document.getElementById('catModalRoot').innerHTML='';
+  closeModal();
+  curYear=+it.venc.split('-')[0];
+  curMonth=monthIndexFromRef(it.referencia);
+  render();
+  if(alvos.length>1) showToast(alvos.length+' lançamentos atualizados');
+}
+function abrirEscopoEdicao(){
+  const p=pendingEdit; if(!p) return;
+  const list=p.t==='receber'?S.receber:S.pagar;
+  const it=list.find(x=>x.id===p.id); const grupo=grupoOrdenado(list,it);
+  const idx=Math.max(0,grupo.findIndex(x=>x.id===p.id));
+  document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
+    <h2>Alterar lançamento parcelado</h2>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;">Este lançamento faz parte de uma série de ${grupo.length}. A alteração vale para:</p>
+    ${escopoBotoes(grupo,idx,'aplicarEdicaoEscopo',false)}
+    <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button></div>
+  </div></div>`;
+}
+function aplicarEdicaoEscopo(esc){ if(pendingEdit) aplicarEdicao(pendingEdit,esc); }
 
 document.getElementById('fabAdd').addEventListener('click',()=>{ if(tab==='diario') openDiarioForm(); else openNovoModal(); });
 document.getElementById('settingsBtn').addEventListener('click',openSettings);
