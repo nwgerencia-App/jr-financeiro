@@ -566,8 +566,8 @@ table.gestao td.num-zero{color:var(--muted);}
   :root:not([data-theme="light"]) table.gestao td.num-pos{color:#5fd38d;}
 }
 
-/* ===== Frase do cartão da reserva (uma linha) ===== */
-.rsv-sub{padding-right:0; min-height:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+/* ===== Frase do cartão da reserva: "X% do lucro do mês" (sempre completa, quebra linha se precisar) ===== */
+.rsv-sub{padding-right:0; min-height:0; white-space:normal; overflow:visible; text-overflow:clip; font-weight:600;}
 </style>
 </head>
 <body>
@@ -1156,13 +1156,14 @@ function renderInicio(c){
 }
 
 const RSV_META={
-  imprevistos:{sub:'Segurança para imprevistos',ico:'<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1 1 0 0 1 1 1v2"/><path d="M4 7.5V17a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 1 4 7.5z"/><circle cx="16" cy="13.5" r="1.1" fill="currentColor"/>'},
-  projeto:{sub:'Planos e grandes objetivos',ico:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>'},
-  pessoal:{sub:'Seus planos, seu tempo',ico:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/>'},
-  doacoes:{sub:'Juntos fazemos mais',ico:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>'}
+  imprevistos:{ico:'<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1 1 0 0 1 1 1v2"/><path d="M4 7.5V17a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 1 4 7.5z"/><circle cx="16" cy="13.5" r="1.1" fill="currentColor"/>'},
+  projeto:{ico:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>'},
+  pessoal:{ico:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/>'},
+  doacoes:{ico:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>'}
 };
 function escHtml(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-// frase abaixo do valor: sempre a porcentagem atual da própria reserva
+// Mensagem de cada cartão: "X% do lucro do mês", com X sempre igual à porcentagem daquela reserva
+// (muda sozinha quando você edita a porcentagem em "Editar reservas")
 function reservaSub(key){
   const p=+((S.reservas||{})[key]||0);
   return p.toLocaleString('pt-BR',{maximumFractionDigits:2})+'% do lucro do mês';
@@ -1424,6 +1425,7 @@ function delSaidaReserva(id){
   save();
   renderExtratoReserva();
 }
+// Formulário "Editar reservas": só Nome e Porcentagem de cada reserva
 function openReservaModal(){
   const r=S.reservas;
   const n=S.reservaNomes||{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'};
