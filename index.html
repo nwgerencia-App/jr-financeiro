@@ -575,6 +575,39 @@ table.gestao td.num-zero{color:var(--muted);}
 .escopo-btn b{display:block; font-size:14px;}
 .escopo-btn small{display:block; font-size:12px; color:var(--muted); margin-top:2px;}
 .escopo-btn.danger b{color:#b3392a;}
+
+/* ===== Início: cada indicador com a sua cor ===== */
+.hero2 .h2-panel.tones{padding:6px; gap:6px; background:transparent;}
+.hero2 .h2-panel.tones .h2-st{border-left:none; border-radius:16px; padding:10px 10px 11px;}
+.hero2 .tone-green{background:#e3f6ec;}
+.hero2 .tone-red{background:#fbdcd6;}
+.hero2 .tone-amber{background:#fff0d6;}
+.hero2 .tone-green .h2-sic{background:rgba(47,158,95,.22); color:#217a4b;}
+.hero2 .tone-red .h2-sic{background:rgba(217,105,90,.24); color:#b3392a;}
+.hero2 .tone-amber .h2-sic{background:rgba(232,165,61,.28); color:#a8710f;}
+.hero2 .tone-green b{color:#14603c;}
+.hero2 .tone-red b{color:#a8352a;}
+.hero2 .tone-amber b{color:#8a5a0a;}
+:root[data-theme="dark"] .hero2 .tone-green{background:#173325;}
+:root[data-theme="dark"] .hero2 .tone-red{background:#3a2019;}
+:root[data-theme="dark"] .hero2 .tone-amber{background:#3a2f18;}
+:root[data-theme="dark"] .hero2 .tone-green b{color:#7fd9a0;}
+:root[data-theme="dark"] .hero2 .tone-red b{color:#ffb3a8;}
+:root[data-theme="dark"] .hero2 .tone-amber b{color:#e8c887;}
+:root[data-theme="dark"] .hero2 .tone-green .h2-sic{color:#7fd9a0;}
+:root[data-theme="dark"] .hero2 .tone-red .h2-sic{color:#ffb3a8;}
+:root[data-theme="dark"] .hero2 .tone-amber .h2-sic{color:#e8c887;}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .hero2 .tone-green{background:#173325;}
+  :root:not([data-theme="light"]) .hero2 .tone-red{background:#3a2019;}
+  :root:not([data-theme="light"]) .hero2 .tone-amber{background:#3a2f18;}
+  :root:not([data-theme="light"]) .hero2 .tone-green b{color:#7fd9a0;}
+  :root:not([data-theme="light"]) .hero2 .tone-red b{color:#ffb3a8;}
+  :root:not([data-theme="light"]) .hero2 .tone-amber b{color:#e8c887;}
+  :root:not([data-theme="light"]) .hero2 .tone-green .h2-sic{color:#7fd9a0;}
+  :root:not([data-theme="light"]) .hero2 .tone-red .h2-sic{color:#ffb3a8;}
+  :root:not([data-theme="light"]) .hero2 .tone-amber .h2-sic{color:#e8c887;}
+}
 </style>
 </head>
 <body>
@@ -625,12 +658,12 @@ const ICO={
 };
 // Card hero padrão (Início, Diário, A Receber, A Pagar)
 function heroHtml(o){
-  const stats=o.stats.map(s=>`<div class="h2-st"${s.go?` onclick="event.stopPropagation();goTab('${s.go}')" style="cursor:pointer;"`:''}><div class="h2-st-top"><span class="h2-sic">${s.icon}</span><span class="h2-slbl">${s.label}</span></div><b>${s.val}</b></div>`).join('');
+  const stats=o.stats.map(s=>`<div class="h2-st${s.tone?' tone-'+s.tone:''}"${s.go?` onclick="event.stopPropagation();goTab('${s.go}')" style="cursor:pointer;"`:''}><div class="h2-st-top"><span class="h2-sic">${s.icon}</span><span class="h2-slbl">${s.label}</span></div><b>${s.val}</b></div>`).join('');
   return `<div class="hero2 ${o.cls}"${o.go?` onclick="goTab('${o.go}')" style="cursor:pointer;"`:''}>
     <div class="h2-blob"></div><div class="h2-blobic">${o.blobIcon}</div>
     <div class="h2-top"><span class="h2-tic">${o.icon}</span><span class="h2-lbl">${o.label}</span></div>
     <div class="h2-val">${o.value}</div>
-    <div class="h2-panel">${stats}</div>
+    <div class="h2-panel${o.stats.some(s=>s.tone)?' tones':''}">${stats}</div>
   </div>`;
 }
 function shiftPeriod(d){
@@ -1200,9 +1233,9 @@ function renderInicio(c){
     label:'Resultado do mês',
     value:`${lucro>=0?'+ ':'- '}${brl(Math.abs(lucro))}`,
     stats:[
-      {icon:ICO.down,label:'A receber',val:brl(cur.fat),go:'receber'},
-      {icon:ICO.card,label:'A pagar',val:brl(cur.desp),go:'pagar'},
-      {icon:ICO.cal,label:'Diários',val:brl(totalDiario),go:'diario'}
+      {icon:ICO.down,label:'A receber',val:brl(cur.fat),go:'receber',tone:'green'},
+      {icon:ICO.card,label:'A pagar',val:brl(cur.desp),go:'pagar',tone:'red'},
+      {icon:ICO.cal,label:'Diários',val:brl(totalDiario),go:'diario',tone:'amber'}
     ]
   });
 
