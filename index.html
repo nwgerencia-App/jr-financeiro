@@ -637,13 +637,13 @@ table.gestao td.num-zero{color:var(--muted);}
 .catx-item .ci-n{font-weight:600; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .catx-item .ci-d{font-size:11.5px; color:var(--muted); margin-top:2px;}
 .catx-item .ci-v{font-weight:700; font-size:13px; color:#b3392a; white-space:nowrap;}
-.catx-item .ci-v.pos{color:#217a4b;}
-:root[data-theme="dark"] .catx-item .ci-v{color:#ff9d8f;}
-:root[data-theme="dark"] .catx-item .ci-v.pos{color:#5fd38d;}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) .catx-item .ci-v{color:#ff9d8f;}
-  :root:not([data-theme="light"]) .catx-item .ci-v.pos{color:#5fd38d;}
-}
+
+/* rótulos dos três indicadores sem cortar ("A receber") */
+.hero2 .h2-panel.tones .h2-st{padding:10px 8px 11px;}
+.hero2 .h2-panel.tones .h2-st-top{gap:5px;}
+.hero2 .h2-panel.tones .h2-sic{width:22px; height:22px;}
+.hero2 .h2-panel.tones .h2-sic .i{width:12px; height:12px;}
+.hero2 .h2-panel.tones .h2-slbl{font-size:10.5px; overflow:visible; text-overflow:clip;}
 </style>
 </head>
 <body>
@@ -828,10 +828,7 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
   });
   html+=alertaTipoHtml(isReceber?'r':'p');
   html+=catChartHtml(items,isReceber);
-  html+=`<div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-    <span>Últimos lançamentos</span>
-    <button onclick="extCatAbertas=[];openExtratoCategoria('${tab}')" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;white-space:nowrap;">📋 Extrato por categoria ›</button>
-  </div>`;
+  html+='<div class="sectionh">Últimos lançamentos</div>';
   // Ordena por data de vencimento; pagos/recebidos vão para o fim da lista
   const sortedItems=[...items].sort((a,b)=>{
     const da=a.status===doneLabel?1:0, db=b.status===doneLabel?1:0;
@@ -845,8 +842,8 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
         <div class="left">
           <div class="ric">${iconFor(e.tipo)}</div>
           <div class="info">
-            <div class="cli">${e[nameKey]}</div>
-            <div class="sub">${e.tipo} · ${e.descricao}</div>
+            <div class="cli">${esc(e[nameKey])}</div>
+            <div class="sub">${esc(e.tipo)} · ${esc(e.descricao)}</div>
             <div class="sub">📅 Venc. ${fmtVenc(e.venc)}</div>
             ${vencBadgeHtml(e)}
           </div>
@@ -868,7 +865,7 @@ function catChartHtml(items,isReceber){
   const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([name,val])=>({name,val,pct:Math.round(val/total*100),color:colorForCat(name)}));
   let cum=0;
   const stops=arr.map(c=>{const s=cum; cum+=c.pct; return `${c.color} ${s}% ${cum}%`;}).join(', ');
-  const legend=arr.map(c=>`<div class="cl-row"><span class="dot2" style="background:${c.color}"></span><span class="cl-name">${c.name}</span><span class="cl-val">${brl(c.val)}</span><span class="cl-pct">${c.pct}%</span></div>`).join('');
+  const legend=arr.map(c=>`<div class="cl-row"><span class="dot2" style="background:${c.color}"></span><span class="cl-name">${esc(c.name)}</span><span class="cl-val">${brl(c.val)}</span><span class="cl-pct">${c.pct}%</span></div>`).join('');
   return `<div class="catbox">
     <div class="cthead"><span>🥧</span>${isReceber?'Receitas por categorias':'Gastos por categoria'}</div>
     <div class="catwrap">
@@ -888,7 +885,7 @@ function diarioChartHtml(items,totalLabel){
   const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([name,val])=>({name,val,pct:Math.round(val/total*100),color:colorForCat(name)}));
   let cum=0;
   const stops=arr.map(c=>{const s=cum; cum+=c.pct; return `${c.color} ${s}% ${cum}%`;}).join(', ');
-  const legend=arr.map(c=>`<div class="cl-row"><span class="dot2" style="background:${c.color}"></span><span class="cl-name">${c.name}</span><span class="cl-val">${brl(c.val)}</span><span class="cl-pct">${c.pct}%</span></div>`).join('');
+  const legend=arr.map(c=>`<div class="cl-row"><span class="dot2" style="background:${c.color}"></span><span class="cl-name">${esc(c.name)}</span><span class="cl-val">${brl(c.val)}</span><span class="cl-pct">${c.pct}%</span></div>`).join('');
   return `<div class="catbox">
     <div class="cthead" style="justify-content:space-between;display:flex;"><span>🥧 Gastos por categorias</span>${verBtn}</div>
     <div class="catwrap">
@@ -941,14 +938,14 @@ function renderDiario(c){
         <div class="left">
           <div class="ric">${iconFor(e.categoria)}</div>
           <div class="info">
-            <div class="cli">${e.nome}</div>
-            <div class="sub">${e.categoria}</div>
+            <div class="cli">${esc(e.nome)}</div>
+            <div class="sub">${esc(e.categoria)}</div>
           </div>
         </div>
         <div class="right">
           <div class="sub" style="margin-bottom:2px;">${e.hora||''}</div>
           <div class="valor" style="color:#b3392a">${brl(e.valor)}</div>
-          <button class="delbtn" onclick="event.stopPropagation();delDiario('${e.id}')">✕</button>
+          <button class="menubtn" aria-label="Mais opções" onclick="openRowMenu(event,'${e.id}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
         </div>
       </div>`).join('')+'</div>';
   }
@@ -976,8 +973,8 @@ function openExtratoMes(){
       <div class="left">
         <div class="ric">${iconFor(e.categoria)}</div>
         <div class="info">
-          <div class="cli">${e.nome}</div>
-          <div class="sub">${e.categoria} · ${fmtVenc(e.data)}</div>
+          <div class="cli">${esc(e.nome)}</div>
+          <div class="sub">${esc(e.categoria)} · ${fmtVenc(e.data)}</div>
         </div>
       </div>
       <div class="right">
@@ -998,7 +995,7 @@ function openExtratoMes(){
       const pct=total?d.valor/total*100:0;
       const aberta=extratoCatsAbertas.includes(nome);
       const lista=aberta?`<div class="catx-list">${d.itens.map(e=>`<div class="catx-item"><div class="ci-l"><div class="ci-n">${escHtml(e.nome)}</div><div class="ci-d">${fmtVenc(e.data)}${e.hora?' · '+e.hora:''}</div></div><div class="ci-v">${brl(e.valor)}</div></div>`).join('')}</div>`:'';
-      return `<div class="catx" onclick="toggleExtratoCat('${encodeURIComponent(nome)}')">
+      return `<div class="catx" onclick="toggleExtratoCat('${encodeURIComponent(nome).replace(/'/g,'%27')}')">
         <div class="catx-top">
           <div class="ric">${iconFor(nome)}</div>
           <div class="info"><div class="cli">${escHtml(nome)}</div><div class="sub">${d.n} ${d.n===1?'lançamento':'lançamentos'} · ${fmtPct(d.valor)}% do total</div></div>
@@ -1022,65 +1019,6 @@ function openExtratoMes(){
         <button class="backbtn" onclick="closeModal(); render();">←</button>
         <div class="hic" style="background:rgba(255,255,255,.14)">📋</div>
         <div><h1>Extrato do mês</h1><div class="month">${mesLbl}</div></div>
-      </div>
-    </header>
-    <main>${body}</main>
-  </div>`;
-}
-// ----- Extrato por categoria (telas A Receber e A Pagar) -----
-let extCatAbertas=[];
-// abre/fecha os lançamentos de uma categoria (na própria lista) e mantém a posição da tela
-function toggleExtCat(t,enc){
-  const nome=decodeURIComponent(enc);
-  const i=extCatAbertas.indexOf(nome);
-  if(i>=0) extCatAbertas.splice(i,1); else extCatAbertas.push(nome);
-  const mm=document.querySelector('#modalRoot main'); const y=mm?mm.scrollTop:0;
-  openExtratoCategoria(t);
-  const m2=document.querySelector('#modalRoot main'); if(m2) m2.scrollTop=y;
-}
-function openExtratoCategoria(t){
-  const isR=(t==='receber');
-  const list=isR?S.receber:S.pagar;
-  const nameKey=isR?'cliente':'conta';
-  const doneLabel=isR?'Recebido':'Pago';
-  const corValor=isR?'#217a4b':'#b3392a';
-  const items=list.filter(e=>monthIndexFromRef(e.referencia)===curMonth&&yearFromRef(e.referencia)===String(curYear));
-  const total=items.reduce((s,e)=>s+e.valor,0);
-  let conteudo;
-  if(!items.length){
-    conteudo='<div class="empty"><div class="eic">📄</div><div class="et">Nenhum lançamento neste mês.</div></div>';
-  } else {
-    const mapa={};
-    items.forEach(e=>{ const c=e.tipo||'Outros'; (mapa[c]=mapa[c]||{valor:0,n:0,itens:[]}); mapa[c].valor+=e.valor; mapa[c].n++; mapa[c].itens.push(e); });
-    const cats=Object.entries(mapa).sort((x,y)=>y[1].valor-x[1].valor);
-    const fmtPct=v=>(total?v/total*100:0).toLocaleString('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:0});
-    conteudo=cats.map(([nome,d])=>{
-      const pct=total?d.valor/total*100:0;
-      const aberta=extCatAbertas.includes(nome);
-      const itens=[...d.itens].sort((a,b)=>(a.venc||'').localeCompare(b.venc||''));
-      const lista=aberta?`<div class="catx-list">${itens.map(e=>`<div class="catx-item"><div class="ci-l"><div class="ci-n">${escHtml(e[nameKey])}</div><div class="ci-d">${e.venc?fmtVenc(e.venc):''} · ${e.status===doneLabel?'✔ '+doneLabel:escHtml(e.status)}</div></div><div class="ci-v${isR?' pos':''}">${brl(e.valor)}</div></div>`).join('')}</div>`:'';
-      return `<div class="catx" onclick="toggleExtCat('${t}','${encodeURIComponent(nome).replace(/'/g,'%27')}')">
-        <div class="catx-top">
-          <div class="ric">${iconFor(nome)}</div>
-          <div class="info"><div class="cli">${escHtml(nome)}</div><div class="sub">${d.n} ${d.n===1?'lançamento':'lançamentos'} · ${fmtPct(d.valor)}% do total</div></div>
-          <div class="valor" style="color:${corValor}">${brl(d.valor)}</div>
-          <span class="catx-chev${aberta?' open':''}">›</span>
-        </div>
-        <div class="catx-bar"><i style="width:${Math.max(pct,2)}%;background:${colorForCat(nome)}"></i></div>
-        ${lista}
-      </div>`;
-    }).join('');
-  }
-  const body=`<div class="card ${isR?'green-grad':'red-grad'}" style="margin-bottom:16px;"><div class="cic ${isR?'green':'red'}">${isR?'📥':'📤'}</div><div class="lbl">Total do mês</div><div class="val ${isR?'green':'red'}">${brl(total)}</div></div>
-    ${conteudo}`;
-  const mesLbl=MONTHS[curMonth].f+'/'+curYear;
-  document.getElementById('modalRoot').innerHTML=`
-  <div class="formscreen">
-    <header class="top">
-      <div class="htitle">
-        <button class="backbtn" onclick="closeModal(); render();">←</button>
-        <div class="hic" style="background:rgba(255,255,255,.14)">📋</div>
-        <div><h1>Extrato por categoria</h1><div class="month">${isR?'A Receber':'A Pagar'} · ${mesLbl}</div></div>
       </div>
     </header>
     <main>${body}</main>
@@ -1148,7 +1086,7 @@ function openDiarioForm(editId){
       <div class="ffield"><div class="fic orange">🏷️</div><div class="fbody"><label>Categoria <span style="color:#c0392b">*</span></label>
         <select id="dCat">
           <option value="">Selecione a categoria</option>
-          ${visibleCats().map(c=>`<option value="${c}" ${c===catVal?'selected':''}>${c}</option>`).join('')}
+          ${visibleCats().map(c=>`<option value="${esc(c)}" ${c===catVal?'selected':''}>${esc(c)}</option>`).join('')}
         </select>
       </div></div>
     </main>
@@ -1402,7 +1340,7 @@ const RSV_META={
   pessoal:{ico:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/>'},
   doacoes:{ico:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>'}
 };
-function escHtml(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escHtml(t){return esc(t);}
 // Mensagem de cada cartão: "X% do lucro do mês", com X sempre igual à porcentagem daquela reserva
 // (muda sozinha quando você edita a porcentagem em "Editar reservas")
 function reservaSub(key){
@@ -1448,14 +1386,14 @@ function renderGestao(c){
     {key:'projeto',cic:'blue',grad:'blue-grad'},
     {key:'pessoal',cic:'amber',grad:'amber-grad'},
     {key:'doacoes',cic:'red',grad:'red-grad'}
-  ].map(x=>rsvCardHtml(x,n,saldoReservaCard(x.key,rows,limiteG),r)).join('');
+  ].map(x=>rsvCardHtml(x,n,saldoReservaCard(x.key),r)).join('');
   c.innerHTML=`<div class="rgrid">
     ${reservaCards}
   </div>
   <div class="sectionh" style="display:flex;justify-content:flex-end;align-items:center;">
     <button onclick="openReservaModal()" style="background:none;border:none;color:var(--navy);font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;">Editar reservas</button>
   </div>
-  <div class="tablewrap"><table class="gestao"><thead><tr><th>Mês</th><th>Faturamento</th><th>Despesa</th><th>Gastos diários</th><th>Lucro</th><th>${n.imprevistos} ${r.imprevistos}%</th><th>${n.projeto} ${r.projeto}%</th><th>${n.pessoal} ${r.pessoal}%</th><th>${n.doacoes} ${r.doacoes}%</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+  <div class="tablewrap"><table class="gestao"><thead><tr><th>Mês</th><th>Faturamento</th><th>Despesa</th><th>Gastos diários</th><th>Lucro</th><th>${esc(n.imprevistos)} ${r.imprevistos}%</th><th>${esc(n.projeto)} ${r.projeto}%</th><th>${esc(n.pessoal)} ${r.pessoal}%</th><th>${esc(n.doacoes)} ${r.doacoes}%</th></tr></thead><tbody>${trs}</tbody></table></div>`;
 }
 function changeGestaoYear(delta){
   curYear+=delta;
@@ -1495,34 +1433,49 @@ function renderExtratoReserva(){
     if(en.reserva!==key) return;
     const [ay,am]=en.data.split('-');
     if(+ay!==extratoYear) return;
-    if(extratoMeses.length && !extratoMeses.includes(+am-1)) return;
+    if(!meses.includes(+am-1)) return;
     itens.push({mes:+am-1,tipo:'entrada',titulo:en.descricao,desc:fmtVenc(en.data)+' · Guardado por você',valor:en.valor,id:en.id,manual:true});
   });
   (S.reservaSaidas||[]).forEach(sd=>{
     if(sd.reserva!==key) return;
     const [ay,am]=sd.data.split('-');
     if(+ay!==extratoYear) return;
-    if(extratoMeses.length && !extratoMeses.includes(+am-1)) return;
+    if(!meses.includes(+am-1)) return;
     itens.push({mes:+am-1,tipo:'saida',titulo:sd.descricao,desc:fmtVenc(sd.data),valor:sd.valor,id:sd.id,manual:true});
   });
   itens.sort((a,b)=>b.mes-a.mes);
+  // saldo que veio dos meses/anos anteriores e saldo acumulado ao fim do período
+  const mesesOrd=[...meses].sort((x,y)=>x-y);
+  let abertura=0, fechamento=0, seguidos=true;
+  if(mesesOrd.length){
+    abertura=reservaSaldoAte(key,extratoYear*12+mesesOrd[0]-1);
+    fechamento=reservaSaldoAte(key,extratoYear*12+mesesOrd[mesesOrd.length-1]);
+    seguidos=mesesOrd.every((m,i)=>i===0||m===mesesOrd[i-1]+1);
+  } else {
+    fechamento=reservaSaldoAte(key,Math.min(extratoYear*12+11,anoReal*12+mesReal));
+    abertura=fechamento;
+  }
+  if(seguidos && Math.abs(abertura)>0.004 && mesesOrd.length){
+    const v=extratoYear*12+mesesOrd[0]-1, mi=((v%12)+12)%12, yy=Math.floor(v/12);
+    itens.push({mes:-1,tipo:'saldo',titulo:'Saldo anterior',desc:'Acumulado até '+MONTHS[mi].f+'/'+yy,valor:abertura});
+  }
 
   const entradas=itens.filter(x=>x.tipo==='entrada').reduce((s,x)=>s+x.valor,0);
   const saidas=itens.filter(x=>x.tipo==='saida').reduce((s,x)=>s+x.valor,0);
-  const total=entradas-saidas;
+  const total=fechamento; // saldo acumulado ao fim do período (inclui o que veio de antes)
   const selM=[...extratoMeses].sort((x,y)=>x-y);
   const periodo=selM.length
     ?(selM.length===1?`${MONTHS[selM[0]].f}/${extratoYear}`:selM.map(i=>MONTHS[i].a.charAt(0).toUpperCase()+MONTHS[i].a.slice(1)).join(', ')+'/'+extratoYear)
     :(extratoYear>anoReal?'Nenhum mês disponível ainda':(extratoYear===anoReal?`Até ${MONTHS[mesReal].f}/${anoReal}`:`Ano de ${extratoYear}`));
 
   const rows=itens.length?itens.map(m=>{
-    const ent=m.tipo==='entrada', zero=m.tipo==='zero';
+    const ent=m.tipo==='entrada', saldoAnt=m.tipo==='saldo', zero=m.tipo==='zero'||saldoAnt;
     const ac=zero?'#6b7280':(ent?'#217a4b':'#b3392a'), acbg=zero?'#e9edf5':(ent?'#dcecdf':'#f8dcd6');
     return `<div class="ex-row" style="--ac:${ac};--acbg:${acbg};">
-      <div class="ex-ic">${zero?'–':(ent?'↓':'↑')}</div>
-      <div class="ex-info"><div class="ex-t">${m.titulo}</div><div class="ex-s">${m.desc}</div></div>
+      <div class="ex-ic">${saldoAnt?'⟲':(zero?'–':(ent?'↓':'↑'))}</div>
+      <div class="ex-info"><div class="ex-t">${esc(m.titulo)}</div><div class="ex-s">${esc(m.desc)}</div></div>
       <div class="ex-v">${zero?'':(ent?'+ ':'- ')}${brl(m.valor)}<br>
-        ${m.manual?`<button class="delbtn" aria-label="Excluir" onclick="${ent?'delEntradaReserva':'delSaidaReserva'}('${m.id}')">✕</button>`:`<span class="ex-tag">${MONTHS[m.mes].a.toUpperCase()}/${String(extratoYear).slice(-2)}</span>`}
+        ${m.manual?`<button class="delbtn" aria-label="Excluir" onclick="${ent?'delEntradaReserva':'delSaidaReserva'}('${m.id}')">✕</button>`:(saldoAnt?'':`<span class="ex-tag">${MONTHS[m.mes].a.toUpperCase()}/${String(extratoYear).slice(-2)}</span>`)}
       </div>
     </div>`;}).join('')
     :'<div class="empty"><div class="eic">📄</div><div class="et">Nenhuma movimentação neste período.</div></div>';
@@ -1533,7 +1486,7 @@ function renderExtratoReserva(){
       <div class="htitle">
         <button class="backbtn" onclick="closeModal(); render();">←</button>
         <div class="hic" style="background:rgba(255,255,255,.14)">💰</div>
-        <div><h1>${n[key]}</h1><div class="month">Extrato de entradas e saídas</div></div>
+        <div><h1>${esc(n[key])}</h1><div class="month">Extrato de entradas e saídas</div></div>
       </div>
     </header>
     <main style="padding-bottom:140px;">
@@ -1549,7 +1502,7 @@ function renderExtratoReserva(){
       <div class="ex-hero">
         <div class="eh-top">
           <div class="eh-ic">${WALLET_ICON}</div>
-          <div><div class="eh-lbl">Saldo no período</div><div class="eh-per">${periodo}</div></div>
+          <div><div class="eh-lbl">Saldo acumulado</div><div class="eh-per">${periodo}</div></div>
         </div>
         <div class="eh-val" style="${total<0?'color:#ff9d8f;':''}">${brl(total)}</div>
         <div class="eh-stats">
@@ -1607,8 +1560,9 @@ function openNovaSaidaReserva(){
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
     <h2>Registrar saída</h2>
     <div class="field"><label>Descrição</label><input id="fSaidaDesc" type="text" placeholder="Ex: Retirada para emergência"></div>
-    <div class="field"><label>Valor (R$)</label><input id="fSaidaValor" type="number" step="0.01" placeholder="0,00"></div>
+    <div class="field"><label>Valor (R$)</label><input id="fSaidaValor" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00"></div>
     <div class="field"><label>Data</label><input id="fSaidaData" type="date" value="${hoje}"></div>
+    <div id="saidaErr" style="color:#b3392a;font-size:12.5px;font-weight:600;min-height:16px;margin:-2px 0 8px;"></div>
     <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button><button class="btn primary" onclick="saveSaidaReserva()">Salvar</button></div>
   </div></div>`;
 }
@@ -1616,11 +1570,10 @@ function saveSaidaReserva(){
   const descricao=(document.getElementById('fSaidaDesc').value||'').trim()||'Saída';
   const valor=+document.getElementById('fSaidaValor').value||0;
   const data=document.getElementById('fSaidaData').value||todayStr();
-  if(valor>0){
-    S.reservaSaidas=S.reservaSaidas||[];
-    S.reservaSaidas.push({id:'rs'+Date.now(),reserva:extratoReserva,descricao,valor,data});
-    save();
-  }
+  if(!(valor>0)){ document.getElementById('saidaErr').textContent='Informe um valor maior que zero.'; return; }
+  S.reservaSaidas=S.reservaSaidas||[];
+  S.reservaSaidas.push({id:'rs'+Date.now(),reserva:extratoReserva,descricao,valor,data});
+  save();
   document.getElementById('catModalRoot').innerHTML='';
   renderExtratoReserva();
 }
@@ -1651,16 +1604,40 @@ function delEntradaReserva(id){
   save();
   renderExtratoReserva();
 }
-// saldo mostrado no cartão da reserva: distribuição dos meses com lucro + dinheiro guardado − saídas (até o mês selecionado)
-function saldoReservaCard(key,rows,limite){
-  const pct=S.reservas[key];
+// ===== Saldo acumulado das reservas (atravessa os anos; não zera em janeiro) =====
+// menor ano com algum dado (lançamentos, gastos diários ou movimentos de reserva)
+function reservaPrimeiroAno(){
+  const anos=[];
+  const add=y=>{ y=+y; if(y>1999&&y<3000) anos.push(y); };
+  S.receber.forEach(e=>add(yearFromRef(e.referencia)));
+  S.pagar.forEach(e=>add(yearFromRef(e.referencia)));
+  (S.diarios||[]).forEach(e=>e.data&&add(e.data.slice(0,4)));
+  (S.reservaEntradas||[]).forEach(e=>e.data&&add(e.data.slice(0,4)));
+  (S.reservaSaidas||[]).forEach(e=>e.data&&add(e.data.slice(0,4)));
+  return anos.length?Math.min(...anos):curYear;
+}
+// saldo da reserva até o fim do mês indicado (cutYm = ano*12 + mês de 0 a 11):
+// distribuição dos meses com lucro + dinheiro guardado − saídas, de todos os anos
+function reservaSaldoAte(key,cutYm){
+  const pct=+S.reservas[key]||0;
   let t=0;
-  rows.forEach((row,i)=>{ if(i<=limite && row.lucro>0) t+=row.lucro*pct/100; });
-  const noPeriodo=d=>{ const [y,m]=d.split('-'); return +y===curYear && (+m-1)<=limite; };
-  (S.reservaEntradas||[]).forEach(e=>{ if(e.reserva===key && noPeriodo(e.data)) t+=e.valor; });
-  (S.reservaSaidas||[]).forEach(e=>{ if(e.reserva===key && noPeriodo(e.data)) t-=e.valor; });
+  const y0=reservaPrimeiroAno(), yFim=Math.floor(cutYm/12);
+  for(let y=y0;y<=yFim;y++){
+    for(let m=0;m<12;m++){
+      if(y*12+m>cutYm) break;
+      const l=lucroMes(m,y);
+      if(l>0) t+=l*pct/100;
+    }
+  }
+  const ate=d=>{ const [yy,mm]=d.split('-'); return (+yy)*12+(+mm-1)<=cutYm; };
+  (S.reservaEntradas||[]).forEach(e=>{ if(e.reserva===key && ate(e.data)) t+=e.valor; });
+  (S.reservaSaidas||[]).forEach(e=>{ if(e.reserva===key && ate(e.data)) t-=e.valor; });
   return t;
 }
+// mês de corte do cartão: o mês selecionado, mas nunca depois de hoje
+function reservaCorte(){ const h=new Date(); return Math.min(curYear*12+curMonth, h.getFullYear()*12+h.getMonth()); }
+// valor mostrado no cartão da reserva (saldo acumulado)
+function saldoReservaCard(key){ return reservaSaldoAte(key,reservaCorte()); }
 function delSaidaReserva(id){
   S.reservaSaidas=(S.reservaSaidas||[]).filter(x=>x.id!==id);
   save();
@@ -1760,13 +1737,13 @@ function openSettings(){
 function openCategoriasList(){
   settingsSubScreen='categorias';
   const all=visibleCats();
-  const rows=all.map(n=>`<div class="cl-row" data-name="${esc(n)}" onclick="editCategoria(this)" style="cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;"><span class="dot2" style="background:${colorForCat(n)}"></span><span class="cl-name">${n}</span><span style="color:var(--muted)">›</span></div>`).join('');
+  const rows=all.map(n=>`<div class="cl-row" data-name="${esc(n)}" onclick="editCategoria(this)" style="cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;"><span class="dot2" style="background:${colorForCat(n)}"></span><span class="cl-name">${esc(n)}</span><span style="color:var(--muted)">›</span></div>`).join('');
   subScreen('🏷️','Categorias','Toque para editar nome ou cor', rows+`<button class="gest-btn" style="margin-top:6px" onclick="openCatModal()"><div class="gic">➕</div><div class="gtxt" style="color:#2a5adf">Cadastrar nova categoria</div><div class="chev">›</div></button>`);
 }
 function openFormasList(){
   settingsSubScreen='formas';
   const all=PAGS.concat(S.customFormas||[]);
-  const rows=all.map(n=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;">${n}</div>`).join('');
+  const rows=all.map(n=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;">${esc(n)}</div>`).join('');
   const body=rows+`<div class="ffield" style="margin-top:14px;"><div class="fic teal">➕</div><div class="fbody"><label>Nova forma de pagamento/recebimento</label><input id="novaFormaInput" type="text" placeholder="Ex: Vale-refeição"></div></div>
     <button class="btn primary" style="width:100%" onclick="addForma()">Adicionar</button>`;
   subScreen('💳','Formas de pagamento e recebimento','Usadas nos formulários de lançamento', body);
@@ -1806,11 +1783,56 @@ function exportBackup(){
   const a=document.createElement('a'); a.href=url; a.download='financeiro-backup.json'; a.click();
   URL.revokeObjectURL(url);
 }
+// Confere e limpa um arquivo de backup antes de usar: só entram os campos conhecidos, com o tipo certo.
+function sanitizeBackup(d){
+  if(!d||typeof d!=='object'||Array.isArray(d)) throw new Error('formato inválido');
+  const out=seed();
+  const txt=(v,max)=>String(v==null?'':v).slice(0,max||120);
+  const num=v=>{ v=+v; return isFinite(v)?v:0; };
+  const dataOk=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v));
+  const arr=v=>Array.isArray(v)?v:[];
+  const usados=new Set();
+  const novoId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  const idv=v=>{ let x=/^[\w-]{1,64}$/.test(String(v))?String(v):novoId(); while(usados.has(x)) x=novoId(); usados.add(x); return x; };
+  const lanc=(lista,nomeKey,pend,done)=>arr(lista).filter(e=>e&&typeof e==='object').map(e=>{
+    const venc=dataOk(e.venc)?String(e.venc):todayStr();
+    const refOk=typeof e.referencia==='string'&&monthIndexFromRef(e.referencia)>=0&&/^\d{4}$/.test(yearFromRef(e.referencia)||'');
+    const it={id:idv(e.id),tipo:txt(e.tipo,40)||'Outros',referencia:refOk?e.referencia:refFromVenc(venc),descricao:txt(e.descricao,120),venc,valor:num(e.valor),status:e.status===done?done:pend};
+    it[nomeKey]=txt(e[nomeKey],120)||'Sem nome';
+    if(e.grupo&&/^[\w-]{1,64}$/.test(String(e.grupo))) it.grupo=String(e.grupo);
+    return it;
+  });
+  out.receber=lanc(d.receber,'cliente','A Receber','Recebido');
+  out.pagar=lanc(d.pagar,'conta','A Pagar','Pago');
+  out.diarios=arr(d.diarios).filter(e=>e&&typeof e==='object').map(e=>({id:idv(e.id),nome:txt(e.nome,120)||'Sem nome',valor:num(e.valor),data:dataOk(e.data)?String(e.data):todayStr(),hora:/^\d{2}:\d{2}$/.test(String(e.hora))?String(e.hora):'',categoria:txt(e.categoria,40)||'Outros'}));
+  const chaves=['imprevistos','projeto','pessoal','doacoes'];
+  const rs=d.reservas&&typeof d.reservas==='object'?d.reservas:{};
+  if(chaves.every(k=>isFinite(+rs[k])&&+rs[k]>=0&&+rs[k]<=100)) chaves.forEach(k=>{ out.reservas[k]=+rs[k]; });
+  const nm=d.reservaNomes&&typeof d.reservaNomes==='object'?d.reservaNomes:{};
+  chaves.forEach(k=>{ const t=txt(nm[k],30).trim(); if(t) out.reservaNomes[k]=t; });
+  const mov=l=>arr(l).filter(e=>e&&typeof e==='object'&&chaves.includes(e.reserva)).map(e=>({id:idv(e.id),reserva:e.reserva,descricao:txt(e.descricao,120)||'Movimento',valor:num(e.valor),data:dataOk(e.data)?String(e.data):todayStr()}));
+  out.reservaSaidas=mov(d.reservaSaidas); out.reservaEntradas=mov(d.reservaEntradas);
+  out.customCats=arr(d.customCats).map(x=>txt(x,40).trim()).filter(Boolean);
+  out.hiddenCats=arr(d.hiddenCats).map(x=>txt(x,40)).filter(Boolean);
+  out.customFormas=arr(d.customFormas).map(x=>txt(x,40).trim()).filter(Boolean);
+  out.catColors={};
+  if(d.catColors&&typeof d.catColors==='object') Object.entries(d.catColors).slice(0,300).forEach(([k,v])=>{
+    if(/^(#[0-9a-fA-F]{3,8}|hsl\(\d{1,3},\s?\d{1,3}%,\s?\d{1,3}%\))$/.test(String(v))) out.catColors[txt(k,40)]=String(v);
+  });
+  out.capitalGiro=num(d.capitalGiro);
+  out.notifPref=d.notifPref!==false;
+  out.notifDias=Math.min(30,Math.max(0,Math.round(num(d.notifDias===undefined?3:d.notifDias))));
+  out.pin=/^\d{4}$/.test(String(d.pin))?String(d.pin):null;
+  out.perfil={nome:txt(d.perfil&&d.perfil.nome,80),email:txt(d.perfil&&d.perfil.email,120)};
+  out.theme=['auto','light','dark'].includes(d.theme)?d.theme:'auto';
+  return out;
+}
 function importBackup(ev){
   const file=ev.target.files[0]; if(!file) return;
+  if(file.size>5*1024*1024){ alert('Arquivo muito grande para ser um backup.'); return; }
   const reader=new FileReader();
   reader.onload=e=>{
-    try{ const data=JSON.parse(e.target.result); S=Object.assign(seed(),data); save(); alert('Backup restaurado com sucesso!'); closeModal(); render(); }
+    try{ const data=JSON.parse(e.target.result); S=sanitizeBackup(data); save(); alert('Backup restaurado com sucesso!'); closeModal(); render(); }
     catch(err){ alert('Arquivo inválido.'); }
   };
   reader.readAsText(file);
@@ -1855,7 +1877,7 @@ function colorForCat(name){
   S.catColors[name]=color; save();
   return color;
 }
-function esc(s){return String(s==null?'':s).replace(/"/g,'&quot;');}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function openNovoModal(editId){
   const isReceber=tab==='receber';
   const list=isReceber?S.receber:S.pagar;
@@ -1884,11 +1906,11 @@ function openNovoModal(editId){
       <div class="ffield"><div class="fic blue">👤</div><div class="fbody"><label>Nome <span style="color:#c0392b">*</span></label><input id="fNome" type="text" value="${esc(nomeVal)}" placeholder="${isReceber?'Ex: Salário, Freelance, Venda':'Ex: Aluguel, Mercado, Internet'}"></div></div>
       <div class="ffield"><div class="fic green">💲</div><div class="fbody"><label>Valor (R$) <span style="color:#c0392b">*</span></label><input id="fValor" type="number" step="0.01" value="${valorVal===''?'':valorVal}" placeholder="0,00"></div></div>
       <div class="ffield"><div class="fic purple">📅</div><div class="fbody"><label>Data <span style="color:#c0392b">*</span></label><input id="fVenc" type="date" value="${venc0}"></div></div>
-      <div class="ffield"><div class="fic teal">💳</div><div class="fbody"><label>${isReceber?'Forma de recebimento':'Forma de pagamento'} <span style="color:#c0392b">*</span></label><select id="fPag"><option value="">Selecione a forma de ${isReceber?'recebimento':'pagamento'}</option>${PAGS.concat(S.customFormas||[]).map(p=>`<option value="${p}" ${p===pagVal?'selected':''}>${p}</option>`).join('')}</select></div></div>
+      <div class="ffield"><div class="fic teal">💳</div><div class="fbody"><label>${isReceber?'Forma de recebimento':'Forma de pagamento'} <span style="color:#c0392b">*</span></label><select id="fPag"><option value="">Selecione a forma de ${isReceber?'recebimento':'pagamento'}</option>${PAGS.concat(S.customFormas||[]).map(p=>`<option value="${esc(p)}" ${p===pagVal?'selected':''}>${esc(p)}</option>`).join('')}</select></div></div>
       <div class="ffield"><div class="fic orange">🏷️</div><div class="fbody"><label>Categoria <span style="color:#c0392b">*</span></label>
         <select id="fTipo">
           <option value="">Selecione a categoria</option>
-          ${visibleCats().map(c=>`<option value="${c}" ${c===tipoVal?'selected':''}>${c}</option>`).join('')}
+          ${visibleCats().map(c=>`<option value="${esc(c)}" ${c===tipoVal?'selected':''}>${esc(c)}</option>`).join('')}
         </select>
       </div></div>
       ${ed?'':`<div class="ffield"><div class="fic blue">🔁</div><div class="fbody"><label>Parcelar em quantas vezes</label>
@@ -1933,18 +1955,20 @@ function editCategoria(el){
     <h2>Editar categoria</h2>
     <div class="field"><label>Nome da categoria</label><input id="fEditCat" type="text" value="${esc(name)}"></div>
     <div class="field"><label>Cor da categoria</label><div class="swatchgrid" id="swatchGrid">${swatches}</div></div>
-    <button class="btn" style="width:100%;background:#fbeae7;color:#b3392a;margin-bottom:10px;" onclick="delCategoria('${name.replace(/'/g,"\\'")}')">🗑️ Excluir categoria</button>
+    <button class="btn" style="width:100%;background:#fbeae7;color:#b3392a;margin-bottom:10px;" onclick="delCategoria()">🗑️ Excluir categoria</button>
     <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button><button class="btn primary" onclick="confirmEditCategoria()">Salvar</button></div>
   </div></div>`;
 }
-function delCategoria(name){
+function delCategoria(){
+  const name=editingCatName; if(name==null) return;
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
     <h2>Excluir categoria</h2>
     <p style="font-size:14px;color:var(--text);margin:0 0 18px;">Excluir a categoria <b>"${esc(name)}"</b>? Lançamentos que já usam ela passam a ficar como "Outros".</p>
-    <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button><button class="btn" style="background:#b3392a;color:#fff;" onclick="confirmDelCategoria('${name.replace(/'/g,"\\'")}')">Excluir</button></div>
+    <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button><button class="btn" style="background:#b3392a;color:#fff;" onclick="confirmDelCategoria()">Excluir</button></div>
   </div></div>`;
 }
-function confirmDelCategoria(name){
+function confirmDelCategoria(){
+  const name=editingCatName; if(name==null) return;
   S.customCats=(S.customCats||[]).filter(c=>c!==name);
   S.hiddenCats=S.hiddenCats||[];
   if(CATS.includes(name) && !S.hiddenCats.includes(name)) S.hiddenCats.push(name);
@@ -2303,7 +2327,7 @@ function openVencimentos(t){
       const e=x.e, p=x.t==='p';
       return `<div class="row" onclick="irParaItem('${x.t}','${e.id}')">
         <div class="left"><div class="ric">${iconFor(e.tipo)}</div><div class="info">
-          <div class="cli">${p?e.conta:e.cliente}</div>
+          <div class="cli">${esc(p?e.conta:e.cliente)}</div>
           <div class="sub">${p?'A pagar':'A receber'} · ${fmtVenc(e.venc)}</div>
           <div class="vb ${x.c}">${vencTexto(x.df)}</div>
         </div></div>
@@ -2478,8 +2502,8 @@ function openRowMenu(ev,id){
   el.id='rowMenu'; el.style.cssText='position:fixed;inset:0;z-index:55;';
   el.onclick=closeRowMenu;
   el.innerHTML=`<div class="rmenu" style="top:${top}px;right:${right}px;" onclick="event.stopPropagation()">
-    <button onclick="closeRowMenu();openNovoModal('${id}')">✏️ Editar</button>
-    <button class="danger" onclick="closeRowMenu();delItem(tab,'${id}')">🗑️ Excluir</button>
+    <button onclick="closeRowMenu();${tab==='diario'?`openDiarioForm('${id}')`:`openNovoModal('${id}')`}">✏️ Editar</button>
+    <button class="danger" onclick="closeRowMenu();${tab==='diario'?`delDiario('${id}')`:`delItem(tab,'${id}')`}">🗑️ Excluir</button>
   </div>`;
   document.body.appendChild(el);
 }
