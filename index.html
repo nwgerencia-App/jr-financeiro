@@ -637,6 +637,13 @@ table.gestao td.num-zero{color:var(--muted);}
 .catx-item .ci-n{font-weight:600; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .catx-item .ci-d{font-size:11.5px; color:var(--muted); margin-top:2px;}
 .catx-item .ci-v{font-weight:700; font-size:13px; color:#b3392a; white-space:nowrap;}
+.catx-item .ci-v.pos{color:#217a4b;}
+:root[data-theme="dark"] .catx-item .ci-v{color:#ff9d8f;}
+:root[data-theme="dark"] .catx-item .ci-v.pos{color:#5fd38d;}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .catx-item .ci-v{color:#ff9d8f;}
+  :root:not([data-theme="light"]) .catx-item .ci-v.pos{color:#5fd38d;}
+}
 </style>
 </head>
 <body>
@@ -821,7 +828,10 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
   });
   html+=alertaTipoHtml(isReceber?'r':'p');
   html+=catChartHtml(items,isReceber);
-  html+='<div class="sectionh">Últimos lançamentos</div>';
+  html+=`<div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+    <span>Últimos lançamentos</span>
+    <button onclick="extCatAbertas=[];openExtratoCategoria('${tab}')" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;white-space:nowrap;">📋 Extrato por categoria ›</button>
+  </div>`;
   // Ordena por data de vencimento; pagos/recebidos vão para o fim da lista
   const sortedItems=[...items].sort((a,b)=>{
     const da=a.status===doneLabel?1:0, db=b.status===doneLabel?1:0;
@@ -1012,6 +1022,65 @@ function openExtratoMes(){
         <button class="backbtn" onclick="closeModal(); render();">←</button>
         <div class="hic" style="background:rgba(255,255,255,.14)">📋</div>
         <div><h1>Extrato do mês</h1><div class="month">${mesLbl}</div></div>
+      </div>
+    </header>
+    <main>${body}</main>
+  </div>`;
+}
+// ----- Extrato por categoria (telas A Receber e A Pagar) -----
+let extCatAbertas=[];
+// abre/fecha os lançamentos de uma categoria (na própria lista) e mantém a posição da tela
+function toggleExtCat(t,enc){
+  const nome=decodeURIComponent(enc);
+  const i=extCatAbertas.indexOf(nome);
+  if(i>=0) extCatAbertas.splice(i,1); else extCatAbertas.push(nome);
+  const mm=document.querySelector('#modalRoot main'); const y=mm?mm.scrollTop:0;
+  openExtratoCategoria(t);
+  const m2=document.querySelector('#modalRoot main'); if(m2) m2.scrollTop=y;
+}
+function openExtratoCategoria(t){
+  const isR=(t==='receber');
+  const list=isR?S.receber:S.pagar;
+  const nameKey=isR?'cliente':'conta';
+  const doneLabel=isR?'Recebido':'Pago';
+  const corValor=isR?'#217a4b':'#b3392a';
+  const items=list.filter(e=>monthIndexFromRef(e.referencia)===curMonth&&yearFromRef(e.referencia)===String(curYear));
+  const total=items.reduce((s,e)=>s+e.valor,0);
+  let conteudo;
+  if(!items.length){
+    conteudo='<div class="empty"><div class="eic">📄</div><div class="et">Nenhum lançamento neste mês.</div></div>';
+  } else {
+    const mapa={};
+    items.forEach(e=>{ const c=e.tipo||'Outros'; (mapa[c]=mapa[c]||{valor:0,n:0,itens:[]}); mapa[c].valor+=e.valor; mapa[c].n++; mapa[c].itens.push(e); });
+    const cats=Object.entries(mapa).sort((x,y)=>y[1].valor-x[1].valor);
+    const fmtPct=v=>(total?v/total*100:0).toLocaleString('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:0});
+    conteudo=cats.map(([nome,d])=>{
+      const pct=total?d.valor/total*100:0;
+      const aberta=extCatAbertas.includes(nome);
+      const itens=[...d.itens].sort((a,b)=>(a.venc||'').localeCompare(b.venc||''));
+      const lista=aberta?`<div class="catx-list">${itens.map(e=>`<div class="catx-item"><div class="ci-l"><div class="ci-n">${escHtml(e[nameKey])}</div><div class="ci-d">${e.venc?fmtVenc(e.venc):''} · ${e.status===doneLabel?'✔ '+doneLabel:escHtml(e.status)}</div></div><div class="ci-v${isR?' pos':''}">${brl(e.valor)}</div></div>`).join('')}</div>`:'';
+      return `<div class="catx" onclick="toggleExtCat('${t}','${encodeURIComponent(nome).replace(/'/g,'%27')}')">
+        <div class="catx-top">
+          <div class="ric">${iconFor(nome)}</div>
+          <div class="info"><div class="cli">${escHtml(nome)}</div><div class="sub">${d.n} ${d.n===1?'lançamento':'lançamentos'} · ${fmtPct(d.valor)}% do total</div></div>
+          <div class="valor" style="color:${corValor}">${brl(d.valor)}</div>
+          <span class="catx-chev${aberta?' open':''}">›</span>
+        </div>
+        <div class="catx-bar"><i style="width:${Math.max(pct,2)}%;background:${colorForCat(nome)}"></i></div>
+        ${lista}
+      </div>`;
+    }).join('');
+  }
+  const body=`<div class="card ${isR?'green-grad':'red-grad'}" style="margin-bottom:16px;"><div class="cic ${isR?'green':'red'}">${isR?'📥':'📤'}</div><div class="lbl">Total do mês</div><div class="val ${isR?'green':'red'}">${brl(total)}</div></div>
+    ${conteudo}`;
+  const mesLbl=MONTHS[curMonth].f+'/'+curYear;
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="formscreen">
+    <header class="top">
+      <div class="htitle">
+        <button class="backbtn" onclick="closeModal(); render();">←</button>
+        <div class="hic" style="background:rgba(255,255,255,.14)">📋</div>
+        <div><h1>Extrato por categoria</h1><div class="month">${isR?'A Receber':'A Pagar'} · ${mesLbl}</div></div>
       </div>
     </header>
     <main>${body}</main>
