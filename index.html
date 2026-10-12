@@ -625,6 +625,18 @@ table.gestao td.num-zero{color:var(--muted);}
 .catx-top .valor{font-weight:700; font-size:14px; white-space:nowrap;}
 .catx-bar{height:8px; border-radius:8px; background:var(--cream); margin-top:10px; overflow:hidden;}
 .catx-bar i{display:block; height:100%; border-radius:8px;}
+
+/* ===== Por categoria: despesas de cada categoria ===== */
+.catx{cursor:pointer; -webkit-tap-highlight-color:transparent;}
+.catx-chev{color:var(--muted); font-size:20px; line-height:1; transition:transform .2s; flex-shrink:0;}
+.catx-chev.open{transform:rotate(90deg);}
+.catx-list{margin-top:10px; border-top:1px solid var(--border);}
+.catx-item{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 2px; border-bottom:1px solid var(--border);}
+.catx-item:last-child{border-bottom:none; padding-bottom:2px;}
+.catx-item .ci-l{min-width:0;}
+.catx-item .ci-n{font-weight:600; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.catx-item .ci-d{font-size:11.5px; color:var(--muted); margin-top:2px;}
+.catx-item .ci-v{font-weight:700; font-size:13px; color:#b3392a; white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -904,7 +916,7 @@ function renderDiario(c){
   html+=diarioChartHtml(chartItems,chartTotalLabel);
   html+=`<div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;">
     <span>Lançamentos do dia</span>
-    <button onclick="extratoModo='geral';openExtratoMes()" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;">📋 Extrato do mês ›</button>
+    <button onclick="extratoModo='geral';extratoCatsAbertas=[];openExtratoMes()" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;">📋 Extrato do mês ›</button>
   </div>`;
   const sorted=[...dayItems].sort((a,b)=>{
     if(diarioSort==='hora_desc') return (b.hora||'').localeCompare(a.hora||'');
@@ -932,8 +944,17 @@ function renderDiario(c){
   }
   c.innerHTML=html;
 }
-let extratoModo='geral';
+let extratoModo='geral', extratoCatsAbertas=[];
 function setExtratoModo(m){ extratoModo=m; openExtratoMes(); }
+// abre/fecha as despesas de uma categoria (na própria lista, sem sair do extrato) e mantém a posição da tela
+function toggleExtratoCat(enc){
+  const nome=decodeURIComponent(enc);
+  const i=extratoCatsAbertas.indexOf(nome);
+  if(i>=0) extratoCatsAbertas.splice(i,1); else extratoCatsAbertas.push(nome);
+  const mm=document.querySelector('#modalRoot main'); const y=mm?mm.scrollTop:0;
+  openExtratoMes();
+  const m2=document.querySelector('#modalRoot main'); if(m2) m2.scrollTop=y;
+}
 function openExtratoMes(){
   const items=[...diarioItemsForMonth(diaSel)].sort((a,b)=>{
     if(a.data!==b.data) return b.data.localeCompare(a.data);
@@ -960,18 +981,22 @@ function openExtratoMes(){
     conteudo='<div class="empty"><div class="eic">📄</div><div class="et">Nenhum gasto neste mês.</div></div>';
   } else if(extratoModo==='categoria'){
     const mapa={};
-    items.forEach(e=>{ const c=e.categoria||'Outros'; (mapa[c]=mapa[c]||{valor:0,n:0}); mapa[c].valor+=e.valor; mapa[c].n++; });
+    items.forEach(e=>{ const c=e.categoria||'Outros'; (mapa[c]=mapa[c]||{valor:0,n:0,itens:[]}); mapa[c].valor+=e.valor; mapa[c].n++; mapa[c].itens.push(e); });
     const cats=Object.entries(mapa).sort((x,y)=>y[1].valor-x[1].valor);
     const fmtPct=v=>(total?v/total*100:0).toLocaleString('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:0});
     conteudo=cats.map(([nome,d])=>{
       const pct=total?d.valor/total*100:0;
-      return `<div class="catx">
+      const aberta=extratoCatsAbertas.includes(nome);
+      const lista=aberta?`<div class="catx-list">${d.itens.map(e=>`<div class="catx-item"><div class="ci-l"><div class="ci-n">${escHtml(e.nome)}</div><div class="ci-d">${fmtVenc(e.data)}${e.hora?' · '+e.hora:''}</div></div><div class="ci-v">${brl(e.valor)}</div></div>`).join('')}</div>`:'';
+      return `<div class="catx" onclick="toggleExtratoCat('${encodeURIComponent(nome)}')">
         <div class="catx-top">
           <div class="ric">${iconFor(nome)}</div>
-          <div class="info"><div class="cli">${nome}</div><div class="sub">${d.n} ${d.n===1?'lançamento':'lançamentos'} · ${fmtPct(d.valor)}% do total</div></div>
+          <div class="info"><div class="cli">${escHtml(nome)}</div><div class="sub">${d.n} ${d.n===1?'lançamento':'lançamentos'} · ${fmtPct(d.valor)}% do total</div></div>
           <div class="valor" style="color:#b3392a">${brl(d.valor)}</div>
+          <span class="catx-chev${aberta?' open':''}">›</span>
         </div>
         <div class="catx-bar"><i style="width:${Math.max(pct,2)}%;background:${colorForCat(nome)}"></i></div>
+        ${lista}
       </div>`;
     }).join('');
   } else {
