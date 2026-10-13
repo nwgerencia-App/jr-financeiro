@@ -644,6 +644,52 @@ table.gestao td.num-zero{color:var(--muted);}
 .hero2 .h2-panel.tones .h2-sic{width:22px; height:22px;}
 .hero2 .h2-panel.tones .h2-sic .i{width:12px; height:12px;}
 .hero2 .h2-panel.tones .h2-slbl{font-size:10.5px; overflow:visible; text-overflow:clip;}
+
+/* ===== Reservas: cores novas e editor ===== */
+.rsv.teal{--rbg:linear-gradient(135deg,#e1f5f2,#cdeee9); --rb:#b5e3dc; --rt:#0f4f48; --rv:#0b6b60; --rs:#2b6b64; --ri:linear-gradient(135deg,#2bb5a5,#12877a); --rblob:rgba(32,176,160,.2);}
+.rsv.purple{--rbg:linear-gradient(135deg,#f0ecfb,#e3dcf7); --rb:#d3c8f1; --rt:#3d2a78; --rv:#4b33a0; --rs:#6a5aa8; --ri:linear-gradient(135deg,#8b7cf0,#5b46d0); --rblob:rgba(123,104,224,.2);}
+:root[data-theme="dark"] .rsv.teal{--rbg:linear-gradient(135deg,#112b29,#0e2422); --rb:#1b4541; --rt:#bff2ea; --rv:#4fd6c3; --rs:#8fd9cf; --rblob:rgba(79,214,195,.14);}
+:root[data-theme="dark"] .rsv.purple{--rbg:linear-gradient(135deg,#221e3a,#1c1930); --rb:#352f5c; --rt:#dcd5ff; --rv:#a99bff; --rs:#b8aef0; --rblob:rgba(169,155,255,.14);}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .rsv.teal{--rbg:linear-gradient(135deg,#112b29,#0e2422); --rb:#1b4541; --rt:#bff2ea; --rv:#4fd6c3; --rs:#8fd9cf; --rblob:rgba(79,214,195,.14);}
+  :root:not([data-theme="light"]) .rsv.purple{--rbg:linear-gradient(135deg,#221e3a,#1c1930); --rb:#352f5c; --rt:#dcd5ff; --rv:#a99bff; --rs:#b8aef0; --rblob:rgba(169,155,255,.14);}
+}
+.rblock+.rblock{border-top:1px solid var(--border); padding-top:14px; margin-top:6px;}
+.ricons{display:grid; grid-template-columns:repeat(6,1fr); gap:8px;}
+.ricon{height:40px; border-radius:12px; border:1px solid var(--border); background:var(--cream); color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; -webkit-tap-highlight-color:transparent;}
+.ricon svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;}
+.ricon.on{border:2px solid var(--navy); background:var(--card);}
+:root[data-theme="dark"] .ricon.on{border-color:#8fb3ff;}
+.rcores{display:flex; gap:12px; flex-wrap:wrap;}
+.rcor{width:34px; height:34px; border-radius:50%; border:3px solid transparent; cursor:pointer; padding:0;}
+.rcor.on{border-color:var(--text); transform:scale(1.1);}
+.rcor.uso{opacity:.25; cursor:not-allowed;}
+.rdel{background:none; border:none; color:#b3392a; font-family:inherit; font-weight:600; font-size:13px; cursor:pointer; padding:6px 0;}
+.rdel-box{background:#fbeae7; color:#a8352a; border-radius:12px; padding:12px; font-size:13px; line-height:1.45; margin-top:4px;}
+:root[data-theme="dark"] .rdel-box{background:#3a2019; color:#ffb3a8;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rdel-box{background:#3a2019; color:#ffb3a8;}}
+.radd{width:100%; border:1px dashed var(--border); background:var(--cream); color:var(--navy); border-radius:14px; padding:13px; font-family:inherit; font-weight:700; font-size:13.5px; cursor:pointer; margin:8px 0 14px;}
+:root[data-theme="dark"] .radd{color:#8fb3ff;}
+.rmax{font-size:12px; color:var(--muted); text-align:center; margin:8px 0 12px;}
+
+/* ===== Reservas: telas de nova reserva e de ajuste ===== */
+.rerr{color:#b3392a; font-size:12.5px; font-weight:600; min-height:16px; margin:-2px 0 8px;}
+.raviso{background:#fdf3e0; color:#8a5a0a; border-radius:12px; padding:10px 12px; font-size:12.5px; line-height:1.45; margin:0 0 14px;}
+:root[data-theme="dark"] .raviso{background:#3a2f18; color:#e8c887;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .raviso{background:#3a2f18; color:#e8c887;}}
+.rhead,.rrow{display:grid; grid-template-columns:12px 1fr 104px; gap:10px; align-items:center;}
+.rhead{font-size:11.5px; color:var(--muted); margin-bottom:6px;}
+.rrow{margin-bottom:10px;}
+.rdot{width:12px; height:12px; border-radius:50%;}
+.modal .rrow input{width:100%; min-width:0; padding:10px; border-radius:9px; border:1px solid var(--border); background:var(--cream); color:var(--text); font-family:inherit; font-size:14px;}
+.hdr-more{width:40px; height:40px; border-radius:14px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.12); color:#f5f2ea; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex-shrink:0;}
+
+/* ===== Botão "Editar reserva" no topo do extrato ===== */
+.rnota{font-size:12px; color:var(--muted); margin:-4px 0 12px; line-height:1.45;}
+.hdr-edit{border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.14); color:#f5f2ea; border-radius:14px; padding:10px 12px; font-family:inherit; font-weight:600; font-size:12.5px; cursor:pointer; white-space:nowrap; flex-shrink:0;}
+.formscreen header.top .htitle{flex:1; min-width:0;}
+.formscreen header.top .htitle>div:last-child{min-width:0;}
+.formscreen header.top h1{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 </style>
 </head>
 <body>
@@ -722,6 +768,8 @@ function seed(){
     hist:{},
     reservas:{imprevistos:50,projeto:20,pessoal:20,doacoes:10},
     reservaNomes:{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'},
+    reservaOrdem:['imprevistos','projeto','pessoal','doacoes'], reservaVis:{},
+    reservaHist:[{desde:0,reservas:{imprevistos:50,projeto:20,pessoal:20,doacoes:10}}],
     customCats:[], catColors:{}, hiddenCats:[], diarios:[], capitalGiro:0, customFormas:[], notifPref:true, pin:null, perfil:{nome:'',email:''}, theme:'auto', ano:'2026', reservaSaidas:[], reservaEntradas:[]
   };
 }
@@ -737,6 +785,10 @@ function load(){
     if(!s.hist) s.hist={};
     if(!s.reservas) s.reservas={imprevistos:50,projeto:20,pessoal:20,doacoes:10};
     if(!s.reservaNomes) s.reservaNomes={imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'};
+    if(!s.reservaOrdem) s.reservaOrdem=Object.keys(s.reservas);
+    if(!s.reservaVis) s.reservaVis={};
+    // histórico das porcentagens: quem já usa o app começa com as porcentagens de hoje valendo desde o início
+    if(!Array.isArray(s.reservaHist)||!s.reservaHist.length) s.reservaHist=[{desde:0,reservas:Object.assign({},s.reservas)}];
     if(!s.customCats) s.customCats=[];
     if(!s.catColors) s.catColors={};
     if(!s.hiddenCats) s.hiddenCats=[];
@@ -1334,12 +1386,66 @@ function renderInicio(c){
   </div>`;
 }
 
-const RSV_META={
-  imprevistos:{ico:'<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1 1 0 0 1 1 1v2"/><path d="M4 7.5V17a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 1 4 7.5z"/><circle cx="16" cy="13.5" r="1.1" fill="currentColor"/>'},
-  projeto:{ico:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>'},
-  pessoal:{ico:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/>'},
-  doacoes:{ico:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>'}
+const RSV_ICONS={
+  wallet:'<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1 1 0 0 1 1 1v2"/><path d="M4 7.5V17a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 1 4 7.5z"/><circle cx="16" cy="13.5" r="1.1" fill="currentColor"/>',
+  shield:'<path d="M12 3 4 6v6c0 5 3.4 8.5 8 9 4.6-.5 8-4 8-9V6z"/>',
+  calendar:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
+  user:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/>',
+  heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+  plane:'<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+  home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/>',
+  car:'<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+  gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>',
+  school:'<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+  briefcase:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  star:'<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>'
 };
+const RSV_ICON_ORDEM=['wallet','shield','calendar','user','heart','plane','home','car','gift','school','briefcase','star'];
+const RSV_CORES=['green','blue','amber','red','teal','purple'];
+const RSV_COR_HEX={green:'#2fae6a',blue:'#4f7fe8',amber:'#e8a53d',red:'#d9695a',teal:'#20b0a0',purple:'#7b68e0'};
+const RSV_MAX=6; // máximo de reservas
+const RSV_PADRAO={
+  imprevistos:{nome:'Imprevistos',pct:50,icone:'wallet',cor:'green'},
+  projeto:{nome:'Projeto Anual',pct:20,icone:'calendar',cor:'blue'},
+  pessoal:{nome:'Pessoal',pct:20,icone:'user',cor:'amber'},
+  doacoes:{nome:'Doações',pct:10,icone:'heart',cor:'red'}
+};
+// lista de reservas na ordem em que aparecem
+function reservaOrdem(){
+  const r=S.reservas||{};
+  const o=(S.reservaOrdem||[]).filter(k=>r[k]!==undefined);
+  Object.keys(r).forEach(k=>{ if(!o.includes(k)) o.push(k); });
+  return o;
+}
+function reservaVis(k){
+  const v=(S.reservaVis||{})[k]||{}, p=RSV_PADRAO[k]||{};
+  return {icone:RSV_ICONS[v.icone]?v.icone:(p.icone||'star'), cor:RSV_CORES.includes(v.cor)?v.cor:(p.cor||'green')};
+}
+function reservaNome(k){ const n=((S.reservaNomes||{})[k]||'').trim(); return n||(RSV_PADRAO[k]?RSV_PADRAO[k].nome:'Reserva'); }
+// ----- histórico das porcentagens: cada mudança vale a partir do mês em que foi feita -----
+// ym = ano*12 + mês (0 a 11). Meses antes da primeira regra usam a primeira regra.
+function reservaRegraEm(ym){
+  const h=S.reservaHist;
+  if(!Array.isArray(h)||!h.length) return S.reservas||{};
+  let r=h[0].reservas;
+  for(const x of h){ if(x.desde<=ym) r=x.reservas; else break; }
+  return r;
+}
+function reservaPctEm(key,ym){ return +reservaRegraEm(ym)[key]||0; }
+function reservaExistiaEm(key,ym){ return Object.prototype.hasOwnProperty.call(reservaRegraEm(ym),key); }
+function reservaMesmaRegra(a,b){
+  const ka=Object.keys(a), kb=Object.keys(b);
+  return ka.length===kb.length && ka.every(k=>Object.prototype.hasOwnProperty.call(b,k)&&Math.abs((+a[k]||0)-(+b[k]||0))<1e-9);
+}
+// registra uma regra nova a partir do mês de hoje (se mudar duas vezes no mesmo mês, vale a última)
+function registrarReservaHist(antes,novas){
+  if(reservaMesmaRegra(antes,novas)) return;
+  const h=(Array.isArray(S.reservaHist)&&S.reservaHist.length)?S.reservaHist:[{desde:0,reservas:Object.assign({},antes)}];
+  const hoje=new Date(), ult=h[h.length-1];
+  const ym=Math.max(hoje.getFullYear()*12+hoje.getMonth(),ult.desde);
+  if(ult.desde===ym) ult.reservas=Object.assign({},novas); else h.push({desde:ym,reservas:Object.assign({},novas)});
+  S.reservaHist=h;
+}
 function escHtml(t){return esc(t);}
 // Mensagem de cada cartão: "X% do lucro do mês", com X sempre igual à porcentagem daquela reserva
 // (muda sozinha quando você edita a porcentagem em "Editar reservas")
@@ -1348,11 +1454,11 @@ function reservaSub(key){
   return p.toLocaleString('pt-BR',{maximumFractionDigits:2})+'% do lucro do mês';
 }
 function rsvCardHtml(x,n,valor,r){
-  const m=RSV_META[x.key];
+  const m={ico:RSV_ICONS[x.icone]||RSV_ICONS.star};
   return `<div class="rsv ${x.cic}" onclick="openExtratoReserva('${x.key}')">
     <div class="rsv-bg"><svg viewBox="0 0 24 24">${m.ico}</svg></div>
     <div class="rsv-top"><div class="rsv-ic"><svg viewBox="0 0 24 24">${m.ico}</svg></div><div class="rsv-go">›</div></div>
-    <div class="rsv-name">${escHtml(n[x.key])}</div>
+    <div class="rsv-name">${escHtml(reservaNome(x.key))}</div>
     <div class="rsv-bar"></div>
     <div class="rsv-val">${brl(valor)}</div>
     <div class="rsv-sub">${escHtml(reservaSub(x.key))}</div>
@@ -1361,7 +1467,8 @@ function rsvCardHtml(x,n,valor,r){
 function renderGestao(c){
   const totals=effTotals();
   const r=S.reservas;
-  const n=S.reservaNomes||{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'};
+  const n=S.reservaNomes||{};
+  const ordem=reservaOrdem();
   let fatAno=0,despAno=0,diarioAno=0;
   const rows=totals.map((t,i)=>{
     const diario=diarioTotalForMonth(i);
@@ -1379,21 +1486,17 @@ function renderGestao(c){
     const lucroCls=row.lucro<0?'num-neg':(row.lucro>0?'num-pos':'num-zero');
     const res=v=>`<td${v<0?' class="num-neg"':''}>${brl(v)}</td>`;
     return `<tr${cls?` class="${cls}"`:''}><td>${isCur?'▸ ':''}${row.m}/${String(curYear).slice(-2)}</td><td>${brl(row.fat)}</td><td>${brl(row.desp)}</td><td>${brl(row.diario)}</td><td class="${lucroCls}">${brl(row.lucro)}</td>
-    ${res(row.lucro*r.imprevistos/100)}${res(row.lucro*r.projeto/100)}${res(row.lucro*r.pessoal/100)}${res(row.lucro*r.doacoes/100)}</tr>`;
+    ${ordem.map(k=>{ const pm=reservaPctEm(k,curYear*12+i); return res(pm>0?row.lucro*pm/100:0); }).join('')}</tr>`;
   }).join('');
-  const reservaCards=[
-    {key:'imprevistos',cic:'green',grad:'green-grad'},
-    {key:'projeto',cic:'blue',grad:'blue-grad'},
-    {key:'pessoal',cic:'amber',grad:'amber-grad'},
-    {key:'doacoes',cic:'red',grad:'red-grad'}
-  ].map(x=>rsvCardHtml(x,n,saldoReservaCard(x.key),r)).join('');
+  const reservaCards=ordem.map(k=>{ const v=reservaVis(k); return rsvCardHtml({key:k,cic:v.cor,icone:v.icone},n,saldoReservaCard(k),r); }).join('');
   c.innerHTML=`<div class="rgrid">
     ${reservaCards}
   </div>
-  <div class="sectionh" style="display:flex;justify-content:flex-end;align-items:center;">
-    <button onclick="openReservaModal()" style="background:none;border:none;color:var(--navy);font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;">Editar reservas</button>
+  <div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;">
+    ${ordem.length<RSV_MAX?'<button onclick="openNovaReserva()" style="background:none;border:none;color:var(--navy);font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;">➕ Nova reserva</button>':'<span></span>'}
+    <button onclick="openReservaModal()" style="background:none;border:none;color:var(--navy);font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;">Ajustar porcentagem</button>
   </div>
-  <div class="tablewrap"><table class="gestao"><thead><tr><th>Mês</th><th>Faturamento</th><th>Despesa</th><th>Gastos diários</th><th>Lucro</th><th>${esc(n.imprevistos)} ${r.imprevistos}%</th><th>${esc(n.projeto)} ${r.projeto}%</th><th>${esc(n.pessoal)} ${r.pessoal}%</th><th>${esc(n.doacoes)} ${r.doacoes}%</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+  <div class="tablewrap"><table class="gestao"><thead><tr><th>Mês</th><th>Faturamento</th><th>Despesa</th><th>Gastos diários</th><th>Lucro</th>${ordem.map(k=>`<th>${esc(reservaNome(k))} ${+r[k]||0}%</th>`).join('')}</tr></thead><tbody>${trs}</tbody></table></div>`;
 }
 function changeGestaoYear(delta){
   curYear+=delta;
@@ -1413,7 +1516,6 @@ function changeExtratoYear(delta){ extratoYear+=delta; renderExtratoReserva(); }
 function renderExtratoReserva(){
   const key=extratoReserva;
   const n=S.reservaNomes||{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'};
-  const pct=S.reservas[key];
 
   // meses válidos: só até o mês atual (futuro não conta)
   const hoje=new Date(), anoReal=hoje.getFullYear(), mesReal=hoje.getMonth();
@@ -1425,9 +1527,12 @@ function renderExtratoReserva(){
   const itens=[];
   meses.forEach(i=>{
     const lucro=lucroMes(i,extratoYear);
-    // mês com lucro distribui; mês com prejuízo aparece com distribuição 0,00 (não retira nada da reserva)
-    if(lucro>0) itens.push({mes:i,tipo:'entrada',titulo:'Mês de '+MONTHS[i].f,desc:`Distribuição automática (${pct}% do lucro)`,valor:lucro*pct/100});
-    else if(lucro<0) itens.push({mes:i,tipo:'zero',titulo:'Mês de '+MONTHS[i].f,desc:`Distribuição automática (${pct}% do lucro)`,valor:0});
+    const ym=extratoYear*12+i, pctM=reservaPctEm(key,ym);
+    if(!reservaExistiaEm(key,ym)||pctM<=0) return;   // reserva ainda não existia (ou estava com 0%) neste mês
+    const txtPct=pctM.toLocaleString('pt-BR',{maximumFractionDigits:2});
+    // mês com lucro distribui (com a porcentagem que valia naquele mês); mês com prejuízo aparece com 0,00
+    if(lucro>0) itens.push({mes:i,tipo:'entrada',titulo:'Mês de '+MONTHS[i].f,desc:`Distribuição automática (${txtPct}% do lucro)`,valor:lucro*pctM/100});
+    else if(lucro<0) itens.push({mes:i,tipo:'zero',titulo:'Mês de '+MONTHS[i].f,desc:`Distribuição automática (${txtPct}% do lucro)`,valor:0});
   });
   (S.reservaEntradas||[]).forEach(en=>{
     if(en.reserva!==key) return;
@@ -1486,8 +1591,9 @@ function renderExtratoReserva(){
       <div class="htitle">
         <button class="backbtn" onclick="closeModal(); render();">←</button>
         <div class="hic" style="background:rgba(255,255,255,.14)">💰</div>
-        <div><h1>${esc(n[key])}</h1><div class="month">Extrato de entradas e saídas</div></div>
+        <div><h1>${esc(reservaNome(key))}</h1><div class="month">Extrato de entradas e saídas</div></div>
       </div>
+      <button class="hdr-edit" onclick="openEditarReserva('${key}')">✏️ Editar reserva</button>
     </header>
     <main style="padding-bottom:140px;">
       <div class="ex-filtro">
@@ -1619,14 +1725,14 @@ function reservaPrimeiroAno(){
 // saldo da reserva até o fim do mês indicado (cutYm = ano*12 + mês de 0 a 11):
 // distribuição dos meses com lucro + dinheiro guardado − saídas, de todos os anos
 function reservaSaldoAte(key,cutYm){
-  const pct=+S.reservas[key]||0;
   let t=0;
   const y0=reservaPrimeiroAno(), yFim=Math.floor(cutYm/12);
   for(let y=y0;y<=yFim;y++){
     for(let m=0;m<12;m++){
       if(y*12+m>cutYm) break;
       const l=lucroMes(m,y);
-      if(l>0) t+=l*pct/100;
+      const pct=reservaPctEm(key,y*12+m);
+      if(l>0&&pct>0) t+=l*pct/100;
     }
   }
   const ate=d=>{ const [yy,mm]=d.split('-'); return (+yy)*12+(+mm-1)<=cutYm; };
@@ -1643,30 +1749,140 @@ function delSaidaReserva(id){
   save();
   renderExtratoReserva();
 }
-// Formulário "Editar reservas": só Nome e Porcentagem de cada reserva
-function openReservaModal(){
-  const r=S.reservas;
-  const n=S.reservaNomes||{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'};
+// ===== Reservas: nova reserva, editar reserva e ajuste de porcentagens =====
+let resEdit=[];          // lista de trabalho (só vale quando você toca em Salvar)
+let resNova={nome:'',pct:'',icone:'star',cor:'green',erro:''};
+let resUm=null;          // reserva que está sendo editada (formulário "Editar reserva")
+let resFluxo='editar';   // 'nova' | 'editar' (ajustar porcentagem) | 'editar-um' (editar reserva) | 'excluir'
+let resAlvo='modalRoot'; // onde a janela de ajuste aparece (nas ações do extrato, por cima dele)
+function resPct(v){ const x=parseFloat(v); return isFinite(x)?x:0; }
+function resClonar(){
+  const r=S.reservas||{};
+  return reservaOrdem().map(k=>{ const v=reservaVis(k); return {key:k,nome:reservaNome(k),pct:+r[k]||0,icone:v.icone,cor:v.cor}; });
+}
+function resCoresUsadas(exceto){ return reservaOrdem().filter(k=>k!==exceto).map(k=>reservaVis(k).cor); }
+function resCorLivre(){ const u=resCoresUsadas(); return RSV_CORES.find(c=>!u.includes(c))||RSV_CORES[0]; }
+function resIconesHtml(sel,fn){
+  return RSV_ICON_ORDEM.map(ic=>`<button type="button" class="ricon${sel===ic?' on':''}" aria-label="Ícone ${ic}" onclick="${fn}('${ic}')"><svg viewBox="0 0 24 24">${RSV_ICONS[ic]}</svg></button>`).join('');
+}
+function resCoresHtml(sel,usadas,fn){
+  return RSV_CORES.map(c=>{ const uso=usadas.includes(c); return `<button type="button" class="rcor${sel===c?' on':''}${uso?' uso':''}" aria-label="Cor ${c}" style="background:${RSV_COR_HEX[c]}" ${uso?'disabled':''} onclick="${fn}('${c}')"></button>`; }).join('');
+}
+function resTotalOk(lista){ const t=Math.round(lista.reduce((a,x)=>a+(+x.pct||0),0)*100)/100; return Math.abs(t-100)<0.005; }
+function resFechar(){ if(resAlvo==='catModalRoot') document.getElementById('catModalRoot').innerHTML=''; else closeModal(); }
+
+// --- Nova reserva: só o formulário da reserva nova (tela Gestão) ---
+function openNovaReserva(manter){
+  if(reservaOrdem().length>=RSV_MAX) return;
+  if(!manter) resNova={nome:'',pct:'',icone:'star',cor:resCorLivre(),erro:''};
+  resFluxo='nova'; resAlvo='modalRoot';
+  renderNovaReserva();
+}
+function renderNovaReserva(){
+  const sc=document.querySelector('#modalRoot .modal'); const y=sc?sc.scrollTop:0;
   document.getElementById('modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <h2>Editar reservas</h2>
-    <div class="field"><label>Nome</label><input id="fNomeImp" type="text" value="${esc(n.imprevistos)}"></div>
-    <div class="field"><label>Porcentagem (%)</label><input id="fImp" type="number" min="0" max="100" step="any" inputmode="decimal" oninput="somaReservas()" value="${r.imprevistos}"></div>
-    <div class="field" style="border-top:1px solid var(--border);padding-top:12px;"><label>Nome</label><input id="fNomeProj" type="text" value="${esc(n.projeto)}"></div>
-    <div class="field"><label>Porcentagem (%)</label><input id="fProj" type="number" min="0" max="100" step="any" inputmode="decimal" oninput="somaReservas()" value="${r.projeto}"></div>
-    <div class="field" style="border-top:1px solid var(--border);padding-top:12px;"><label>Nome</label><input id="fNomePes" type="text" value="${esc(n.pessoal)}"></div>
-    <div class="field"><label>Porcentagem (%)</label><input id="fPes" type="number" min="0" max="100" step="any" inputmode="decimal" oninput="somaReservas()" value="${r.pessoal}"></div>
-    <div class="field" style="border-top:1px solid var(--border);padding-top:12px;"><label>Nome</label><input id="fNomeDoa" type="text" value="${esc(n.doacoes)}"></div>
-    <div class="field"><label>Porcentagem (%)</label><input id="fDoa" type="number" min="0" max="100" step="any" inputmode="decimal" oninput="somaReservas()" value="${r.doacoes}"></div>
+    <h2>Nova reserva</h2>
+    <div class="field"><label>Nome</label><input type="text" maxlength="30" value="${esc(resNova.nome)}" placeholder="Ex: Viagem" oninput="resNova.nome=this.value"></div>
+    <div class="field"><label>Porcentagem do lucro (%)</label><input type="number" min="0" max="100" step="any" inputmode="decimal" value="${esc(resNova.pct)}" placeholder="Ex: 10" oninput="resNova.pct=this.value"></div>
+    <div class="field"><label>Ícone</label><div class="ricons">${resIconesHtml(resNova.icone,'resNovaIcone')}</div></div>
+    <div class="field"><label>Cor</label><div class="rcores">${resCoresHtml(resNova.cor,resCoresUsadas(),'resNovaCor')}</div></div>
+    <div class="rerr">${esc(resNova.erro||'')}</div>
+    <div class="modalbtns"><button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="salvarNovaReserva()">Salvar</button></div>
+  </div></div>`;
+  const sc2=document.querySelector('#modalRoot .modal'); if(sc2) sc2.scrollTop=y;
+}
+function resNovaIcone(ic){ if(!RSV_ICONS[ic]) return; resNova.icone=ic; renderNovaReserva(); }
+function resNovaCor(c){ if(resCoresUsadas().includes(c)) return; resNova.cor=c; renderNovaReserva(); }
+function salvarNovaReserva(){
+  const pct=parseFloat(resNova.pct);
+  if(!(pct>0)||pct>100){ resNova.erro='Informe uma porcentagem entre 0 e 100.'; renderNovaReserva(); return; }
+  const base=resClonar();
+  if(base.length>=RSV_MAX) return;
+  const nome=(resNova.nome||'').trim().slice(0,30)||('Reserva '+(base.length+1));
+  base.push({key:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nome,pct,icone:resNova.icone,cor:resNova.cor});
+  resEdit=base; resFluxo='nova'; resAlvo='modalRoot'; resNova.erro='';
+  if(resTotalOk(base)){ saveReservas(); return; }   // já soma 100%: salva direto
+  renderAjustar('Para incluir "'+nome+'", as porcentagens de todas as reservas precisam somar 100%. Ajuste abaixo.');
+}
+
+// --- Editar reserva: nome, porcentagem, ícone e cor (botão no extrato da reserva) ---
+function openEditarReserva(key){
+  const v=reservaVis(key);
+  resUm={key,nome:reservaNome(key),pct:String(+((S.reservas||{})[key])||0),icone:v.icone,cor:v.cor,erro:''};
+  resFluxo='editar-um'; resAlvo='catModalRoot';
+  renderEditarReserva();
+}
+function renderEditarReserva(){
+  const k=resUm.key;
+  const sc=document.querySelector('#catModalRoot .modal'); const y=sc?sc.scrollTop:0;
+  const del=reservaOrdem().length>1?`<button type="button" class="rdel" onclick="openExcluirReserva('${k}')">🗑️ Excluir reserva</button>`:'';
+  document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
+    <h2>Editar reserva</h2>
+    <div class="field"><label>Nome</label><input type="text" maxlength="30" value="${esc(resUm.nome)}" placeholder="Nome da reserva" oninput="resUm.nome=this.value"></div>
+    <div class="field"><label>Porcentagem do lucro (%)</label><input type="number" min="0" max="100" step="any" inputmode="decimal" value="${esc(resUm.pct)}" oninput="resUm.pct=this.value"></div>
+    <div class="field"><label>Ícone</label><div class="ricons">${resIconesHtml(resUm.icone,'resUmIcone')}</div></div>
+    <div class="field"><label>Cor</label><div class="rcores">${resCoresHtml(resUm.cor,resCoresUsadas(k),'resUmCor')}</div></div>
+    <div class="rerr">${esc(resUm.erro||'')}</div>
+    ${del}
+    <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button><button class="btn primary" onclick="salvarEditarReserva()">Salvar</button></div>
+  </div></div>`;
+  const sc2=document.querySelector('#catModalRoot .modal'); if(sc2) sc2.scrollTop=y;
+}
+function resUmIcone(ic){ if(resUm&&RSV_ICONS[ic]){ resUm.icone=ic; renderEditarReserva(); } }
+function resUmCor(c){ if(resUm&&!resCoresUsadas(resUm.key).includes(c)){ resUm.cor=c; renderEditarReserva(); } }
+function salvarEditarReserva(){
+  if(!resUm) return;
+  const pct=parseFloat(resUm.pct);
+  if(!(pct>=0)||pct>100){ resUm.erro='Informe uma porcentagem entre 0 e 100.'; renderEditarReserva(); return; }
+  const nome=(resUm.nome||'').trim().slice(0,30)||reservaNome(resUm.key);
+  const base=resClonar().map(x=>x.key===resUm.key?{key:x.key,nome,pct,icone:resUm.icone,cor:resUm.cor}:x);
+  resEdit=base; resFluxo='editar-um'; resAlvo='catModalRoot'; resUm.erro='';
+  if(resTotalOk(base)){ saveReservas(); return; }    // porcentagem não mudou (ou já fecha 100%): salva direto
+  renderAjustar('Você alterou a porcentagem de "'+nome+'". Para somar 100%, ajuste as porcentagens abaixo.');
+}
+function openExcluirReserva(key){
+  document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
+    <h2>Excluir reserva</h2>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 16px;line-height:1.5;">Excluir <b>${esc(reservaNome(key))}</b>? Os depósitos e as saídas dela serão apagados. Em seguida você ajusta as porcentagens das outras reservas para somarem 100%.</p>
+    <div class="modalbtns"><button class="btn ghost" onclick="renderEditarReserva()">Cancelar</button><button class="btn" style="background:#b3392a;color:#fff;" onclick="confirmarExcluirReserva('${key}')">Continuar</button></div>
+  </div></div>`;
+}
+function confirmarExcluirReserva(key){
+  const nome=reservaNome(key);
+  const base=resClonar().filter(x=>x.key!==key);
+  if(!base.length) return;
+  resEdit=base; resFluxo='excluir'; resAlvo='catModalRoot'; resUm=null;
+  if(resTotalOk(base)){ saveReservas(); return; }
+  renderAjustar('Ao excluir "'+nome+'", ajuste as porcentagens das outras reservas para somarem 100%.');
+}
+
+// --- Ajustar porcentagem: uma tela só com nome e porcentagem de cada reserva ---
+// (abre sempre que as porcentagens mudam e a soma não fecha 100%)
+function openReservaModal(){ resEdit=resClonar(); resFluxo='editar'; resAlvo='modalRoot'; renderAjustar(''); }
+function renderAjustar(aviso){
+  const fechar=resAlvo==='catModalRoot'?'closeCatModal()':'closeModal()';
+  const rows=resEdit.map((x,i)=>`<div class="rrow"><span class="rdot" style="background:${RSV_COR_HEX[x.cor]||'#999'}"></span><input type="text" maxlength="30" value="${esc(x.nome)}" placeholder="Nome" aria-label="Nome da reserva" oninput="resEdit[${i}].nome=this.value"><input type="number" min="0" max="100" step="any" inputmode="decimal" value="${x.pct}" aria-label="Porcentagem de ${esc(x.nome)}" oninput="resEdit[${i}].pct=resPct(this.value);somaReservas()"></div>`).join('');
+  document.getElementById(resAlvo).innerHTML=`<div class="modal-bg" onclick="if(event.target===this)${fechar}"><div class="modal">
+    <h2>Ajustar porcentagens</h2>
+    <div class="rnota">A mudança vale a partir de ${MONTHS[new Date().getMonth()].f}/${new Date().getFullYear()}. Os meses anteriores continuam como estavam.</div>
+    ${aviso?`<div class="raviso">${esc(aviso)}</div>`:''}
+    <div class="rhead"><span></span><span>Nome</span><span>Porcentagem (%)</span></div>
+    ${rows}
     <div id="resSoma" class="ressoma"></div>
-    <div class="modalbtns"><button class="btn ghost" onclick="closeModal()">Cancelar</button><button id="btnSaveRes" class="btn primary" onclick="saveReservas()">Salvar</button></div>
+    <div class="modalbtns"><button class="btn ghost" onclick="resCancelar()">Cancelar</button><button id="btnSaveRes" class="btn primary" onclick="saveReservas()">Salvar</button></div>
   </div></div>`;
   somaReservas();
 }
-// confere se as 4 porcentagens somam 100% (mostra o total na hora e só deixa salvar se estiver certo)
+// Cancelar volta ao formulário de onde veio, sem perder o que foi digitado
+function resCancelar(){
+  if(resFluxo==='nova') renderNovaReserva();
+  else if(resFluxo==='editar-um' && resUm) renderEditarReserva();
+  else resFechar();
+}
+// confere se as porcentagens somam 100% (mostra o total na hora e só deixa salvar se estiver certo)
 function somaReservas(){
-  const ids=['fImp','fProj','fPes','fDoa'];
-  if(!document.getElementById('fImp')) return false;
-  const v=ids.map(i=>parseFloat(document.getElementById(i).value)||0);
+  if(!resEdit.length) return false;
+  const v=resEdit.map(x=>+x.pct||0);
   const tot=Math.round(v.reduce((a,b)=>a+b,0)*100)/100;
   const fora=v.some(x=>x<0||x>100);
   const ok=!fora && Math.abs(tot-100)<0.005;
@@ -1681,14 +1897,24 @@ function somaReservas(){
 }
 function saveReservas(){
   if(!somaReservas()) return;
-  S.reservas={imprevistos:+document.getElementById('fImp').value||0,projeto:+document.getElementById('fProj').value||0,pessoal:+document.getElementById('fPes').value||0,doacoes:+document.getElementById('fDoa').value||0};
-  S.reservaNomes={
-    imprevistos:document.getElementById('fNomeImp').value.trim()||'Imprevistos',
-    projeto:document.getElementById('fNomeProj').value.trim()||'Projeto Anual',
-    pessoal:document.getElementById('fNomePes').value.trim()||'Pessoal',
-    doacoes:document.getElementById('fNomeDoa').value.trim()||'Doações'
-  };
-  save(); closeModal(); render();
+  const ordem=resEdit.map(x=>x.key), pcts={}, nomes={}, vis={};
+  resEdit.forEach((x,i)=>{
+    pcts[x.key]=+x.pct||0;
+    nomes[x.key]=(x.nome||'').trim().slice(0,30)||(RSV_PADRAO[x.key]?RSV_PADRAO[x.key].nome:'Reserva '+(i+1));
+    vis[x.key]={icone:x.icone,cor:x.cor};
+  });
+  const antes=Object.assign({},S.reservas||{});
+  S.reservas=pcts; S.reservaNomes=nomes; S.reservaVis=vis; S.reservaOrdem=ordem;
+  registrarReservaHist(antes,pcts);   // a mudança vale daqui para a frente; os meses anteriores não mudam
+  const fica=new Set(ordem);   // reservas excluídas levam junto os depósitos e as saídas delas
+  S.reservaEntradas=(S.reservaEntradas||[]).filter(e=>fica.has(e.reserva));
+  S.reservaSaidas=(S.reservaSaidas||[]).filter(e=>fica.has(e.reserva));
+  const fluxo=resFluxo;
+  resEdit=[]; resUm=null;
+  save();
+  document.getElementById('catModalRoot').innerHTML='';
+  if(fluxo==='editar-um' && S.reservas[extratoReserva]!==undefined){ renderExtratoReserva(); return; }   // continua no extrato da reserva
+  closeModal(); render();
 }
 function closeModal(){document.getElementById('modalRoot').innerHTML=''; settingsSubScreen=null;}
 function subScreen(icon,title,sub,body){
@@ -1805,11 +2031,44 @@ function sanitizeBackup(d){
   out.receber=lanc(d.receber,'cliente','A Receber','Recebido');
   out.pagar=lanc(d.pagar,'conta','A Pagar','Pago');
   out.diarios=arr(d.diarios).filter(e=>e&&typeof e==='object').map(e=>({id:idv(e.id),nome:txt(e.nome,120)||'Sem nome',valor:num(e.valor),data:dataOk(e.data)?String(e.data):todayStr(),hora:/^\d{2}:\d{2}$/.test(String(e.hora))?String(e.hora):'',categoria:txt(e.categoria,40)||'Outros'}));
-  const chaves=['imprevistos','projeto','pessoal','doacoes'];
+  const KEYOK=/^[A-Za-z]\w{0,31}$/;
   const rs=d.reservas&&typeof d.reservas==='object'?d.reservas:{};
-  if(chaves.every(k=>isFinite(+rs[k])&&+rs[k]>=0&&+rs[k]<=100)) chaves.forEach(k=>{ out.reservas[k]=+rs[k]; });
-  const nm=d.reservaNomes&&typeof d.reservaNomes==='object'?d.reservaNomes:{};
-  chaves.forEach(k=>{ const t=txt(nm[k],30).trim(); if(t) out.reservaNomes[k]=t; });
+  let ordemB=arr(d.reservaOrdem).map(String).filter(k=>KEYOK.test(k)&&Object.prototype.hasOwnProperty.call(rs,k));
+  Object.keys(rs).forEach(k=>{ if(KEYOK.test(k)&&!ordemB.includes(k)) ordemB.push(k); });
+  ordemB=ordemB.filter((k,i)=>ordemB.indexOf(k)===i).slice(0,RSV_MAX);
+  const somaOk=ordemB.length>0&&ordemB.every(k=>isFinite(+rs[k])&&+rs[k]>=0&&+rs[k]<=100)&&Math.abs(ordemB.reduce((t,k)=>t+(+rs[k]),0)-100)<0.01;
+  let chaves;
+  if(somaOk){
+    chaves=ordemB;
+    out.reservas={}; out.reservaNomes={}; out.reservaVis={}; out.reservaOrdem=ordemB.slice();
+    const nm=d.reservaNomes&&typeof d.reservaNomes==='object'?d.reservaNomes:{};
+    const vv=d.reservaVis&&typeof d.reservaVis==='object'?d.reservaVis:{};
+    const usadas=[];
+    ordemB.forEach((k,i)=>{
+      out.reservas[k]=+rs[k];
+      out.reservaNomes[k]=txt(nm[k],30).trim()||(RSV_PADRAO[k]?RSV_PADRAO[k].nome:'Reserva '+(i+1));
+      const v=vv[k]&&typeof vv[k]==='object'?vv[k]:{};
+      const ic=RSV_ICONS[v.icone]?v.icone:((RSV_PADRAO[k]&&RSV_PADRAO[k].icone)||'star');
+      const cor=RSV_CORES.includes(v.cor)?v.cor:((RSV_PADRAO[k]&&RSV_PADRAO[k].cor)||RSV_CORES.find(c=>!usadas.includes(c))||'green');
+      usadas.push(cor);
+      out.reservaVis[k]={icone:ic,cor};
+    });
+  } else { chaves=out.reservaOrdem.slice(); }   // arquivo estranho: volta para as 4 reservas padrão
+  // histórico das porcentagens (cada regra vale a partir de um mês)
+  let hist=[];
+  arr(d.reservaHist).slice(0,120).forEach(x=>{
+    if(!x||typeof x!=='object') return;
+    const desde=Math.round(+x.desde), rr=x.reservas&&typeof x.reservas==='object'?x.reservas:null;
+    if(!isFinite(desde)||desde<0||desde>3000*12||!rr) return;
+    const ks=Object.keys(rr).filter(k=>KEYOK.test(k)).slice(0,12);
+    if(!ks.length||!ks.every(k=>isFinite(+rr[k])&&+rr[k]>=0&&+rr[k]<=100)) return;
+    if(Math.abs(ks.reduce((t,k)=>t+(+rr[k]),0)-100)>0.01) return;
+    const m={}; ks.forEach(k=>{ m[k]=+rr[k]; });
+    hist.push({desde,reservas:m});
+  });
+  hist.sort((x,y)=>x.desde-y.desde);
+  if(!hist.length||!reservaMesmaRegra(hist[hist.length-1].reservas,out.reservas)) hist=[{desde:0,reservas:Object.assign({},out.reservas)}];
+  out.reservaHist=hist;
   const mov=l=>arr(l).filter(e=>e&&typeof e==='object'&&chaves.includes(e.reserva)).map(e=>({id:idv(e.id),reserva:e.reserva,descricao:txt(e.descricao,120)||'Movimento',valor:num(e.valor),data:dataOk(e.data)?String(e.data):todayStr()}));
   out.reservaSaidas=mov(d.reservaSaidas); out.reservaEntradas=mov(d.reservaEntradas);
   out.customCats=arr(d.customCats).map(x=>txt(x,40).trim()).filter(Boolean);
@@ -2487,76 +2746,6 @@ function showSplash(){
   const el=document.getElementById('splash'); if(!el) return;
   el.innerHTML=`<div class="sp-in">${coverSvg(210)}<div class="sp-t">Financeiro</div><div class="sp-s">Controle financeiro pessoal</div></div>`;
   setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),550); },2000);
-}
-// ===== Extrato por categoria (A Receber e A Pagar) =====
-const _renderListOrig=renderList;
-renderList=function(c,list,nameKey,pendLabel,doneLabel){
-  _renderListOrig(c,list,nameKey,pendLabel,doneLabel);
-  const isR=pendLabel==='A Receber';
-  const h=[...c.querySelectorAll('.sectionh')].find(x=>x.textContent.trim()==='Últimos lançamentos');
-  if(h){
-    h.style.cssText='display:flex;justify-content:space-between;align-items:center;';
-    h.innerHTML=`<span>Últimos lançamentos</span><button onclick="openExtratoCategoriaLista('${isR?'receber':'pagar'}')" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;">📋 Extrato por categoria ›</button>`;
-  }
-};
-let extratoListaTipo='receber', extratoListaAbertas=[];
-function openExtratoCategoriaLista(t){
-  extratoListaTipo=t; extratoListaAbertas=[];
-  renderExtratoCategoriaLista();
-}
-function toggleExtratoCatLista(enc){
-  const nome=decodeURIComponent(enc);
-  const i=extratoListaAbertas.indexOf(nome);
-  if(i>=0) extratoListaAbertas.splice(i,1); else extratoListaAbertas.push(nome);
-  const mm=document.querySelector('#modalRoot main'); const y=mm?mm.scrollTop:0;
-  renderExtratoCategoriaLista();
-  const m2=document.querySelector('#modalRoot main'); if(m2) m2.scrollTop=y;
-}
-function renderExtratoCategoriaLista(){
-  const isR=extratoListaTipo==='receber';
-  const list=isR?S.receber:S.pagar;
-  const cor=isR?'#217a4b':'#b3392a';
-  const items=list
-    .filter(e=>monthIndexFromRef(e.referencia)===curMonth&&yearFromRef(e.referencia)===String(curYear))
-    .sort((a,b)=>(a.venc||'').localeCompare(b.venc||''));
-  const total=items.reduce((s,e)=>s+e.valor,0);
-  let conteudo;
-  if(!items.length){
-    conteudo='<div class="empty"><div class="eic">📄</div><div class="et">Nenhum lançamento neste mês.</div></div>';
-  } else {
-    const mapa={};
-    items.forEach(e=>{ const c=e.tipo||'Outros'; (mapa[c]=mapa[c]||{valor:0,n:0,itens:[]}); mapa[c].valor+=e.valor; mapa[c].n++; mapa[c].itens.push(e); });
-    const cats=Object.entries(mapa).sort((x,y)=>y[1].valor-x[1].valor);
-    const fmtPct=v=>(total?v/total*100:0).toLocaleString('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:0});
-    conteudo=cats.map(([nome,d])=>{
-      const pct=total?d.valor/total*100:0;
-      const aberta=extratoListaAbertas.includes(nome);
-      const lista=aberta?`<div class="catx-list">${d.itens.map(e=>`<div class="catx-item"><div class="ci-l"><div class="ci-n">${esc(e.cliente||e.conta)}</div><div class="ci-d">${fmtVenc(e.venc)} · ${esc(e.status)}</div></div><div class="ci-v" style="color:${cor}">${brl(e.valor)}</div></div>`).join('')}</div>`:'';
-      return `<div class="catx" onclick="toggleExtratoCatLista('${encodeURIComponent(nome).replace(/'/g,'%27')}')">
-        <div class="catx-top">
-          <div class="ric">${iconFor(nome)}</div>
-          <div class="info"><div class="cli">${esc(nome)}</div><div class="sub">${d.n} ${d.n===1?'lançamento':'lançamentos'} · ${fmtPct(d.valor)}% do total</div></div>
-          <div class="valor" style="color:${cor}">${brl(d.valor)}</div>
-          <span class="catx-chev${aberta?' open':''}">›</span>
-        </div>
-        <div class="catx-bar"><i style="width:${Math.max(pct,2)}%;background:${colorForCat(nome)}"></i></div>
-        ${lista}
-      </div>`;
-    }).join('');
-  }
-  const body=`<div class="card ${isR?'green-grad':'red-grad'}" style="margin-bottom:16px;"><div class="cic ${isR?'green':'red'}">📆</div><div class="lbl">Total do mês</div><div class="val ${isR?'green':'red'}">${brl(total)}</div></div>${conteudo}`;
-  document.getElementById('modalRoot').innerHTML=`
-  <div class="formscreen">
-    <header class="top">
-      <div class="htitle">
-        <button class="backbtn" onclick="closeModal(); render();">←</button>
-        <div class="hic" style="background:rgba(255,255,255,.14)">📋</div>
-        <div><h1>Extrato por categoria</h1><div class="month">${isR?'A Receber':'A Pagar'} · ${MONTHS[curMonth].f}/${curYear}</div></div>
-      </div>
-    </header>
-    <main style="padding-bottom:140px;">${body}</main>
-    <button class="fab" onclick="closeModal(); render();" style="bottom:calc(24px + env(safe-area-inset-bottom,0px));"><span class="plus">←</span><span>Voltar</span></button>
-  </div>`;
 }
 showSplash();
 
