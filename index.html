@@ -908,7 +908,7 @@ function render(){
   hIc.style.background={receber:'#e8a53d',pagar:'rgba(255,255,255,.14)',diario:'#2d6cdf',resultado:'#2d6cdf',gestao:'rgba(255,255,255,.14)'}[tab];
   if(tab==='receber'){title.textContent='A Receber'; sub.textContent=MONTHS[curMonth].f+'/'+curYear; renderList(c,S.receber,'cliente','A Receber','Recebido');}
   else if(tab==='pagar'){title.textContent='A Pagar'; sub.textContent=MONTHS[curMonth].f+'/'+curYear; renderList(c,S.pagar,'conta','A Pagar','Pago');}
-  else if(tab==='diario'){title.textContent='Lançamentos Diários'; sub.textContent='Acompanhe seus gastos de hoje'; renderDiario(c);}
+  else if(tab==='diario'){title.textContent='Despesas Diárias'; sub.textContent='Acompanhe seus gastos de hoje'; renderDiario(c);}
   else if(tab==='resultado'){
     title.textContent='Olá, Bem-vindo(a)!';
     sub.textContent=(S.perfil&&S.perfil.nome)?S.perfil.nome:'Configure seu perfil em Configurações';
