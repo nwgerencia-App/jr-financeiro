@@ -1800,8 +1800,8 @@ function reservaSaldoAte(key,cutYm){
   (S.reservaSaidas||[]).forEach(e=>{ if(e.reserva===key && ate(e.data)) t-=e.valor; });
   return t;
 }
-// mês de corte do cartão: o mês selecionado, mas nunca depois de hoje
-function reservaCorte(){ const h=new Date(); return Math.min(curYear*12+curMonth, h.getFullYear()*12+h.getMonth()); }
+// mês de corte do cartão: sempre o mês de hoje (saldo atual da reserva, com o que foi guardado e retirado)
+function reservaCorte(){ const h=new Date(); return h.getFullYear()*12+h.getMonth(); }
 // valor mostrado no cartão da reserva (saldo acumulado)
 function saldoReservaCard(key){ return reservaSaldoAte(key,reservaCorte()); }
 function delSaidaReserva(id){
