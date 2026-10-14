@@ -1136,7 +1136,8 @@ function openExtratoMes(){
         <div><h1>Extrato do mês</h1><div class="month">${mesLbl}</div></div>
       </div>
     </header>
-    <main>${body}</main>
+    <main style="padding-bottom:140px;">${body}</main>
+    <button class="fab" onclick="closeModal(); render();" style="bottom:calc(24px + env(safe-area-inset-bottom,0px));"><span class="plus">←</span><span>Voltar</span></button>
   </div>`;
 }
 let mypYear=null;
