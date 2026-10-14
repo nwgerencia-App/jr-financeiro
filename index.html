@@ -1526,7 +1526,7 @@ function renderGestao(c){
     const lucroCls=row.lucro<0?'num-neg':(row.lucro>0?'num-pos':'num-zero');
     const res=v=>`<td${v<0?' class="num-neg"':''}>${brl(v)}</td>`;
     return `<tr${cls?` class="${cls}"`:''}><td>${isCur?'▸ ':''}${row.m}/${String(curYear).slice(-2)}</td><td>${brl(row.fat)}</td><td>${brl(row.desp)}</td><td>${brl(row.diario)}</td><td class="${lucroCls}">${brl(row.lucro)}</td>
-    ${ordem.map(k=>{ const pm=reservaPctEm(k,curYear*12+i); return res(pm>0?row.lucro*pm/100:0); }).join('')}</tr>`;
+    ${ordem.map(k=>{ const pm=reservaPctEm(k,curYear*12+i); return res(pm>0&&row.lucro>0?row.lucro*pm/100:0); }).join('')}</tr>`;
   }).join('');
   const reservaCards=ordem.map(k=>{ const v=reservaVis(k); return rsvCardHtml({key:k,cic:v.cor,icone:v.icone},n,saldoReservaCard(k),r); }).join('');
   c.innerHTML=`<div class="rgrid">
