@@ -741,6 +741,11 @@ nav.bottom button.active::after{background:linear-gradient(90deg,#0a47b8,#1380ee
 .fab{bottom:calc(112px + env(safe-area-inset-bottom,0px));}
 .toast{bottom:calc(124px + env(safe-area-inset-bottom,0px));}
 main{padding-bottom:170px;}
+
+.hero2 .h2-pct{display:block; margin-top:3px; font-size:10px; font-weight:600; white-space:nowrap; opacity:.85;}
+.hero2 .tone-red .h2-pct{color:#a8352a;} .hero2 .tone-amber .h2-pct{color:#8a5a0a;}
+:root[data-theme="dark"] .hero2 .tone-red .h2-pct{color:#ffb3a8;} :root[data-theme="dark"] .hero2 .tone-amber .h2-pct{color:#e8c887;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hero2 .tone-red .h2-pct{color:#ffb3a8;} :root:not([data-theme="light"]) .hero2 .tone-amber .h2-pct{color:#e8c887;}}
 </style>
 </head>
 <body>
@@ -792,7 +797,7 @@ const ICO={
 };
 // Card hero padrão (Início, Diário, A Receber, A Pagar)
 function heroHtml(o){
-  const stats=o.stats.map(s=>`<div class="h2-st${s.tone?' tone-'+s.tone:''}"${s.go?` onclick="event.stopPropagation();goTab('${s.go}')" style="cursor:pointer;"`:''}><div class="h2-st-top"><span class="h2-sic">${s.icon}</span><span class="h2-slbl">${s.label}</span></div><b>${s.val}</b></div>`).join('');
+  const stats=o.stats.map(s=>`<div class="h2-st${s.tone?' tone-'+s.tone:''}"${s.go?` onclick="event.stopPropagation();goTab('${s.go}')" style="cursor:pointer;"`:''}><div class="h2-st-top"><span class="h2-sic">${s.icon}</span><span class="h2-slbl">${s.label}</span></div><b>${s.val}</b>${s.sub?`<span class="h2-pct">${s.sub}</span>`:''}</div>`).join('');
   return `<div class="hero2 ${o.cls}"${o.go?` onclick="goTab('${o.go}')" style="cursor:pointer;"`:''}>
     <div class="h2-blob"></div><div class="h2-blobic">${o.blobIcon}</div>
     <div class="h2-top"><span class="h2-tic">${o.icon}</span><span class="h2-lbl">${o.label}</span></div>
@@ -1428,6 +1433,8 @@ function renderInicio(c){
   const mediaDia=diasComGasto?totalDiario/diasComGasto:0;
 
   const real=inicioModo==='realizado';
+  const baseRec=real?recebido:cur.fat;
+  const pctRec=v=>baseRec>0?(v/baseRec*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'% '+(real?'do recebido':'do a receber'):'';
   const lucroReal=recebido-pago-totalDiario;
   const lucroShow=real?lucroReal:lucro;
   const heroInicio=heroHtml({
@@ -1439,12 +1446,12 @@ function renderInicio(c){
     value:`${lucroShow>=0?'+ ':'- '}${brl(Math.abs(lucroShow))}`,
     stats:real?[
       {icon:ICO.down,label:'Recebido',val:brl(recebido),go:'receber',tone:'green'},
-      {icon:ICO.card,label:'Pago',val:brl(pago),go:'pagar',tone:'red'},
-      {icon:ICO.cal,label:'Diários',val:brl(totalDiario),go:'diario',tone:'amber'}
+      {icon:ICO.card,label:'Pago',val:brl(pago),sub:pctRec(pago),go:'pagar',tone:'red'},
+      {icon:ICO.cal,label:'Diários',val:brl(totalDiario),sub:pctRec(totalDiario),go:'diario',tone:'amber'}
     ]:[
       {icon:ICO.down,label:'A receber',val:brl(cur.fat),go:'receber',tone:'green'},
-      {icon:ICO.card,label:'A pagar',val:brl(cur.desp),go:'pagar',tone:'red'},
-      {icon:ICO.cal,label:'Diários',val:brl(totalDiario),go:'diario',tone:'amber'}
+      {icon:ICO.card,label:'A pagar',val:brl(cur.desp),sub:pctRec(cur.desp),go:'pagar',tone:'red'},
+      {icon:ICO.cal,label:'Diários',val:brl(totalDiario),sub:pctRec(totalDiario),go:'diario',tone:'amber'}
     ]
   });
   const segInicio=`<div class="seg"><button class="${real?'':'on'}" onclick="setInicioModo('previsto')">Previsto</button><button class="${real?'on':''}" onclick="setInicioModo('realizado')">Realizado</button></div>`;
