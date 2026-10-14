@@ -1359,6 +1359,8 @@ function renderResultado(c){
   ${motiv}`;
 }
 
+let inicioModo='previsto';
+function setInicioModo(m){ inicioModo=m; render(); }
 function renderInicio(c){
   const totals=effTotals();
   const cur=totals[curMonth];
@@ -1389,21 +1391,29 @@ function renderInicio(c){
   const diasComGasto=new Set((S.diarios||[]).filter(e=>e.data&&e.data.slice(0,7)===ymKey).map(e=>e.data)).size;
   const mediaDia=diasComGasto?totalDiario/diasComGasto:0;
 
+  const real=inicioModo==='realizado';
+  const lucroReal=recebido-pago-totalDiario;
+  const lucroShow=real?lucroReal:lucro;
   const heroInicio=heroHtml({
-    cls:'t-blue'+(lucro<0?' neg':''),
+    cls:'t-blue'+(lucroShow<0?' neg':''),
     go:'gestao',
     icon:ICO.cal,
     blobIcon:ICO.trend,
-    label:'Resultado do mês previsto',
-    value:`${lucro>=0?'+ ':'- '}${brl(Math.abs(lucro))}`,
-    stats:[
+    label:real?'Resultado do mês realizado':'Resultado do mês previsto',
+    value:`${lucroShow>=0?'+ ':'- '}${brl(Math.abs(lucroShow))}`,
+    stats:real?[
+      {icon:ICO.down,label:'Recebido',val:brl(recebido),go:'receber',tone:'green'},
+      {icon:ICO.card,label:'Pago',val:brl(pago),go:'pagar',tone:'red'},
+      {icon:ICO.cal,label:'Diários',val:brl(totalDiario),go:'diario',tone:'amber'}
+    ]:[
       {icon:ICO.down,label:'A receber',val:brl(cur.fat),go:'receber',tone:'green'},
       {icon:ICO.card,label:'A pagar',val:brl(cur.desp),go:'pagar',tone:'red'},
       {icon:ICO.cal,label:'Diários',val:brl(totalDiario),go:'diario',tone:'amber'}
     ]
   });
+  const segInicio=`<div class="seg"><button class="${real?'':'on'}" onclick="setInicioModo('previsto')">Previsto</button><button class="${real?'on':''}" onclick="setInicioModo('realizado')">Realizado</button></div>`;
 
-  c.innerHTML=heroInicio+inicioVencHtml()+`
+  c.innerHTML=segInicio+heroInicio+inicioVencHtml()+`
   <div class="chart">
     <div class="lbl">Movimentação Financeira Realizado</div>
     <div class="sub" style="margin-bottom:16px;">${MONTHS[curMonth].f}/${curYear}</div>
