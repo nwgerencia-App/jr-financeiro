@@ -744,7 +744,8 @@ main{padding-bottom:170px;}
 
 /* porcentagem ao lado do nome: mesma fonte e tamanho do nome */
 .hero2 .h2-pctl,.hero2 .h2-lblpct{font:inherit; font-weight:inherit; color:inherit; margin:0;}
-.hero2 .h2-panel.tones .h2-st-top{flex-wrap:wrap; row-gap:2px;}
+.hero2 .h2-panel.tones .h2-st-top{flex-direction:column; align-items:flex-start; flex-wrap:nowrap; gap:7px; margin-bottom:6px;}
+.hero2 .h2-panel.tones .h2-slbl{white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -1442,7 +1443,6 @@ function renderInicio(c){
     icon:ICO.cal,
     blobIcon:(real&&lucroShow<0)?ICO.trendDown:ICO.trend,
     label:real?'Resultado do mês realizado':'Resultado do mês previsto',
-    pct:(real&&recebido>0)?(lucroReal/recebido*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%':'',
     value:`${lucroShow>=0?'+ ':'- '}${brl(Math.abs(lucroShow))}`,
     stats:real?[
       {icon:ICO.down,label:'Recebido',val:brl(recebido),go:'receber',tone:'green'},
