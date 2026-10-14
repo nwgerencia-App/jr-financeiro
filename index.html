@@ -690,6 +690,22 @@ table.gestao td.num-zero{color:var(--muted);}
 .formscreen header.top .htitle{flex:1; min-width:0;}
 .formscreen header.top .htitle>div:last-child{min-width:0;}
 .formscreen header.top h1{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+/* ===== Previsão de gasto do Diário ===== */
+.prevcard{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-bottom:14px;}
+.pv-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+.pv-top b{display:block; font-size:14px;}
+.pv-top small{display:block; font-size:11px; color:var(--muted); margin-top:3px; line-height:1.35;}
+.pv-val{font-size:18px; font-weight:800; color:#b9812e; white-space:nowrap;}
+:root[data-theme="dark"] .pv-val{color:#e8c887;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pv-val{color:#e8c887;}}
+.pv-bar{height:9px; border-radius:9px; background:#fff0d6; margin:12px 0 8px; overflow:hidden;}
+:root[data-theme="dark"] .pv-bar{background:#3a2f18;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pv-bar{background:#3a2f18;}}
+.pv-bar i{display:block; height:100%; border-radius:9px; background:#e8a53d;}
+.pv-foot{display:flex; justify-content:space-between; gap:10px; font-size:11.5px; color:var(--muted);}
+
+.tnota{font-size:11.5px; color:var(--muted); margin:10px 2px 0; line-height:1.45;}
 </style>
 </head>
 <body>
@@ -972,6 +988,7 @@ function renderDiario(c){
       {icon:ICO.chart,label:'Média/dia',val:brl(mediaDiaMes)}
     ]
   });
+  html+=previsaoDiarioHtml(anoDia,mesDia-1);
   html+=diarioChartHtml(chartItems,chartTotalLabel);
   html+=`<div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;">
     <span>Lançamentos do dia</span>
@@ -1286,6 +1303,28 @@ function diarioTotalForMonth(monthIdx,year=curYear){
     return (+parts[1]-1)===monthIdx && parts[0]===String(year);
   }).reduce((s,e)=>s+e.valor,0);
 }
+// Previsão de gasto do Diário no mês: no mês atual, a média por dia até hoje vezes os dias do mês.
+// Mês já fechado = o que foi gasto; mês que ainda não chegou = o que já estiver lançado.
+function diarioPrevisaoMes(ano,mesIdx){
+  const total=diarioTotalForMonth(mesIdx,ano);
+  const diasNoMes=new Date(ano,mesIdx+1,0).getDate();
+  const hoje=new Date();
+  const ym=ano*12+mesIdx, ymAtual=hoje.getFullYear()*12+hoje.getMonth();
+  if(ym!==ymAtual) return {total,previsao:total,diasNoMes,decorridos:ym<ymAtual?diasNoMes:0,faltam:0,atual:false};
+  const dia=hoje.getDate();
+  return {total,previsao:total/dia*diasNoMes,diasNoMes,decorridos:dia,faltam:diasNoMes-dia,atual:true,mediaDia:total/dia};
+}
+// cartão "Previsão do mês" da tela Diário (só no mês atual)
+function previsaoDiarioHtml(ano,mesIdx){
+  const p=diarioPrevisaoMes(ano,mesIdx);
+  if(!p.atual) return '';
+  const pct=p.previsao>0?Math.min(100,Math.round(p.total/p.previsao*100)):0;
+  return `<div class="prevcard">
+    <div class="pv-top"><div><b>Previsão de gasto no mês</b><small>média de ${brl(p.mediaDia)} por dia × ${p.diasNoMes} dias</small></div><span class="pv-val">${brl(p.previsao)}</span></div>
+    <div class="pv-bar"><i style="width:${pct}%"></i></div>
+    <div class="pv-foot"><span>Já gastou ${brl(p.total)} (${pct}%)</span><span>${p.faltam===0?'Último dia do mês':'Faltam '+p.faltam+(p.faltam===1?' dia':' dias')}</span></div>
+  </div>`;
+}
 function renderResultado(c){
   const totals=effTotals();
   const cur=totals[curMonth];
@@ -1356,7 +1395,7 @@ function renderInicio(c){
     go:'gestao',
     icon:ICO.cal,
     blobIcon:ICO.trend,
-    label:'Resultado do mês',
+    label:'Resultado do mês previsto',
     value:`${lucro>=0?'+ ':'- '}${brl(Math.abs(lucro))}`,
     stats:[
       {icon:ICO.down,label:'A receber',val:brl(cur.fat),go:'receber',tone:'green'},
@@ -1367,7 +1406,7 @@ function renderInicio(c){
 
   c.innerHTML=heroInicio+inicioVencHtml()+`
   <div class="chart">
-    <div class="lbl">Movimentação Financeira</div>
+    <div class="lbl">Movimentação Financeira Realizado</div>
     <div class="sub" style="margin-bottom:16px;">${MONTHS[curMonth].f}/${curYear}</div>
     <div style="margin-bottom:16px;">
       <div style="${groupLbl}">TOTAL A RECEBER</div>
@@ -1470,11 +1509,13 @@ function renderGestao(c){
   const n=S.reservaNomes||{};
   const ordem=reservaOrdem();
   let fatAno=0,despAno=0,diarioAno=0;
-  const rows=totals.map((t,i)=>{
+  // valores REALIZADOS: recebido, pago e gastos do Diário (as reservas são calculadas sobre este lucro)
+  const rows=MONTHS.map((mm,i)=>{
+    const fat=sumStatus(S.receber,i,['Recebido']), desp=sumStatus(S.pagar,i,['Pago']);
     const diario=diarioTotalForMonth(i);
-    fatAno+=t.fat; despAno+=t.desp; diarioAno+=diario;
-    const lucro=t.fat-t.desp-diario;
-    return {m:MONTHS[i].a,fat:t.fat,desp:t.desp,diario,lucro};
+    fatAno+=fat; despAno+=desp; diarioAno+=diario;
+    const lucro=fat-desp-diario;
+    return {m:mm.a,fat,desp,diario,lucro};
   });
   // só conta até o mês atual (meses futuros não entram nos cards)
   const hojeG=new Date(), anoRealG=hojeG.getFullYear(), mesRealG=hojeG.getMonth();
@@ -1496,16 +1537,19 @@ function renderGestao(c){
     ${ordem.length<RSV_MAX?'<button onclick="openNovaReserva()" style="background:none;border:none;color:var(--navy);font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;">➕ Nova reserva</button>':'<span></span>'}
     <button onclick="openReservaModal()" style="background:none;border:none;color:var(--navy);font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;">Ajustar porcentagem</button>
   </div>
-  <div class="tablewrap"><table class="gestao"><thead><tr><th>Mês</th><th>Faturamento</th><th>Despesa</th><th>Gastos diários</th><th>Lucro</th>${ordem.map(k=>`<th>${esc(reservaNome(k))} ${+r[k]||0}%</th>`).join('')}</tr></thead><tbody>${trs}</tbody></table></div>`;
+  <div class="tablewrap"><table class="gestao"><thead><tr><th>Mês</th><th>Faturamento</th><th>Despesa</th><th>Gastos diários</th><th>Lucro</th>${ordem.map(k=>`<th>${esc(reservaNome(k))} ${+r[k]||0}%</th>`).join('')}</tr></thead><tbody>${trs}</tbody></table></div>
+  <div class="tnota">Valores realizados: só entram as contas já recebidas e pagas e os gastos do Diário. As reservas são calculadas sobre este lucro.</div>`;
 }
 function changeGestaoYear(delta){
   curYear+=delta;
   render();
 }
+// Lucro REALIZADO do mês (base das reservas): só entra o que já foi recebido e pago, mais os gastos do Diário.
+// O mês considerado é o do lançamento (não existe a data em que foi marcado como pago/recebido).
 function lucroMes(i,year){
-  const fat=sumFor(S.receber,i,year), desp=sumFor(S.pagar,i,year);
+  const recebido=sumStatus(S.receber,i,['Recebido'],year), pago=sumStatus(S.pagar,i,['Pago'],year);
   const diario=diarioTotalForMonth(i,year);
-  return fat-desp-diario;
+  return recebido-pago-diario;
 }
 let extratoReserva=null, extratoYear=null, extratoMeses=[], extratoMesesTmp=[];
 function openExtratoReserva(key){
@@ -1531,8 +1575,8 @@ function renderExtratoReserva(){
     if(!reservaExistiaEm(key,ym)||pctM<=0) return;   // reserva ainda não existia (ou estava com 0%) neste mês
     const txtPct=pctM.toLocaleString('pt-BR',{maximumFractionDigits:2});
     // mês com lucro distribui (com a porcentagem que valia naquele mês); mês com prejuízo aparece com 0,00
-    if(lucro>0) itens.push({mes:i,tipo:'entrada',titulo:'Mês de '+MONTHS[i].f,desc:`Distribuição automática (${txtPct}% do lucro)`,valor:lucro*pctM/100});
-    else if(lucro<0) itens.push({mes:i,tipo:'zero',titulo:'Mês de '+MONTHS[i].f,desc:`Distribuição automática (${txtPct}% do lucro)`,valor:0});
+    if(lucro>0) itens.push({mes:i,tipo:'entrada',titulo:'Mês de '+MONTHS[i].f,desc:`Distribuição automática (${txtPct}% do lucro realizado)`,valor:lucro*pctM/100});
+    else if(lucro<0) itens.push({mes:i,tipo:'zero',titulo:'Mês de '+MONTHS[i].f,desc:`Distribuição automática (${txtPct}% do lucro realizado)`,valor:0});
   });
   (S.reservaEntradas||[]).forEach(en=>{
     if(en.reserva!==key) return;
