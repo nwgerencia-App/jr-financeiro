@@ -706,6 +706,41 @@ table.gestao td.num-zero{color:var(--muted);}
 .pv-foot{display:flex; justify-content:space-between; gap:10px; font-size:11.5px; color:var(--muted);}
 
 .tnota{font-size:11.5px; color:var(--muted); margin:10px 2px 0; line-height:1.45;}
+
+/* ===== Visual novo: cabeçalho e menu de navegação (referência) ===== */
+header.top.hmain{background:linear-gradient(135deg,#072a6b 0%,#0a3d8f 58%,#0f4fb0 100%); border-radius:0 0 32px 32px; padding:20px 18px 20px; padding-top:calc(20px + env(safe-area-inset-top,0px)); gap:16px; box-shadow:0 14px 30px rgba(7,42,107,.28);}
+header.hmain::before{display:block; content:''; position:absolute; right:-80px; top:-110px; width:320px; height:320px; border-radius:50%; background:rgba(70,140,245,.28); pointer-events:none;}
+header.hmain .htitle{gap:14px; min-width:0;}
+header.hmain .hic{width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#3d9bff,#1f78f5)!important; color:#fff; box-shadow:0 8px 18px rgba(20,90,220,.45);}
+header.hmain .hic .i{width:28px; height:28px; stroke-width:2.1;}
+header.hmain h1{font-family:'Inter',system-ui,sans-serif; font-weight:800; font-size:23px; letter-spacing:-.3px; line-height:1.15;}
+header.hmain .month{font-size:15px; color:#a9c8f5; margin-top:3px; font-weight:500;}
+header.hmain .gearbtn{width:48px; height:48px; border-radius:17px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);}
+header.hmain .gearbtn .i{width:24px; height:24px;}
+header.hmain .hbar{border-radius:999px; padding:6px; gap:6px; background:rgba(255,255,255,.09); border:1.5px solid rgba(110,160,255,.4);}
+header.hmain .hnav{width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,.12); font-size:22px; line-height:1; padding:0 0 3px;}
+header.hmain .hbar .hlabel{display:flex; align-items:center; justify-content:center; gap:10px; font-size:16px; font-weight:700; letter-spacing:-.2px; color:#fff;}
+header.hmain #monthSel::before{content:''; width:22px; height:22px; flex-shrink:0; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15' rx='3'/%3E%3Cpath d='M8 3v4M16 3v4M3.5 10h17'/%3E%3C/svg%3E") center/contain no-repeat;}
+
+nav.bottom{left:12px; right:12px; padding:8px 8px 7px; gap:2px; border-radius:34px; border:1px solid rgba(220,228,244,.9); box-shadow:0 16px 36px rgba(30,60,120,.18), 0 2px 8px rgba(30,60,120,.06);}
+nav.bottom button{gap:4px; font-size:11.5px; font-weight:600; color:#4a5f8a; padding:2px 0 2px;}
+nav.bottom button::after{content:''; width:34px; height:4px; border-radius:4px; background:transparent; transition:background .2s;}
+nav.bottom .ic{width:64px; height:44px; border-radius:22px;}
+nav.bottom .ic svg{width:25px; height:25px; stroke-width:2;}
+nav.bottom button.active{color:#0a47b8; font-weight:800;}
+nav.bottom button.active .ic{background:linear-gradient(135deg,#0a47b8,#1380ee); color:#fff; box-shadow:0 8px 18px rgba(10,71,184,.38);}
+nav.bottom button.active::after{background:linear-gradient(90deg,#0a47b8,#1380ee);}
+:root[data-theme="dark"] nav.bottom button{color:#9aa7c4;}
+:root[data-theme="dark"] nav.bottom button.active::after{background:#8fb3ff;}
+:root[data-theme="dark"] nav.bottom button.active .ic{background:#8fb3ff;}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) nav.bottom button{color:#9aa7c4;}
+  :root:not([data-theme="light"]) nav.bottom button.active::after{background:#8fb3ff;}
+  :root:not([data-theme="light"]) nav.bottom button.active .ic{background:#8fb3ff;}
+}
+.fab{bottom:calc(112px + env(safe-area-inset-bottom,0px));}
+.toast{bottom:calc(124px + env(safe-area-inset-bottom,0px));}
+main{padding-bottom:170px;}
 </style>
 </head>
 <body>
