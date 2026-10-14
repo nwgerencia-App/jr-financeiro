@@ -988,7 +988,6 @@ function renderDiario(c){
       {icon:ICO.chart,label:'Média/dia',val:brl(mediaDiaMes)}
     ]
   });
-  html+=previsaoDiarioHtml(anoDia,mesDia-1);
   html+=diarioChartHtml(chartItems,chartTotalLabel);
   html+=`<div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;">
     <span>Lançamentos do dia</span>
@@ -1514,7 +1513,7 @@ function renderGestao(c){
     const fat=sumStatus(S.receber,i,['Recebido']), desp=sumStatus(S.pagar,i,['Pago']);
     const diario=diarioTotalForMonth(i);
     fatAno+=fat; despAno+=desp; diarioAno+=diario;
-    const lucro=fat-desp-diario;
+    const lucro=mesFechado(i,curYear)?fat-desp-diario:0;
     return {m:mm.a,fat,desp,diario,lucro};
   });
   // só conta até o mês atual (meses futuros não entram nos cards)
@@ -1538,7 +1537,7 @@ function renderGestao(c){
     <button onclick="openReservaModal()" style="background:none;border:none;color:var(--navy);font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;">Ajustar porcentagem</button>
   </div>
   <div class="tablewrap"><table class="gestao"><thead><tr><th>Mês</th><th>Faturamento</th><th>Despesa</th><th>Gastos diários</th><th>Lucro</th>${ordem.map(k=>`<th>${esc(reservaNome(k))} ${+r[k]||0}%</th>`).join('')}</tr></thead><tbody>${trs}</tbody></table></div>
-  <div class="tnota">Valores realizados: só entram as contas já recebidas e pagas e os gastos do Diário. As reservas são calculadas sobre este lucro.</div>`;
+  <div class="tnota">Valores realizados: só entram as contas já recebidas e pagas e os gastos do Diário. O lucro e as reservas do mês atual ficam zerados e são calculados quando o mês termina.</div>`;
 }
 function changeGestaoYear(delta){
   curYear+=delta;
@@ -1546,7 +1545,13 @@ function changeGestaoYear(delta){
 }
 // Lucro REALIZADO do mês (base das reservas): só entra o que já foi recebido e pago, mais os gastos do Diário.
 // O mês considerado é o do lançamento (não existe a data em que foi marcado como pago/recebido).
+function mesFechado(i,year){
+  const h=new Date();
+  return year*12+i < h.getFullYear()*12+h.getMonth();
+}
+// Lucro REALIZADO do mês (base das reservas): só conta depois que o mês terminou.
 function lucroMes(i,year){
+  if(!mesFechado(i,year)) return 0;
   const recebido=sumStatus(S.receber,i,['Recebido'],year), pago=sumStatus(S.pagar,i,['Pago'],year);
   const diario=diarioTotalForMonth(i,year);
   return recebido-pago-diario;
