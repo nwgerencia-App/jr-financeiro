@@ -1071,6 +1071,12 @@ function toggleExtratoCat(enc){
   openExtratoMes();
   const m2=document.querySelector('#modalRoot main'); if(m2) m2.scrollTop=y;
 }
+let voltarExtrato=false;
+function editarDoExtrato(id){ voltarExtrato=true; openDiarioForm(id); }
+function fecharDiarioForm(){
+  closeModal();
+  if(voltarExtrato){ voltarExtrato=false; openExtratoMes(); }
+}
 function openExtratoMes(){
   const items=[...diarioItemsForMonth(diaSel)].sort((a,b)=>{
     if(a.data!==b.data) return b.data.localeCompare(a.data);
@@ -1078,7 +1084,7 @@ function openExtratoMes(){
   });
   const total=items.reduce((s,e)=>s+e.valor,0);
   const rows=items.map(e=>`
-    <div class="row">
+    <div class="row" onclick="editarDoExtrato('${e.id}')">
       <div class="left">
         <div class="ric">${iconFor(e.categoria)}</div>
         <div class="info">
@@ -1103,7 +1109,7 @@ function openExtratoMes(){
     conteudo=cats.map(([nome,d])=>{
       const pct=total?d.valor/total*100:0;
       const aberta=extratoCatsAbertas.includes(nome);
-      const lista=aberta?`<div class="catx-list">${d.itens.map(e=>`<div class="catx-item"><div class="ci-l"><div class="ci-n">${escHtml(e.nome)}</div><div class="ci-d">${fmtVenc(e.data)}${e.hora?' · '+e.hora:''}</div></div><div class="ci-v">${brl(e.valor)}</div></div>`).join('')}</div>`:'';
+      const lista=aberta?`<div class="catx-list">${d.itens.map(e=>`<div class="catx-item" style="cursor:pointer;" onclick="event.stopPropagation();editarDoExtrato('${e.id}')"><div class="ci-l"><div class="ci-n">${escHtml(e.nome)}</div><div class="ci-d">${fmtVenc(e.data)}${e.hora?' · '+e.hora:''}</div></div><div class="ci-v">${brl(e.valor)}</div></div>`).join('')}</div>`:'';
       return `<div class="catx" onclick="toggleExtratoCat('${encodeURIComponent(nome).replace(/'/g,'%27')}')">
         <div class="catx-top">
           <div class="ric">${iconFor(nome)}</div>
@@ -1183,7 +1189,7 @@ function openDiarioForm(editId){
   <div class="formscreen">
     <header class="top">
       <div class="htitle">
-        <button class="backbtn" onclick="closeModal()">←</button>
+        <button class="backbtn" onclick="fecharDiarioForm()">←</button>
         <div class="hic" style="background:#2d6cdf">🗓️</div>
         <div><h1>Lançamento Diário</h1><div class="month">${ed?'Editar lançamento':'Novo lançamento'}</div></div>
       </div>
@@ -1200,7 +1206,7 @@ function openDiarioForm(editId){
       </div></div>
     </main>
     <div class="formbtns">
-      <button class="btn cancel" onclick="closeModal()">✕ Cancelar</button>
+      <button class="btn cancel" onclick="fecharDiarioForm()">✕ Cancelar</button>
       <button class="btn save" onclick="saveDiario('${ed?ed.id:''}')">💾 Salvar</button>
     </div>
   </div>`;
@@ -1219,6 +1225,7 @@ function saveDiario(editId){
   }
   save(); closeModal();
   diaSel=data; render();
+  if(voltarExtrato){ voltarExtrato=false; openExtratoMes(); }
 }
 function delDiario(id){
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
