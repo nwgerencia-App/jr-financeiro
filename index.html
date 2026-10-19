@@ -827,7 +827,7 @@ function seed(){
     reservaNomes:{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'},
     reservaOrdem:['imprevistos','projeto','pessoal','doacoes'], reservaVis:{},
     reservaHist:[{desde:0,reservas:{imprevistos:50,projeto:20,pessoal:20,doacoes:10}}],
-    customCats:[], catColors:{}, hiddenCats:[], diarios:[], capitalGiro:0, customFormas:[], notifPref:true, pin:null, perfil:{nome:'',email:''}, theme:'auto', ano:'2026', reservaSaidas:[], reservaEntradas:[]
+    customCats:[], catColors:{}, hiddenCats:[], catsPor:{pagar:{custom:[],hidden:[]},receber:{custom:[],hidden:[]},diario:{custom:[],hidden:[]}}, diarios:[], capitalGiro:0, customFormas:[], notifPref:true, pin:null, perfil:{nome:'',email:''}, theme:'auto', ano:'2026', reservaSaidas:[], reservaEntradas:[]
   };
 }
 let S=load();
@@ -856,6 +856,7 @@ function load(){
     if(s.notifDias===undefined) s.notifDias=3;
     if(s.pin===undefined) s.pin=null;
     if(!s.perfil) s.perfil={nome:'',email:''};
+    if(!s.catsPor){ s.catsPor={}; ['pagar','receber','diario'].forEach(k=>{ s.catsPor[k]={custom:[...s.customCats],hidden:[...s.hiddenCats]}; }); }
     if(!s.reservaSaidas) s.reservaSaidas=[];
     if(!s.reservaEntradas) s.reservaEntradas=[];
     return s;
@@ -1200,9 +1201,9 @@ function openDiarioForm(editId){
       <div class="ffield"><div class="fic green">💲</div><div class="fbody"><label>Valor (R$) <span style="color:#c0392b">*</span></label><input id="dValor" type="number" step="0.01" value="${valorVal===''?'':valorVal}" placeholder="0,00"></div></div>
       <div class="ffield"><div class="fic purple">📅</div><div class="fbody"><label>Data <span style="color:#c0392b">*</span></label><input id="dData" type="date" value="${dataVal}"></div></div>
       <div class="ffield"><div class="fic orange">🏷️</div><div class="fbody"><label>Categoria <span style="color:#c0392b">*</span></label>
-        <select id="dCat">
+        <select id="dCat" onchange="catSelChange(this,'diario')">
           <option value="">Selecione a categoria</option>
-          ${visibleCats().map(c=>`<option value="${esc(c)}" ${c===catVal?'selected':''}>${esc(c)}</option>`).join('')}
+          ${catOpcoesHtml('diario',catVal)}
         </select>
       </div></div>
     </main>
@@ -2027,12 +2028,12 @@ function saveReservas(){
   closeModal(); render();
 }
 function closeModal(){document.getElementById('modalRoot').innerHTML=''; settingsSubScreen=null;}
-function subScreen(icon,title,sub,body){
+function subScreen(icon,title,sub,body,back){
   document.getElementById('modalRoot').innerHTML=`
   <div class="formscreen">
     <header class="top">
       <div class="htitle">
-        <button class="backbtn" onclick="openSettings()">←</button>
+        <button class="backbtn" onclick="${back||'openSettings()'}">←</button>
         <div class="hic" style="background:rgba(255,255,255,.14)">${icon}</div>
         <div><h1>${title}</h1><div class="month">${sub}</div></div>
       </div>
@@ -2053,7 +2054,7 @@ function openSettings(){
     </header>
     <main>
       <div class="sectionh">Preferências</div>
-      <button class="gest-btn" onclick="openCategoriasList()"><div class="gic">🏷️</div><div class="gtxt">Categorias</div><div class="chev">›</div></button>
+      <button class="gest-btn" onclick="openCategoriasHub()"><div class="gic">🏷️</div><div class="gtxt">Categorias</div><div class="chev">›</div></button>
       <button class="gest-btn" style="margin-top:8px" onclick="openFormasList()"><div class="gic">💳</div><div class="gtxt">Formas de pagamento</div><div class="chev">›</div></button>
       <button class="gest-btn" style="margin-top:8px" onclick="openFormasList()"><div class="gic">💵</div><div class="gtxt">Formas de recebimento</div><div class="chev">›</div></button>
       <div class="sectionh">Alertas</div>
@@ -2070,11 +2071,17 @@ function openSettings(){
     </main>
   </div>`;
 }
-function openCategoriasList(){
+function openCategoriasHub(){
+  settingsSubScreen=null;
+  const body=Object.entries(CAT_ESCOPOS).map(([k,n])=>`<button class="gest-btn" style="margin-bottom:8px;" onclick="openCategoriasList('${k}')"><div class="gic">🏷️</div><div class="gtxt">${n}</div><div class="chev">›</div></button>`).join('');
+  subScreen('🏷️','Categorias','Cada tela tem as suas categorias', body);
+}
+function openCategoriasList(scope){
+  if(scope) catScopeAtual=scope;
   settingsSubScreen='categorias';
   const all=visibleCats();
   const rows=all.map(n=>`<div class="cl-row" data-name="${esc(n)}" onclick="editCategoria(this)" style="cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;"><span class="dot2" style="background:${colorForCat(n)}"></span><span class="cl-name">${esc(n)}</span><span style="color:var(--muted)">›</span></div>`).join('');
-  subScreen('🏷️','Categorias','Toque para editar nome ou cor', rows+`<button class="gest-btn" style="margin-top:6px" onclick="openCatModal()"><div class="gic">➕</div><div class="gtxt" style="color:#2a5adf">Cadastrar nova categoria</div><div class="chev">›</div></button>`);
+  subScreen('🏷️','Categorias · '+CAT_ESCOPOS[catScopeAtual],'Toque para editar nome ou cor', rows+`<button class="gest-btn" style="margin-top:6px" onclick="openCatModal('',catScopeAtual)"><div class="gic">➕</div><div class="gtxt" style="color:#2a5adf">Cadastrar nova categoria</div><div class="chev">›</div></button>`,'openCategoriasHub()');
 }
 function openFormasList(){
   settingsSubScreen='formas';
@@ -2184,6 +2191,11 @@ function sanitizeBackup(d){
   out.customCats=arr(d.customCats).map(x=>txt(x,40).trim()).filter(Boolean);
   out.hiddenCats=arr(d.hiddenCats).map(x=>txt(x,40)).filter(Boolean);
   out.customFormas=arr(d.customFormas).map(x=>txt(x,40).trim()).filter(Boolean);
+  out.catsPor={};
+  ['pagar','receber','diario'].forEach(k=>{
+    const src=(d.catsPor&&d.catsPor[k]&&typeof d.catsPor[k]==='object')?d.catsPor[k]:{custom:d.customCats,hidden:d.hiddenCats};
+    out.catsPor[k]={custom:arr(src.custom).map(x=>txt(x,40).trim()).filter(Boolean),hidden:arr(src.hidden).map(x=>txt(x,40)).filter(Boolean)};
+  });
   out.catColors={};
   if(d.catColors&&typeof d.catColors==='object') Object.entries(d.catColors).slice(0,300).forEach(([k,v])=>{
     if(/^(#[0-9a-fA-F]{3,8}|hsl\(\d{1,3},\s?\d{1,3}%,\s?\d{1,3}%\))$/.test(String(v))) out.catColors[txt(k,40)]=String(v);
@@ -2236,7 +2248,14 @@ function openAboutScreen(){
 const CATS=['Mensalidade','Comissão','Alimentação','Internete','Energia Elétrica','Streaming','Delivery','Cartão de Crédito','Não essenciais','Outros'];
 const PAGS=['Dinheiro','Pix','Cartão de Crédito','Cartão de Débito','Boleto','Transferência'];
 const PALETTE=['#4c7ef3','#34a853','#f2a93b','#9b59b6','#e74c3c','#16a085','#e67e22','#2c3e50','#d35400','#27ae60','#8e44ad','#2980b9','#c0392b','#1abc9c','#f39c12','#7f8c8d','#e91e63','#00bcd4','#8bc34a','#ff5722','#3f51b5','#009688','#795548','#607d8b','#cddc39','#ff9800','#673ab7','#f06292'];
-function visibleCats(){return CATS.filter(c=>!(S.hiddenCats||[]).includes(c)).concat(S.customCats||[]);}
+const CAT_ESCOPOS={diario:'Despesas diárias',pagar:'A pagar',receber:'A receber'};
+let catScopeAtual='pagar';
+function catsDe(scope){ S.catsPor=S.catsPor||{}; const c=S.catsPor[scope]=S.catsPor[scope]||{custom:[],hidden:[]}; c.custom=c.custom||[]; c.hidden=c.hidden||[]; return c; }
+function visibleCats(scope){ const c=catsDe(scope||catScopeAtual); return CATS.filter(x=>!c.hidden.includes(x)).concat(c.custom); }
+function dadosDoEscopo(){ return catScopeAtual==='receber'?S.receber:(catScopeAtual==='pagar'?S.pagar:S.diarios); }
+function catEmOutroEscopo(nome){ return Object.keys(CAT_ESCOPOS).some(k=>k!==catScopeAtual&&visibleCats(k).includes(nome)); }
+function catOpcoesHtml(scope,sel){ return visibleCats(scope).map(c=>`<option value="${esc(c)}" ${c===sel?'selected':''}>${esc(c)}</option>`).join('')+'<option value="__new__">➕ Nova categoria…</option>'; }
+function catSelChange(el,scope){ if(el.value==='__new__') openCatModal(el.id,scope); }
 function colorForCat(name){
   S.catColors=S.catColors||{};
   if(S.catColors[name]) return S.catColors[name];
@@ -2277,9 +2296,9 @@ function openNovoModal(editId){
       <div class="ffield"><div class="fic purple">📅</div><div class="fbody"><label>Data <span style="color:#c0392b">*</span></label><input id="fVenc" type="date" value="${venc0}"></div></div>
       <div class="ffield"><div class="fic teal">💳</div><div class="fbody"><label>${isReceber?'Forma de recebimento':'Forma de pagamento'} <span style="color:#c0392b">*</span></label><select id="fPag"><option value="">Selecione a forma de ${isReceber?'recebimento':'pagamento'}</option>${PAGS.concat(S.customFormas||[]).map(p=>`<option value="${esc(p)}" ${p===pagVal?'selected':''}>${esc(p)}</option>`).join('')}</select></div></div>
       <div class="ffield"><div class="fic orange">🏷️</div><div class="fbody"><label>Categoria <span style="color:#c0392b">*</span></label>
-        <select id="fTipo">
+        <select id="fTipo" onchange="catSelChange(this,'${isReceber?'receber':'pagar'}')">
           <option value="">Selecione a categoria</option>
-          ${visibleCats().map(c=>`<option value="${esc(c)}" ${c===tipoVal?'selected':''}>${esc(c)}</option>`).join('')}
+          ${catOpcoesHtml(isReceber?'receber':'pagar',tipoVal)}
         </select>
       </div></div>
       ${ed?'':`<div class="ffield"><div class="fic blue">🔁</div><div class="fbody"><label>Parcelar em quantas vezes</label>
@@ -2298,7 +2317,8 @@ function openNovoModal(editId){
     </div>
   </div>`;
 }
-function openCatModal(targetSelectId){
+function openCatModal(targetSelectId,scope){
+  if(scope) catScopeAtual=scope;
   S.catColors=S.catColors||{};
   const used=new Set(Object.values(S.catColors));
   const avail=PALETTE.filter(c=>!used.has(c));
@@ -2338,13 +2358,11 @@ function delCategoria(){
 }
 function confirmDelCategoria(){
   const name=editingCatName; if(name==null) return;
-  S.customCats=(S.customCats||[]).filter(c=>c!==name);
-  S.hiddenCats=S.hiddenCats||[];
-  if(CATS.includes(name) && !S.hiddenCats.includes(name)) S.hiddenCats.push(name);
-  if(S.catColors) delete S.catColors[name];
-  (S.receber||[]).forEach(e=>{if(e.tipo===name)e.tipo='Outros';});
-  (S.pagar||[]).forEach(e=>{if(e.tipo===name)e.tipo='Outros';});
-  (S.diarios||[]).forEach(e=>{if(e.categoria===name)e.categoria='Outros';});
+  const cs=catsDe(catScopeAtual);
+  cs.custom=cs.custom.filter(c=>c!==name);
+  if(CATS.includes(name) && !cs.hidden.includes(name)) cs.hidden.push(name);
+  if(S.catColors && !catEmOutroEscopo(name)) delete S.catColors[name];
+  dadosDoEscopo().forEach(e=>{ if(e.tipo===name) e.tipo='Outros'; if(e.categoria===name) e.categoria='Outros'; });
   save();
   document.getElementById('catModalRoot').innerHTML='';
   editingCatName=null;
@@ -2361,11 +2379,13 @@ function confirmEditCategoria(){
   const usedByOthers=Object.entries(S.catColors).some(([n,c])=>c===color && n!==oldName);
   if(usedByOthers){alert('Essa cor já está em uso por outra categoria. Escolha outra.'); return;}
   if(newName!==oldName){
-    delete S.catColors[oldName];
-    S.customCats=(S.customCats||[]).filter(c=>c!==oldName);
-    if(!S.customCats.includes(newName) && !CATS.includes(newName)) S.customCats.push(newName);
-    S.receber.forEach(e=>{if(e.tipo===oldName)e.tipo=newName;});
-    S.pagar.forEach(e=>{if(e.tipo===oldName)e.tipo=newName;});
+    const cs=catsDe(catScopeAtual);
+    if(!catEmOutroEscopo(oldName)) delete S.catColors[oldName];
+    cs.custom=cs.custom.filter(c=>c!==oldName);
+    if(CATS.includes(oldName) && !cs.hidden.includes(oldName)) cs.hidden.push(oldName);
+    if(CATS.includes(newName)) cs.hidden=cs.hidden.filter(x=>x!==newName);
+    else if(!cs.custom.includes(newName)) cs.custom.push(newName);
+    dadosDoEscopo().forEach(e=>{ if(e.tipo===oldName) e.tipo=newName; if(e.categoria===oldName) e.categoria=newName; });
   }
   S.catColors[newName]=color;
   save();
@@ -2390,8 +2410,9 @@ function confirmCatModal(targetSelectId){
   const color=selEl.dataset.color;
   S.catColors=S.catColors||{};
   if(Object.values(S.catColors).includes(color)){alert('Essa cor já está em uso por outra categoria. Escolha outra.'); return;}
-  S.customCats=S.customCats||[];
-  if(!S.customCats.includes(nome) && !CATS.includes(nome)) S.customCats.push(nome);
+  const cs=catsDe(catScopeAtual);
+  if(!cs.custom.includes(nome) && !CATS.includes(nome)) cs.custom.push(nome);
+  cs.hidden=cs.hidden.filter(x=>x!==nome);
   S.catColors[nome]=color;
   save();
   document.getElementById('catModalRoot').innerHTML='';
