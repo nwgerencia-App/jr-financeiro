@@ -1169,7 +1169,7 @@ function openExtratoMes(){
     conteudo=`<div class="list">${rows}</div>`;
   }
   const body=`<div class="card ${tom}-grad" style="margin-bottom:16px;"><div class="cic ${tom}">📆</div><div class="lbl">Total do mês</div><div class="val ${tom}">${brl(total)}</div></div>
-    ${seg}${conteudo}`;
+    ${seg}${conteudo}<button class="btn primary" style="width:100%;margin-top:16px;padding:14px;" onclick="openCompartilharExtrato(extratoTipo)">🖨️ Imprimir ou compartilhar</button>`;
   const mesLbl=extratoTipo==='diario'
     ?MONTHS[+diaSel.split('-')[1]-1].f+'/'+diaSel.split('-')[0]
     :(extratoTipo==='receber'?'A Receber · ':'A Pagar · ')+MONTHS[curMonth].f+'/'+curYear;
@@ -1187,7 +1187,7 @@ function openExtratoMes(){
   </div>`;
 }
 // ===== Extrato geral do mês (tela Início): só realizado, somente leitura =====
-let inExtModo='geral', inExtFiltro='tudo', inExtAbertas=[];
+let inExtModo='geral', inExtFiltro='tudo', inExtAbertas=['receber','pagar','diario'];
 const IN_COR={receber:'#217a4b',pagar:'#b3392a',diario:'#b9812e'};
 const IN_NOME={receber:'Recebido',pagar:'Pago',diario:'Diário'};
 function inExtItens(){
@@ -1197,8 +1197,8 @@ function inExtItens(){
   diarioItemsForMonth(curYear+'-'+String(curMonth+1).padStart(2,'0')+'-01').forEach(e=>out.push({o:'diario',nome:e.nome,cat:e.categoria,data:e.data,hora:e.hora||'',valor:e.valor}));
   return out.sort((a,b)=>a.data!==b.data?b.data.localeCompare(a.data):(b.hora||'').localeCompare(a.hora||''));
 }
-function openExtratoInicio(){ inExtModo='geral'; inExtFiltro='tudo'; inExtAbertas=[]; renderExtratoInicio(); }
-function inExtMes(d){ curMonth+=d; if(curMonth<0){curMonth=11;curYear--;} if(curMonth>11){curMonth=0;curYear++;} inExtAbertas=[]; renderExtratoInicio(); }
+function openExtratoInicio(){ inExtModo='geral'; inExtFiltro='tudo'; inExtAbertas=['receber','pagar','diario']; renderExtratoInicio(); }
+function inExtMes(d){ curMonth+=d; if(curMonth<0){curMonth=11;curYear--;} if(curMonth>11){curMonth=0;curYear++;} inExtAbertas=['receber','pagar','diario']; renderExtratoInicio(); }
 function setInExtModo(m){ inExtModo=m; renderExtratoInicio(); }
 function setInExtFiltro(f){ inExtFiltro=f; renderExtratoInicio(); }
 function toggleInExt(o){
@@ -1270,22 +1270,54 @@ function renderExtratoInicio(){
         <div><h1>Extrato do mês</h1><div class="month">Realizado · ${MONTHS[curMonth].f}/${curYear}</div></div>
       </div>
     </header>
-    <main style="padding-bottom:140px;">${nav}${segM}${conteudo}${resumo}<button class="btn primary" style="width:100%;margin-top:16px;padding:14px;" onclick="openCompartilharExtrato()">🖨️ Imprimir ou compartilhar</button></main>
+    <main style="padding-bottom:140px;">${nav}${segM}${conteudo}${resumo}<button class="btn primary" style="width:100%;margin-top:16px;padding:14px;" onclick="openCompartilharExtrato('inicio')">🖨️ Imprimir ou compartilhar</button></main>
     <button class="fab" onclick="closeModal(); render();" style="bottom:calc(24px + env(safe-area-inset-bottom,0px));"><span class="plus">←</span><span>Voltar</span></button>
   </div>`;
 }
 
 
-function openCompartilharExtrato(){
+function openCompartilharExtrato(tipo){
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
     <h2>Imprimir ou compartilhar</h2>
-    <button class="escopo-btn" onclick="closeCatModal();compartilharExtratoPdf()"><b>💬 Compartilhar PDF</b><small>Envia o extrato em PDF pelo WhatsApp ou outro app</small></button>
-    <button class="escopo-btn" onclick="closeCatModal();imprimirExtratoInicio()"><b>🖨️ Imprimir</b><small>Abre a impressão em formato A4</small></button>
+    <button class="escopo-btn" onclick="closeCatModal();compartilharExtratoPdf('${tipo}')"><b>💬 Compartilhar PDF</b><small>Envia o extrato em PDF pelo WhatsApp ou outro app</small></button>
+    <button class="escopo-btn" onclick="closeCatModal();imprimirExtrato('${tipo}')"><b>🖨️ Imprimir</b><small>Abre a impressão em formato A4</small></button>
     <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button></div>
   </div></div>`;
 }
+// Monta o conteúdo do extrato (Início, Diário, A Receber ou A Pagar) para PDF e impressão
+function extratoDoc(tipo){
+  const mes=MONTHS[curMonth].f+'/'+curYear;
+  if(tipo==='inicio'){
+    const todos=inExtItens(), tot={receber:0,pagar:0,diario:0};
+    todos.forEach(e=>{ tot[e.o]+=e.valor; });
+    return {titulo:'Financeiro — Extrato do mês',sub:mes+' · Realizado',sinal:true,
+      itens:todos.map(e=>({o:e.o,nome:e.nome,cat:e.cat,data:e.data,extra:IN_NOME[e.o],valor:e.valor})),
+      extraTit:'Tipo',agrupar:inExtModo==='tela'?'tela':null,
+      resumoTit:'Resultado realizado do mês',linhas:[['Recebido',tot.receber,'receber'],['- Pago',tot.pagar,'pagar'],['- Diários',tot.diario,'diario']],
+      totLabel:'= Saldo',totVal:tot.receber-tot.pagar-tot.diario,totSinal:true,nomeArq:'Extrato-'+MONTHS[curMonth].a+'-'+curYear};
+  }
+  const t=extratoTipo, its=extratoItensMes().sort((a,b)=>a.data!==b.data?b.data.localeCompare(a.data):(b.hora||'').localeCompare(a.hora||''));
+  const o=t==='receber'?'receber':'pagar';
+  const total=its.reduce((s,e)=>s+e.valor,0);
+  const pend=its.filter(e=>e.status==='Pendente').reduce((s,e)=>s+e.valor,0);
+  const lbl={receber:'A Receber',pagar:'A Pagar',diario:'Despesas diárias'}[t];
+  const per=t==='diario'?MONTHS[+diaSel.split('-')[1]-1].f+'/'+diaSel.split('-')[0]:mes;
+  const nomeMes=t==='diario'?MONTHS[+diaSel.split('-')[1]-1].a+'-'+diaSel.split('-')[0]:MONTHS[curMonth].a+'-'+curYear;
+  return {titulo:'Financeiro — Extrato do mês',sub:lbl+' · '+per,sinal:false,
+    itens:its.map(e=>({o,nome:e.nome,cat:e.categoria,data:e.data,extra:t==='diario'?'':e.status.replace('✔ ',''),valor:e.valor})),
+    extraTit:t==='diario'?null:'Status',agrupar:extratoModo==='categoria'?'cat':null,
+    resumoTit:'Resumo do mês',
+    linhas:t==='diario'?[]:[[t==='receber'?'Recebido':'Pago',total-pend,o],[t==='receber'?'A receber':'A pagar',pend,'diario']],
+    totLabel:'= Total do mês',totVal:total,totSinal:false,totCor:o,nomeArq:'Extrato-'+t+'-'+nomeMes};
+}
+function extratoGrupos(doc){
+  if(!doc.agrupar) return [{nome:'',lst:doc.itens}];
+  if(doc.agrupar==='tela') return ['receber','pagar','diario'].map(o=>({nome:IN_NOME[o],lst:doc.itens.filter(e=>e.o===o),o})).filter(g=>g.lst.length);
+  const m={}; doc.itens.forEach(e=>{ (m[e.cat||'Outros']=m[e.cat||'Outros']||[]).push(e); });
+  return Object.entries(m).map(([nome,lst])=>({nome,lst,o:lst[0].o})).sort((a,b)=>b.lst.reduce((s,e)=>s+e.valor,0)-a.lst.reduce((s,e)=>s+e.valor,0));
+}
 // Gera o extrato em PDF (A4) direto no aparelho, sem internet
-function gerarPdfExtrato(){
+function gerarPdfExtrato(doc){
   const W=595.28,H=841.89,M=40,CW=W-2*M,BOT=H-M-14;
   const HW=[].concat([278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278],Array(10).fill(556),[278,278,584,584,584,556,1015],[667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611],[278,278,278,469,556,333],[556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500],[334,260,334,584]);
   const norm=t=>String(t==null?'':t).replace(/\u00A0/g,' ').replace(/\u2212/g,'-').replace(/\u2014/g,'\x97').replace(/\u2013/g,'\x96').replace(/\u2022/g,'\x95').replace(/[^\x00-\xFF]/g,'').replace(/[\x00-\x1F]/g,' ');
@@ -1299,17 +1331,14 @@ function gerarPdfExtrato(){
   const R=(x,yy,w,h,c)=>cur.push(`${col(c)} rg ${f2(x)} ${f2(H-yy-h)} ${f2(w)} ${f2(h)} re f`);
   const L=(x1,yy,x2,c)=>cur.push(`${col(c)} RG 0.5 w ${f2(x1)} ${f2(H-yy)} m ${f2(x2)} ${f2(H-yy)} l S`);
   const nova=()=>{ cur=[]; pages.push(cur); y=M; };
-  const todos=inExtItens(), tot={receber:0,pagar:0,diario:0};
-  todos.forEach(e=>{ tot[e.o]+=e.valor; });
-  const resultado=tot.receber-tot.pagar-tot.diario;
-  const sg=o=>o==='receber'?'+ ':'- ';
-  const geral=inExtModo!=='tela';
-  const wD=62,wT=geral?54:0,wV=88,wC=105,wDesc=CW-wD-wT-wV-wC;
+  const sg=o=>doc.sinal?(o==='receber'?'+ ':'- '):'';
+  const hasExtra=!!doc.extraTit&&doc.agrupar!=='tela';
+  const wD=62,wT=hasExtra?(doc.extraTit==='Status'?62:54):0,wV=88,wC=105,wDesc=CW-wD-wT-wV-wC;
   const xD=M,xT=xD+wD,xDesc=xT+wT,xC=xDesc+wDesc, dir=M+CW-4;
   const cabTab=()=>{
     R(M,y,CW,18,C.head); const ty=y+12.5;
     T(xD+4,ty,'Data',8.5,true,C.navy);
-    if(geral) T(xT+4,ty,'Tipo',8.5,true,C.navy);
+    if(hasExtra) T(xT+4,ty,doc.extraTit,8.5,true,C.navy);
     T(xDesc+4,ty,'Descrição',8.5,true,C.navy);
     T(xC+4,ty,'Categoria',8.5,true,C.navy);
     T(dir-tw('Valor',8.5),ty,'Valor',8.5,true,C.navy);
@@ -1319,38 +1348,40 @@ function gerarPdfExtrato(){
     if(y+16>BOT){ nova(); cabTab(); }
     const ty=y+11, v=norm(sg(e.o)+brl(e.valor));
     T(xD+4,ty,fmtVenc(e.data),9,false,C.txt);
-    if(geral) T(xT+4,ty,IN_NOME[e.o],9,false,C[e.o]);
+    if(hasExtra) T(xT+4,ty,e.extra,9,false,doc.sinal?C[e.o]:C.gray);
     T(xDesc+4,ty,fit(e.nome,wDesc-8,9),9,false,C.txt);
     T(xC+4,ty,fit(e.cat,wC-8,9),9,false,C.gray);
     T(dir-tw(v,9),ty,v,9,false,C[e.o]);
     L(M,y+16,M+CW,C.line); y+=16;
   };
   nova();
-  T(M,y+16,'Financeiro — Extrato do mês',18,true,C.navy); y+=26;
+  T(M,y+16,doc.titulo,18,true,C.navy); y+=26;
   const nome=(S.perfil&&S.perfil.nome)?S.perfil.nome:'';
-  T(M,y+10,MONTHS[curMonth].f+'/'+curYear+' · Realizado'+(nome?' · '+nome:''),10,false,C.gray); y+=22;
-  if(!todos.length){ T(M,y+12,'Nenhum lançamento realizado neste mês.',10,false,C.txt); y+=24; }
-  else if(geral){ cabTab(); todos.forEach(linhaIt); y+=6; }
-  else ['receber','pagar','diario'].forEach(o=>{
-    const lst=todos.filter(e=>e.o===o); if(!lst.length) return;
-    if(y+8+20+18+16>BOT) nova();
-    y+=8;
-    T(M,y+12,IN_NOME[o]+' — '+lst.length+(lst.length===1?' lançamento':' lançamentos')+' · '+sg(o)+brl(tot[o]),11,true,C.navy); y+=20;
-    cabTab(); lst.forEach(linhaIt); y+=6;
+  T(M,y+10,doc.sub+(nome?' · '+nome:''),10,false,C.gray); y+=22;
+  if(!doc.itens.length){ T(M,y+12,'Nenhum lançamento neste mês.',10,false,C.txt); y+=24; }
+  else extratoGrupos(doc).forEach(g=>{
+    if(g.nome){
+      if(y+8+20+18+16>BOT) nova();
+      y+=8;
+      const v=g.lst.reduce((s,e)=>s+e.valor,0);
+      T(M,y+12,g.nome+' — '+g.lst.length+(g.lst.length===1?' lançamento':' lançamentos')+' · '+sg(g.lst[0].o)+brl(v),11,true,C.navy); y+=20;
+    }
+    cabTab(); g.lst.forEach(linhaIt); y+=6;
   });
-  const bh=96;
+  const nl=doc.linhas.length, sepOff=27+15*nl, bh=sepOff+24;
   if(y+bh+14>BOT) nova();
   y+=12;
   cur.push(`${col(C.navy)} RG 1 w ${f2(M)} ${f2(H-y-bh)} ${f2(CW)} ${f2(bh)} re S`);
-  T(M+12,y+18,'Resultado realizado do mês',11,true,C.navy);
-  [['Recebido',tot.receber,'receber'],['- Pago',tot.pagar,'pagar'],['- Diários',tot.diario,'diario']].forEach((r,i)=>{
+  T(M+12,y+18,doc.resumoTit,11,true,C.navy);
+  doc.linhas.forEach((r,i)=>{
     const by=y+36+i*15, v=norm(brl(r[1]));
     T(M+12,by,r[0],10,false,C.txt); T(M+CW-12-tw(v,10),by,v,10,true,C[r[2]]);
   });
-  L(M+12,y+72,M+CW-12,C.gray);
-  const sv=norm((resultado>=0?'+ ':'- ')+brl(Math.abs(resultado)));
-  T(M+12,y+88,'= Saldo',12,true,C.navy);
-  T(M+CW-12-tw(sv,12),y+88,sv,12,true,resultado>=0?C.receber:C.pagar);
+  L(M+12,y+sepOff,M+CW-12,C.gray);
+  const sv=norm((doc.totSinal?(doc.totVal>=0?'+ ':'- '):'')+brl(doc.totSinal?Math.abs(doc.totVal):doc.totVal));
+  const tc=doc.totSinal?(doc.totVal>=0?C.receber:C.pagar):C[doc.totCor||'pagar'];
+  T(M+12,y+sepOff+16,doc.totLabel,12,true,C.navy);
+  T(M+CW-12-tw(sv,12),y+sepOff+16,sv,12,true,tc);
   const n=pages.length, agora='Gerado em '+fmtVenc(todayStr())+' às '+new Date().toTimeString().slice(0,5);
   pages.forEach((p,i)=>{ cur=p; T(M,H-22,agora,8,false,C.gray); const t='Página '+(i+1)+' de '+n; T(M+CW-tw(norm(t),8),H-22,t,8,false,C.gray); });
   const objs=[];
@@ -1371,10 +1402,9 @@ function gerarPdfExtrato(){
   for(let i=0;i<out.length;i++) bytes[i]=out.charCodeAt(i)&255;
   return new Blob([bytes],{type:'application/pdf'});
 }
-async function compartilharExtratoPdf(){
-  let blob;
-  try{ blob=gerarPdfExtrato(); }catch(e){ showToast('Não foi possível gerar o PDF'); return; }
-  const nome='Extrato-'+MONTHS[curMonth].a+'-'+curYear+'.pdf';
+async function compartilharExtratoPdf(tipo){
+  let blob, nome;
+  try{ const doc=extratoDoc(tipo); blob=gerarPdfExtrato(doc); nome=doc.nomeArq+'.pdf'; }catch(e){ showToast('Não foi possível gerar o PDF'); return; }
   const baixar=()=>{
     const url=URL.createObjectURL(blob), a=document.createElement('a');
     a.href=url; a.download=nome; document.body.appendChild(a); a.click(); a.remove();
@@ -1387,36 +1417,31 @@ async function compartilharExtratoPdf(){
     else baixar();
   }catch(e){ if(!e||e.name!=='AbortError') baixar(); }
 }
-function imprimirExtratoInicio(){
-  const todos=inExtItens(), tot={receber:0,pagar:0,diario:0};
-  todos.forEach(e=>{ tot[e.o]+=e.valor; });
-  const resultado=tot.receber-tot.pagar-tot.diario;
-  const itens=todos;
-  const sg=o=>o==='receber'?'+ ':'- ';
-  const linha=(e,comOrigem)=>`<tr><td>${fmtVenc(e.data)}${e.hora?' '+e.hora:''}</td>${comOrigem?`<td>${IN_NOME[e.o]}</td>`:''}<td>${esc(e.nome)}</td><td>${esc(e.cat)}</td><td class="r" style="color:${IN_COR[e.o]}">${sg(e.o)}${brl(e.valor)}</td></tr>`;
-  const tabela=(lst,comOrigem)=>`<table><thead><tr><th>Data</th>${comOrigem?'<th>Tipo</th>':''}<th>Descrição</th><th>Categoria</th><th class="r">Valor</th></tr></thead><tbody>${lst.map(e=>linha(e,comOrigem)).join('')}</tbody></table>`;
+function imprimirExtrato(tipo){
+  const doc=extratoDoc(tipo), sg=o=>doc.sinal?(o==='receber'?'+ ':'- '):'';
+  const hasExtra=!!doc.extraTit&&doc.agrupar!=='tela';
+  const COR={receber:'#217a4b',pagar:'#b3392a',diario:'#b9812e'};
+  const linha=e=>`<tr><td>${fmtVenc(e.data)}</td>${hasExtra?`<td>${esc(e.extra)}</td>`:''}<td>${esc(e.nome)}</td><td>${esc(e.cat)}</td><td class="r" style="color:${COR[e.o]}">${sg(e.o)}${brl(e.valor)}</td></tr>`;
+  const tabela=lst=>`<table><thead><tr><th>Data</th>${hasExtra?`<th>${doc.extraTit}</th>`:''}<th>Descrição</th><th>Categoria</th><th class="r">Valor</th></tr></thead><tbody>${lst.map(linha).join('')}</tbody></table>`;
   let corpo;
-  if(!itens.length) corpo='<p>Nenhum lançamento realizado neste mês.</p>';
-  else if(inExtModo==='tela') corpo=['receber','pagar','diario'].filter(o=>itens.some(e=>e.o===o)).map(o=>{
-    const lst=itens.filter(e=>e.o===o), v=lst.reduce((a,e)=>a+e.valor,0);
-    return `<h3>${IN_NOME[o]} — ${lst.length} ${lst.length===1?'lançamento':'lançamentos'} · ${sg(o)}${brl(v)}</h3>`+tabela(lst,false);
+  if(!doc.itens.length) corpo='<p>Nenhum lançamento neste mês.</p>';
+  else corpo=extratoGrupos(doc).map(g=>{
+    const v=g.lst.reduce((a,e)=>a+e.valor,0);
+    return (g.nome?`<h3>${esc(g.nome)} — ${g.lst.length} ${g.lst.length===1?'lançamento':'lançamentos'} · ${sg(g.lst[0].o)}${brl(v)}</h3>`:'')+tabela(g.lst);
   }).join('');
-  else corpo=tabela(itens,true);
   const nome=(S.perfil&&S.perfil.nome)?S.perfil.nome:'';
-  const mes=MONTHS[curMonth].f+'/'+curYear;
-  const html=`<h1>Financeiro — Extrato do mês</h1>
-    <div class="pm"><b>${mes}</b> · Realizado${nome?' · '+esc(nome):''}</div>
+  const tcor=doc.totSinal?(doc.totVal>=0?COR.receber:COR.pagar):COR[doc.totCor||'pagar'];
+  const html=`<h1>${doc.titulo}</h1>
+    <div class="pm"><b>${esc(doc.sub)}</b>${nome?' · '+esc(nome):''}</div>
     ${corpo}
-    <div class="pres"><div><span>Recebido</span><b style="color:${IN_COR.receber}">${brl(tot.receber)}</b></div>
-      <div><span>− Pago</span><b style="color:${IN_COR.pagar}">${brl(tot.pagar)}</b></div>
-      <div><span>− Diários</span><b style="color:${IN_COR.diario}">${brl(tot.diario)}</b></div>
-      <div class="ps"><span>= Saldo</span><span style="color:${resultado>=0?IN_COR.receber:IN_COR.pagar}">${resultado>=0?'+ ':'- '}${brl(Math.abs(resultado))}</span></div></div>
+    <div class="pres"><div><b>${esc(doc.resumoTit)}</b></div>${doc.linhas.map(r=>`<div><span>${esc(r[0])}</span><b style="color:${COR[r[2]]}">${brl(r[1])}</b></div>`).join('')}
+      <div class="ps"><span>${esc(doc.totLabel)}</span><span style="color:${tcor}">${doc.totSinal?(doc.totVal>=0?'+ ':'- ')+brl(Math.abs(doc.totVal)):brl(doc.totVal)}</span></div></div>
     <div class="pf">Gerado em ${fmtVenc(todayStr())} às ${new Date().toTimeString().slice(0,5)}</div>`;
   let pa=document.getElementById('printArea');
   if(!pa){ pa=document.createElement('div'); pa.id='printArea'; document.body.appendChild(pa); }
   pa.innerHTML=html;
   const tituloAntes=document.title;
-  document.title='Extrato-'+MONTHS[curMonth].a+'-'+curYear;
+  document.title=doc.nomeArq;
   const depois=()=>{ document.title=tituloAntes; pa.innerHTML=''; window.removeEventListener('afterprint',depois); };
   window.addEventListener('afterprint',depois);
   setTimeout(()=>window.print(),80);
