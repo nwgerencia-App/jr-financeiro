@@ -746,6 +746,27 @@ main{padding-bottom:170px;}
 .hero2 .h2-pctl,.hero2 .h2-lblpct{font:inherit; font-weight:inherit; color:inherit; margin:0;}
 .hero2 .h2-panel.tones .h2-st-top{flex-direction:column; align-items:flex-start; flex-wrap:nowrap; gap:7px; margin-bottom:6px;}
 .hero2 .h2-panel.tones .h2-slbl{white-space:nowrap;}
+
+/* ===== Impressão do extrato (A4) ===== */
+#printArea{display:none;}
+@page{size:A4;margin:14mm;}
+@media print{
+  html,body{background:#fff!important;height:auto!important;overflow:visible!important;}
+  #app,#modalRoot,#catModalRoot,#splash,#installGate,.toast,#rowMenu{display:none!important;}
+  #printArea{display:block!important;color:#000;background:#fff;font-family:Inter,Arial,sans-serif;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  #printArea h1{font-size:20px;margin:0 0 2px;color:#26365a;}
+  #printArea .pm{font-size:12px;color:#444;margin-bottom:2px;}
+  #printArea h3{font-size:13px;margin:16px 0 6px;color:#26365a;}
+  #printArea table{width:100%;border-collapse:collapse;margin-top:8px;}
+  #printArea th{background:#e9edf5;text-align:left;padding:6px;font-size:10.5px;border-bottom:1px solid #999;}
+  #printArea td{padding:5px 6px;border-bottom:1px solid #ddd;vertical-align:top;}
+  #printArea th.r,#printArea td.r{text-align:right;white-space:nowrap;}
+  #printArea tr{page-break-inside:avoid;}
+  #printArea .pres{margin-top:18px;border:1.5px solid #26365a;border-radius:6px;padding:10px 14px;page-break-inside:avoid;}
+  #printArea .pres div{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;}
+  #printArea .pres .ps{border-top:1px solid #999;margin-top:6px;padding-top:8px;font-weight:700;font-size:14px;}
+  #printArea .pf{margin-top:14px;font-size:9.5px;color:#777;}
+}
 </style>
 </head>
 <body>
@@ -1168,7 +1189,7 @@ function openExtratoMes(){
 // ===== Extrato geral do mês (tela Início): só realizado, somente leitura =====
 let inExtModo='geral', inExtFiltro='tudo', inExtAbertas=[];
 const IN_COR={receber:'#217a4b',pagar:'#b3392a',diario:'#b9812e'};
-const IN_NOME={receber:'A Receber',pagar:'A Pagar',diario:'Diário'};
+const IN_NOME={receber:'Recebido',pagar:'Pago',diario:'Diário'};
 function inExtItens(){
   const out=[], ano=String(curYear);
   S.receber.forEach(e=>{ if(e.status==='Recebido'&&monthIndexFromRef(e.referencia)===curMonth&&yearFromRef(e.referencia)===ano) out.push({o:'receber',nome:e.cliente,cat:e.tipo,data:e.venc,hora:'',valor:e.valor}); });
@@ -1193,7 +1214,7 @@ function renderExtratoInicio(){
   const resultado=tot.receber-tot.pagar-tot.diario;
   const itens=inExtFiltro==='tudo'?todos:todos.filter(e=>e.o===inExtFiltro);
   const sinal=o=>o==='receber'?'+ ':'- ';
-  const filtros=[['tudo','Tudo'],['receber','A Receber'],['pagar','A Pagar'],['diario','Diário']];
+  const filtros=[['tudo','Tudo'],['receber','Recebido'],['pagar','Pago'],['diario','Diário']];
   const segF=`<div class="seg">${filtros.map(([k,l])=>`<button class="${inExtFiltro===k?'on':''}" onclick="setInExtFiltro('${k}')" style="font-size:12px;padding:10px 4px;">${l}</button>`).join('')}</div>`;
   const segM=`<div class="seg"><button class="${inExtModo==='geral'?'on':''}" onclick="setInExtModo('geral')">Geral</button><button class="${inExtModo==='tela'?'on':''}" onclick="setInExtModo('tela')">Por tela</button></div>`;
   const nav=`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:4px;margin-bottom:14px;">
@@ -1251,9 +1272,46 @@ function renderExtratoInicio(){
         <div><h1>Extrato do mês</h1><div class="month">Realizado · ${MONTHS[curMonth].f}/${curYear}</div></div>
       </div>
     </header>
-    <main style="padding-bottom:140px;">${nav}${segF}${segM}${conteudo}${resumo}</main>
+    <main style="padding-bottom:140px;">${nav}${segF}${segM}${conteudo}${resumo}<button class="btn primary" style="width:100%;margin-top:16px;padding:14px;" onclick="imprimirExtratoInicio()">🖨️ Imprimir extrato (PDF A4)</button></main>
     <button class="fab" onclick="closeModal(); render();" style="bottom:calc(24px + env(safe-area-inset-bottom,0px));"><span class="plus">←</span><span>Voltar</span></button>
   </div>`;
+}
+
+function imprimirExtratoInicio(){
+  const todos=inExtItens(), tot={receber:0,pagar:0,diario:0};
+  todos.forEach(e=>{ tot[e.o]+=e.valor; });
+  const resultado=tot.receber-tot.pagar-tot.diario;
+  const itens=inExtFiltro==='tudo'?todos:todos.filter(e=>e.o===inExtFiltro);
+  const sg=o=>o==='receber'?'+ ':'- ';
+  const linha=(e,comOrigem)=>`<tr><td>${fmtVenc(e.data)}${e.hora?' '+e.hora:''}</td>${comOrigem?`<td>${IN_NOME[e.o]}</td>`:''}<td>${esc(e.nome)}</td><td>${esc(e.cat)}</td><td class="r" style="color:${IN_COR[e.o]}">${sg(e.o)}${brl(e.valor)}</td></tr>`;
+  const tabela=(lst,comOrigem)=>`<table><thead><tr><th>Data</th>${comOrigem?'<th>Tipo</th>':''}<th>Descrição</th><th>Categoria</th><th class="r">Valor</th></tr></thead><tbody>${lst.map(e=>linha(e,comOrigem)).join('')}</tbody></table>`;
+  let corpo;
+  if(!itens.length) corpo='<p>Nenhum lançamento realizado neste mês.</p>';
+  else if(inExtModo==='tela') corpo=['receber','pagar','diario'].filter(o=>itens.some(e=>e.o===o)).map(o=>{
+    const lst=itens.filter(e=>e.o===o), v=lst.reduce((a,e)=>a+e.valor,0);
+    return `<h3>${IN_NOME[o]} — ${lst.length} ${lst.length===1?'lançamento':'lançamentos'} · ${sg(o)}${brl(v)}</h3>`+tabela(lst,false);
+  }).join('');
+  else corpo=tabela(itens,true);
+  const nome=(S.perfil&&S.perfil.nome)?S.perfil.nome:'';
+  const mes=MONTHS[curMonth].f+'/'+curYear;
+  const filtroTxt=inExtFiltro==='tudo'?'Todos os lançamentos':'Somente: '+IN_NOME[inExtFiltro];
+  const html=`<h1>Financeiro — Extrato do mês</h1>
+    <div class="pm"><b>${mes}</b> · Realizado${nome?' · '+esc(nome):''}</div>
+    <div class="pm">${filtroTxt}</div>
+    ${corpo}
+    <div class="pres"><div><span>Recebido</span><b style="color:${IN_COR.receber}">${brl(tot.receber)}</b></div>
+      <div><span>− Pago</span><b style="color:${IN_COR.pagar}">${brl(tot.pagar)}</b></div>
+      <div><span>− Diários</span><b style="color:${IN_COR.diario}">${brl(tot.diario)}</b></div>
+      <div class="ps"><span>= Saldo</span><span style="color:${resultado>=0?IN_COR.receber:IN_COR.pagar}">${resultado>=0?'+ ':'- '}${brl(Math.abs(resultado))}</span></div></div>
+    <div class="pf">Gerado em ${fmtVenc(todayStr())} às ${new Date().toTimeString().slice(0,5)}</div>`;
+  let pa=document.getElementById('printArea');
+  if(!pa){ pa=document.createElement('div'); pa.id='printArea'; document.body.appendChild(pa); }
+  pa.innerHTML=html;
+  const tituloAntes=document.title;
+  document.title='Extrato-'+MONTHS[curMonth].a+'-'+curYear;
+  const depois=()=>{ document.title=tituloAntes; pa.innerHTML=''; window.removeEventListener('afterprint',depois); };
+  window.addEventListener('afterprint',depois);
+  setTimeout(()=>window.print(),80);
 }
 let mypYear=null;
 function openMonthYearModal(){
