@@ -1279,34 +1279,113 @@ function renderExtratoInicio(){
 function openCompartilharExtrato(){
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
     <h2>Imprimir ou compartilhar</h2>
-    <button class="escopo-btn" onclick="closeCatModal();imprimirExtratoInicio()"><b>🖨️ Imprimir / salvar em PDF</b><small>Abre a impressão em formato A4</small></button>
-    <button class="escopo-btn" onclick="copiarExtratoWhats()"><b>💬 Copiar para o WhatsApp</b><small>Copia o extrato em texto, é só colar na conversa</small></button>
+    <button class="escopo-btn" onclick="closeCatModal();compartilharExtratoPdf()"><b>💬 Compartilhar PDF</b><small>Envia o extrato em PDF pelo WhatsApp ou outro app</small></button>
+    <button class="escopo-btn" onclick="closeCatModal();imprimirExtratoInicio()"><b>🖨️ Imprimir</b><small>Abre a impressão em formato A4</small></button>
     <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button></div>
   </div></div>`;
 }
-function extratoTextoWhats(){
+// Gera o extrato em PDF (A4) direto no aparelho, sem internet
+function gerarPdfExtrato(){
+  const W=595.28,H=841.89,M=40,CW=W-2*M,BOT=H-M-14;
+  const HW=[].concat([278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278],Array(10).fill(556),[278,278,584,584,584,556,1015],[667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611],[278,278,278,469,556,333],[556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500],[334,260,334,584]);
+  const norm=t=>String(t==null?'':t).replace(/\u00A0/g,' ').replace(/\u2212/g,'-').replace(/\u2014/g,'\x97').replace(/\u2013/g,'\x96').replace(/\u2022/g,'\x95').replace(/[^\x00-\xFF]/g,'').replace(/[\x00-\x1F]/g,' ');
+  const pesc=t=>t.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+  const tw=(t,sz)=>{let w=0; for(let i=0;i<t.length;i++){const c=t.charCodeAt(i); w+=(c>=32&&c<=126)?HW[c-32]:540;} return w*sz/1000;};
+  const fit=(t,max,sz)=>{t=norm(t); if(tw(t,sz)<=max) return t; while(t.length&&tw(t+'...',sz)>max) t=t.slice(0,-1); return t+'...';};
+  const f2=n=>n.toFixed(2), col=c=>c.map(f2).join(' ');
+  const C={navy:[.15,.21,.35],gray:[.4,.4,.4],txt:[.1,.1,.1],receber:[.13,.48,.29],pagar:[.70,.22,.16],diario:[.73,.51,.18],head:[.91,.93,.96],line:[.85,.85,.85]};
+  const pages=[]; let cur=null, y=0;
+  const T=(x,yy,t,sz,bold,c)=>cur.push(`BT /${bold?'F2':'F1'} ${sz} Tf ${col(c)} rg ${f2(x)} ${f2(H-yy)} Td (${pesc(norm(t))}) Tj ET`);
+  const R=(x,yy,w,h,c)=>cur.push(`${col(c)} rg ${f2(x)} ${f2(H-yy-h)} ${f2(w)} ${f2(h)} re f`);
+  const L=(x1,yy,x2,c)=>cur.push(`${col(c)} RG 0.5 w ${f2(x1)} ${f2(H-yy)} m ${f2(x2)} ${f2(H-yy)} l S`);
+  const nova=()=>{ cur=[]; pages.push(cur); y=M; };
   const todos=inExtItens(), tot={receber:0,pagar:0,diario:0};
   todos.forEach(e=>{ tot[e.o]+=e.valor; });
-  const res=tot.receber-tot.pagar-tot.diario;
+  const resultado=tot.receber-tot.pagar-tot.diario;
   const sg=o=>o==='receber'?'+ ':'- ';
-  let t='*Financeiro — Extrato do mês*\n📅 '+MONTHS[curMonth].f+'/'+curYear+' · Realizado\n';
-  ['receber','pagar','diario'].forEach(o=>{
-    const lst=todos.filter(e=>e.o===o); if(!lst.length) return;
-    t+='\n*'+IN_NOME[o]+'* ('+sg(o)+brl(tot[o])+')\n';
-    lst.forEach(e=>{ t+='• '+fmtVenc(e.data)+' – '+e.nome+' ('+e.cat+'): '+sg(o)+brl(e.valor)+'\n'; });
-  });
-  if(!todos.length) t+='\nNenhum lançamento realizado neste mês.\n';
-  t+='\n*Resultado realizado do mês*\nRecebido: '+brl(tot.receber)+'\n− Pago: '+brl(tot.pagar)+'\n− Diários: '+brl(tot.diario)+'\n*= Saldo: '+(res>=0?'+ ':'- ')+brl(Math.abs(res))+'*';
-  return t;
-}
-function copiarExtratoWhats(){
-  const t=extratoTextoWhats();
-  const ok=()=>{ closeCatModal(); showToast('Copiado! Cole no WhatsApp'); };
-  const fallback=()=>{
-    try{ const ta=document.createElement('textarea'); ta.value=t; ta.style.cssText='position:fixed;opacity:0;'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); ok(); }
-    catch(e){ showToast('Não foi possível copiar'); }
+  const geral=inExtModo!=='tela';
+  const wD=62,wT=geral?54:0,wV=88,wC=105,wDesc=CW-wD-wT-wV-wC;
+  const xD=M,xT=xD+wD,xDesc=xT+wT,xC=xDesc+wDesc, dir=M+CW-4;
+  const cabTab=()=>{
+    R(M,y,CW,18,C.head); const ty=y+12.5;
+    T(xD+4,ty,'Data',8.5,true,C.navy);
+    if(geral) T(xT+4,ty,'Tipo',8.5,true,C.navy);
+    T(xDesc+4,ty,'Descrição',8.5,true,C.navy);
+    T(xC+4,ty,'Categoria',8.5,true,C.navy);
+    T(dir-tw('Valor',8.5),ty,'Valor',8.5,true,C.navy);
+    y+=18;
   };
-  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok,fallback); else fallback();
+  const linhaIt=e=>{
+    if(y+16>BOT){ nova(); cabTab(); }
+    const ty=y+11, v=norm(sg(e.o)+brl(e.valor));
+    T(xD+4,ty,fmtVenc(e.data),9,false,C.txt);
+    if(geral) T(xT+4,ty,IN_NOME[e.o],9,false,C[e.o]);
+    T(xDesc+4,ty,fit(e.nome,wDesc-8,9),9,false,C.txt);
+    T(xC+4,ty,fit(e.cat,wC-8,9),9,false,C.gray);
+    T(dir-tw(v,9),ty,v,9,false,C[e.o]);
+    L(M,y+16,M+CW,C.line); y+=16;
+  };
+  nova();
+  T(M,y+16,'Financeiro — Extrato do mês',18,true,C.navy); y+=26;
+  const nome=(S.perfil&&S.perfil.nome)?S.perfil.nome:'';
+  T(M,y+10,MONTHS[curMonth].f+'/'+curYear+' · Realizado'+(nome?' · '+nome:''),10,false,C.gray); y+=22;
+  if(!todos.length){ T(M,y+12,'Nenhum lançamento realizado neste mês.',10,false,C.txt); y+=24; }
+  else if(geral){ cabTab(); todos.forEach(linhaIt); y+=6; }
+  else ['receber','pagar','diario'].forEach(o=>{
+    const lst=todos.filter(e=>e.o===o); if(!lst.length) return;
+    if(y+8+20+18+16>BOT) nova();
+    y+=8;
+    T(M,y+12,IN_NOME[o]+' — '+lst.length+(lst.length===1?' lançamento':' lançamentos')+' · '+sg(o)+brl(tot[o]),11,true,C.navy); y+=20;
+    cabTab(); lst.forEach(linhaIt); y+=6;
+  });
+  const bh=96;
+  if(y+bh+14>BOT) nova();
+  y+=12;
+  cur.push(`${col(C.navy)} RG 1 w ${f2(M)} ${f2(H-y-bh)} ${f2(CW)} ${f2(bh)} re S`);
+  T(M+12,y+18,'Resultado realizado do mês',11,true,C.navy);
+  [['Recebido',tot.receber,'receber'],['- Pago',tot.pagar,'pagar'],['- Diários',tot.diario,'diario']].forEach((r,i)=>{
+    const by=y+36+i*15, v=norm(brl(r[1]));
+    T(M+12,by,r[0],10,false,C.txt); T(M+CW-12-tw(v,10),by,v,10,true,C[r[2]]);
+  });
+  L(M+12,y+72,M+CW-12,C.gray);
+  const sv=norm((resultado>=0?'+ ':'- ')+brl(Math.abs(resultado)));
+  T(M+12,y+88,'= Saldo',12,true,C.navy);
+  T(M+CW-12-tw(sv,12),y+88,sv,12,true,resultado>=0?C.receber:C.pagar);
+  const n=pages.length, agora='Gerado em '+fmtVenc(todayStr())+' às '+new Date().toTimeString().slice(0,5);
+  pages.forEach((p,i)=>{ cur=p; T(M,H-22,agora,8,false,C.gray); const t='Página '+(i+1)+' de '+n; T(M+CW-tw(norm(t),8),H-22,t,8,false,C.gray); });
+  const objs=[];
+  objs[1]='<< /Type /Catalog /Pages 2 0 R >>';
+  objs[2]=`<< /Type /Pages /Kids [${pages.map((_,i)=>(5+2*i)+' 0 R').join(' ')}] /Count ${n} >>`;
+  objs[3]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+  objs[4]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+  pages.forEach((p,i)=>{
+    const data=p.join('\n');
+    objs[5+2*i]=`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${6+2*i} 0 R >>`;
+    objs[6+2*i]=`<< /Length ${data.length} >>\nstream\n${data}\nendstream`;
+  });
+  let out='%PDF-1.4\n%\xE2\xE3\xCF\xD3\n'; const off=[];
+  for(let i=1;i<objs.length;i++){ off[i]=out.length; out+=`${i} 0 obj\n${objs[i]}\nendobj\n`; }
+  const xr=out.length;
+  out+=`xref\n0 ${objs.length}\n0000000000 65535 f \n`+off.slice(1).map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objs.length} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`;
+  const bytes=new Uint8Array(out.length);
+  for(let i=0;i<out.length;i++) bytes[i]=out.charCodeAt(i)&255;
+  return new Blob([bytes],{type:'application/pdf'});
+}
+async function compartilharExtratoPdf(){
+  let blob;
+  try{ blob=gerarPdfExtrato(); }catch(e){ showToast('Não foi possível gerar o PDF'); return; }
+  const nome='Extrato-'+MONTHS[curMonth].a+'-'+curYear+'.pdf';
+  const baixar=()=>{
+    const url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download=nome; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    showToast('PDF salvo no aparelho');
+  };
+  try{
+    const file=new File([blob],nome,{type:'application/pdf'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'Extrato do mês'}); }
+    else baixar();
+  }catch(e){ if(!e||e.name!=='AbortError') baixar(); }
 }
 function imprimirExtratoInicio(){
   const todos=inExtItens(), tot={receber:0,pagar:0,diario:0};
