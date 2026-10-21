@@ -1311,6 +1311,19 @@ function extratoDoc(tipo){
       resumoTit:'Resultado realizado do mês',linhas:[['Recebido',tot.receber,'receber'],['- Pago',tot.pagar,'pagar'],['- Diários',tot.diario,'diario']],
       totLabel:'= Saldo',totVal:tot.receber-tot.pagar-tot.diario,totSinal:true,reservas:inExtReservas(tot.receber-tot.pagar-tot.diario),nomeArq:'Extrato-'+MONTHS[curMonth].a+'-'+curYear};
   }
+  if(tipo==='reserva'){
+    const r=ultExtRes, abr=m=>MONTHS[m].a.charAt(0).toUpperCase()+MONTHS[m].a.slice(1);
+    const linhas=[['Entradas',r.entradas,'receber'],['Saídas',r.saidas,'pagar']];
+    if(r.itens.some(m=>m.tipo==='saldo')) linhas.unshift(['Saldo anterior',r.abertura,'zero']);
+    return {titulo:'Financeiro — Extrato da reserva',sub:reservaNome(r.key)+' · '+r.periodo,sinal:true,
+      itens:r.itens.map(m=>({o:m.tipo==='entrada'?'receber':(m.tipo==='saida'?'pagar':'zero'),nome:m.titulo,
+        cat:m.manual?(m.tipo==='entrada'?'Guardado por você':'Saída registrada'):m.desc,
+        data:m.data||'',dataTxt:m.manual?fmtVenc(m.data):(m.tipo==='saldo'?'':abr(m.mes)+'/'+String(r.ano).slice(-2)),
+        extra:'',valor:m.valor})),
+      extraTit:null,agrupar:null,dataTit:'Data / mês',catTit:'Detalhe',catW:235,vazio:'Nenhuma movimentação neste período.',
+      resumoTit:'Resumo da reserva',linhas,totLabel:'= Saldo acumulado',totVal:r.total,totSinal:true,
+      nomeArq:'Extrato-reserva-'+reservaNome(r.key).replace(/\s+/g,'-')+'-'+r.ano};
+  }
   const t=extratoTipo, its=extratoItensMes().sort((a,b)=>a.data!==b.data?b.data.localeCompare(a.data):(b.hora||'').localeCompare(a.hora||''));
   const o=t==='receber'?'receber':'pagar';
   const total=its.reduce((s,e)=>s+e.valor,0);
@@ -1340,29 +1353,29 @@ function gerarPdfExtrato(doc){
   const tw=(t,sz)=>{let w=0; for(let i=0;i<t.length;i++){const c=t.charCodeAt(i); w+=(c>=32&&c<=126)?HW[c-32]:540;} return w*sz/1000;};
   const fit=(t,max,sz)=>{t=norm(t); if(tw(t,sz)<=max) return t; while(t.length&&tw(t+'...',sz)>max) t=t.slice(0,-1); return t+'...';};
   const f2=n=>n.toFixed(2), col=c=>c.map(f2).join(' ');
-  const C={navy:[.15,.21,.35],gray:[.4,.4,.4],txt:[.1,.1,.1],receber:[.13,.48,.29],pagar:[.70,.22,.16],diario:[.73,.51,.18],head:[.91,.93,.96],line:[.85,.85,.85]};
+  const C={zero:[.4,.4,.4],navy:[.15,.21,.35],gray:[.4,.4,.4],txt:[.1,.1,.1],receber:[.13,.48,.29],pagar:[.70,.22,.16],diario:[.73,.51,.18],head:[.91,.93,.96],line:[.85,.85,.85]};
   const pages=[]; let cur=null, y=0;
   const T=(x,yy,t,sz,bold,c)=>cur.push(`BT /${bold?'F2':'F1'} ${sz} Tf ${col(c)} rg ${f2(x)} ${f2(H-yy)} Td (${pesc(norm(t))}) Tj ET`);
   const R=(x,yy,w,h,c)=>cur.push(`${col(c)} rg ${f2(x)} ${f2(H-yy-h)} ${f2(w)} ${f2(h)} re f`);
   const L=(x1,yy,x2,c)=>cur.push(`${col(c)} RG 0.5 w ${f2(x1)} ${f2(H-yy)} m ${f2(x2)} ${f2(H-yy)} l S`);
   const nova=()=>{ cur=[]; pages.push(cur); y=M; };
-  const sg=o=>doc.sinal?(o==='receber'?'+ ':'- '):'';
+  const sg=o=>doc.sinal?(o==='receber'?'+ ':(o==='zero'?'':'- ')):'';
   const hasExtra=!!doc.extraTit&&doc.agrupar!=='tela';
-  const wD=62,wT=hasExtra?(doc.extraTit==='Status'?62:54):0,wV=88,wC=105,wDesc=CW-wD-wT-wV-wC;
+  const wD=62,wT=hasExtra?(doc.extraTit==='Status'?62:54):0,wV=88,wC=doc.catW||105,wDesc=CW-wD-wT-wV-wC;
   const xD=M,xT=xD+wD,xDesc=xT+wT,xC=xDesc+wDesc, dir=M+CW-4;
   const cabTab=()=>{
     R(M,y,CW,18,C.head); const ty=y+12.5;
-    T(xD+4,ty,'Data',8.5,true,C.navy);
+    T(xD+4,ty,doc.dataTit||'Data',8.5,true,C.navy);
     if(hasExtra) T(xT+4,ty,doc.extraTit,8.5,true,C.navy);
     T(xDesc+4,ty,'Descrição',8.5,true,C.navy);
-    T(xC+4,ty,'Categoria',8.5,true,C.navy);
+    T(xC+4,ty,doc.catTit||'Categoria',8.5,true,C.navy);
     T(dir-tw('Valor',8.5),ty,'Valor',8.5,true,C.navy);
     y+=18;
   };
   const linhaIt=e=>{
     if(y+16>BOT){ nova(); cabTab(); }
     const ty=y+11, v=norm(sg(e.o)+brl(e.valor));
-    T(xD+4,ty,fmtVenc(e.data),9,false,C.txt);
+    T(xD+4,ty,e.dataTxt!=null?e.dataTxt:fmtVenc(e.data),9,false,C.txt);
     if(hasExtra) T(xT+4,ty,e.extra,9,false,doc.sinal?C[e.o]:C.gray);
     T(xDesc+4,ty,fit(e.nome,wDesc-8,9),9,false,C.txt);
     T(xC+4,ty,fit(e.cat,wC-8,9),9,false,C.gray);
@@ -1373,7 +1386,7 @@ function gerarPdfExtrato(doc){
   T(M,y+16,doc.titulo,18,true,C.navy); y+=26;
   const nome=(S.perfil&&S.perfil.nome)?S.perfil.nome:'';
   T(M,y+10,doc.sub+(nome?' · '+nome:''),10,false,C.gray); y+=22;
-  if(!doc.itens.length){ T(M,y+12,'Nenhum lançamento neste mês.',10,false,C.txt); y+=24; }
+  if(!doc.itens.length){ T(M,y+12,doc.vazio||'Nenhum lançamento neste mês.',10,false,C.txt); y+=24; }
   else extratoGrupos(doc).forEach(g=>{
     if(g.nome){
       if(y+8+20+18+16>BOT) nova();
@@ -1441,13 +1454,13 @@ async function compartilharExtratoPdf(tipo){
   }catch(e){ if(!e||e.name!=='AbortError') baixar(); }
 }
 function imprimirExtrato(tipo){
-  const doc=extratoDoc(tipo), sg=o=>doc.sinal?(o==='receber'?'+ ':'- '):'';
+  const doc=extratoDoc(tipo), sg=o=>doc.sinal?(o==='receber'?'+ ':(o==='zero'?'':'- ')):'';
   const hasExtra=!!doc.extraTit&&doc.agrupar!=='tela';
-  const COR={receber:'#217a4b',pagar:'#b3392a',diario:'#b9812e'};
-  const linha=e=>`<tr><td>${fmtVenc(e.data)}</td>${hasExtra?`<td>${esc(e.extra)}</td>`:''}<td>${esc(e.nome)}</td><td>${esc(e.cat)}</td><td class="r" style="color:${COR[e.o]}">${sg(e.o)}${brl(e.valor)}</td></tr>`;
-  const tabela=lst=>`<table><thead><tr><th>Data</th>${hasExtra?`<th>${doc.extraTit}</th>`:''}<th>Descrição</th><th>Categoria</th><th class="r">Valor</th></tr></thead><tbody>${lst.map(linha).join('')}</tbody></table>`;
+  const COR={receber:'#217a4b',pagar:'#b3392a',diario:'#b9812e',zero:'#666666'};
+  const linha=e=>`<tr><td>${e.dataTxt!=null?e.dataTxt:fmtVenc(e.data)}</td>${hasExtra?`<td>${esc(e.extra)}</td>`:''}<td>${esc(e.nome)}</td><td>${esc(e.cat)}</td><td class="r" style="color:${COR[e.o]}">${sg(e.o)}${brl(e.valor)}</td></tr>`;
+  const tabela=lst=>`<table><thead><tr><th>${doc.dataTit||'Data'}</th>${hasExtra?`<th>${doc.extraTit}</th>`:''}<th>Descrição</th><th>${doc.catTit||'Categoria'}</th><th class="r">Valor</th></tr></thead><tbody>${lst.map(linha).join('')}</tbody></table>`;
   let corpo;
-  if(!doc.itens.length) corpo='<p>Nenhum lançamento neste mês.</p>';
+  if(!doc.itens.length) corpo='<p>'+(doc.vazio||'Nenhum lançamento neste mês.')+'</p>';
   else corpo=extratoGrupos(doc).map(g=>{
     const v=g.lst.reduce((a,e)=>a+e.valor,0);
     return (g.nome?`<h3>${esc(g.nome)} — ${g.lst.length} ${g.lst.length===1?'lançamento':'lançamentos'} · ${sg(g.lst[0].o)}${brl(v)}</h3>`:'')+tabela(g.lst);
@@ -1950,6 +1963,7 @@ function lucroMes(i,year){
   const diario=diarioTotalForMonth(i,year);
   return recebido-pago-diario;
 }
+let ultExtRes=null;
 let extratoReserva=null, extratoYear=null, extratoMeses=[], extratoMesesTmp=[];
 function openExtratoReserva(key){
   extratoReserva=key; extratoYear=curYear; extratoMeses=[];
@@ -1982,14 +1996,14 @@ function renderExtratoReserva(){
     const [ay,am]=en.data.split('-');
     if(+ay!==extratoYear) return;
     if(!meses.includes(+am-1)) return;
-    itens.push({mes:+am-1,tipo:'entrada',titulo:en.descricao,desc:fmtVenc(en.data)+' · Guardado por você',valor:en.valor,id:en.id,manual:true});
+    itens.push({mes:+am-1,tipo:'entrada',titulo:en.descricao,desc:fmtVenc(en.data)+' · Guardado por você',valor:en.valor,id:en.id,manual:true,data:en.data});
   });
   (S.reservaSaidas||[]).forEach(sd=>{
     if(sd.reserva!==key) return;
     const [ay,am]=sd.data.split('-');
     if(+ay!==extratoYear) return;
     if(!meses.includes(+am-1)) return;
-    itens.push({mes:+am-1,tipo:'saida',titulo:sd.descricao,desc:fmtVenc(sd.data),valor:sd.valor,id:sd.id,manual:true});
+    itens.push({mes:+am-1,tipo:'saida',titulo:sd.descricao,desc:fmtVenc(sd.data),valor:sd.valor,id:sd.id,manual:true,data:sd.data});
   });
   itens.sort((a,b)=>b.mes-a.mes);
   // saldo que veio dos meses/anos anteriores e saldo acumulado ao fim do período
@@ -2016,6 +2030,7 @@ function renderExtratoReserva(){
     ?(selM.length===1?`${MONTHS[selM[0]].f}/${extratoYear}`:selM.map(i=>MONTHS[i].a.charAt(0).toUpperCase()+MONTHS[i].a.slice(1)).join(', ')+'/'+extratoYear)
     :(extratoYear>anoReal?'Nenhum mês disponível ainda':(extratoYear===anoReal?`Até ${MONTHS[mesReal].f}/${anoReal}`:`Ano de ${extratoYear}`));
 
+  ultExtRes={key,itens:itens.slice(),entradas,saidas,total,periodo,abertura,ano:extratoYear};
   const rows=itens.length?itens.map(m=>{
     const ent=m.tipo==='entrada', saldoAnt=m.tipo==='saldo', zero=m.tipo==='zero'||saldoAnt;
     const ac=zero?'#6b7280':(ent?'#217a4b':'#b3392a'), acbg=zero?'#e9edf5':(ent?'#dcecdf':'#f8dcd6');
@@ -2064,6 +2079,7 @@ function renderExtratoReserva(){
 
       <div class="sectionh">Movimentações</div>
       ${rows}
+      <button class="btn primary" style="width:100%;margin-top:16px;padding:14px;" onclick="openCompartilharExtrato('reserva')">🖨️ Imprimir ou compartilhar</button>
     </main>
     <button class="fab" onclick="closeModal(); render();" style="bottom:calc(24px + env(safe-area-inset-bottom,0px));"><span class="plus">←</span><span>Voltar</span></button>
   </div>`;
