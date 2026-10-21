@@ -797,9 +797,13 @@ main{padding-bottom:170px;}
 </div>
 <div id="modalRoot"></div>
 <div id="catModalRoot"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>
 const MONTHS=[{f:'Janeiro',a:'jan'},{f:'Fevereiro',a:'fev'},{f:'Março',a:'mar'},{f:'Abril',a:'abr'},{f:'Maio',a:'mai'},{f:'Junho',a:'jun'},{f:'Julho',a:'jul'},{f:'Agosto',a:'ago'},{f:'Setembro',a:'set'},{f:'Outubro',a:'out'},{f:'Novembro',a:'nov'},{f:'Dezembro',a:'dez'}];
 const KEY='fin_app_v1';
+// ===== Nuvem (Supabase): preencha aqui =====
+const SUPABASE_URL='https://urlkabdjbcypctpcybep.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_341HGzZzSpOAyZVKGp0BSA_07F9-nqx';
 const WALLET_ICON='<svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg" style="display:block"><rect x="3" y="6" width="18" height="13" rx="3" fill="#fff"/><rect x="3" y="6" width="18" height="6" rx="3" fill="#fff" opacity=".55"/><circle cx="16" cy="13" r="1.6" fill="rgba(0,0,0,.35)"/></svg>';
 function _svg(p){return '<svg class="i" viewBox="0 0 24 24">'+p+'</svg>';}
 const ICO={
@@ -883,7 +887,7 @@ function load(){
     return s;
   }catch(e){return seed();}
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} agendaSyncNotif();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} agendaSyncNotif(); nuvemMarcarSujo();}
 let tab='resultado';
 const hojeInicial=new Date();
 let curMonth=hojeInicial.getMonth(); // mês atual de verdade
@@ -2410,6 +2414,7 @@ function openSettings(){
       <div class="sectionh">Segurança</div>
       <button class="gest-btn" onclick="openPinSettings()"><div class="gic">🔐</div><div class="gtxt">Senha e biometria</div><div class="chev">›</div></button>
       <div class="sectionh">Dados</div>
+      <button class="gest-btn" onclick="openNuvemScreen()"><div class="gic">🔄</div><div class="gtxt">Sincronização na nuvem</div><div class="chev">›</div></button>
       <button class="gest-btn" onclick="openBackupScreen()"><div class="gic">☁️</div><div class="gtxt">Backup e restauração</div><div class="chev">›</div></button>
       <div class="sectionh">Aparência</div>
       <button class="gest-btn" onclick="openThemeSettings()"><div class="gic">🎨</div><div class="gtxt">Tema e personalização</div><div class="chev">›</div></button>
@@ -2589,7 +2594,7 @@ function saveProfile(){
 }
 function openAboutScreen(){
   const body=`<div style="text-align:center;padding:20px 10px;"><div style="font-size:44px;margin-bottom:10px;">💰</div><h2 style="margin:0 0 4px;">Financeiro</h2><div class="sub">Versão 1.0</div></div>
-    <div class="es" style="text-align:center;">Aplicativo de controle financeiro pessoal. Todos os dados ficam salvos apenas neste aparelho.</div>`;
+    <div class="es" style="text-align:center;">Aplicativo de controle financeiro pessoal. Os dados ficam salvos neste aparelho e, com a sincronização ativa, também na sua conta na nuvem.</div>`;
   subScreen('ℹ️','Sobre o aplicativo','Informações do app', body);
 }
 
@@ -3319,11 +3324,210 @@ if(needsInstallGate()){
   if(!gateChecked) setTimeout(()=>{ gateChecked=true; renderInstallGate(); },2500);
 }
 
+// ===== Sincronização na nuvem (Supabase) =====
+// Um login (e-mail + senha) para usar os mesmos dados no celular e no computador.
+var SB=null, nuvemPronta=false, nuvemSujo=false, nuvemTimer=null, nuvemUser=null, nuvemEnviando=false, nuvemVer=0, nuvemMsg='', nuvemModo='entrar';
+var META_KEY='fin_sync_meta';
+function nuvemMeta(){ try{ return JSON.parse(localStorage.getItem(META_KEY))||{}; }catch(e){ return {}; } }
+function nuvemSetMeta(m){ try{ localStorage.setItem(META_KEY,JSON.stringify(m)); }catch(e){} }
+function nuvemTs(x){ return new Date(x).getTime(); }
+var NUVEM_ON=(function(){
+  try{
+    if(!/^https:\/\/.+/.test(SUPABASE_URL)||String(SUPABASE_ANON_KEY).length<30||!window.supabase) return false;
+    SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+    return true;
+  }catch(e){ return false; }
+})();
+function nuvemTemDados(){ return (S.receber.length+S.pagar.length+S.diarios.length+(S.reservaEntradas||[]).length+(S.reservaSaidas||[]).length)>0; }
+// PIN e tema ficam só em cada aparelho
+function nuvemPayload(){ const c=JSON.parse(JSON.stringify(S)); delete c.pin; delete c.theme; return c; }
+function nuvemMarcarSujo(){
+  if(!NUVEM_ON||!nuvemPronta) return;
+  nuvemVer++; nuvemSujo=true;
+  const m=nuvemMeta(); m.dirty=true; nuvemSetMeta(m);
+  clearTimeout(nuvemTimer); nuvemTimer=setTimeout(nuvemPush,1500);
+}
+async function nuvemPush(){
+  if(!NUVEM_ON||!nuvemPronta||!nuvemUser) return false;
+  if(nuvemEnviando){ clearTimeout(nuvemTimer); nuvemTimer=setTimeout(nuvemPush,1500); return false; }
+  nuvemEnviando=true;
+  const v=nuvemVer;
+  try{
+    const at=new Date().toISOString();
+    const r=await SB.from('financeiro_dados').upsert({user_id:nuvemUser.id,dados:nuvemPayload(),updated_at:at});
+    if(r.error) throw r.error;
+    nuvemMsg='';
+    if(nuvemVer===v){ nuvemSujo=false; nuvemSetMeta({uid:nuvemUser.id,at:at,dirty:false}); }
+    else { nuvemSetMeta({uid:nuvemUser.id,at:at,dirty:true}); clearTimeout(nuvemTimer); nuvemTimer=setTimeout(nuvemPush,800); }
+    return true;
+  }catch(e){
+    nuvemMsg='Sem conexão: as alterações serão enviadas quando a internet voltar.';
+    clearTimeout(nuvemTimer); nuvemTimer=setTimeout(nuvemPush,30000);
+    return false;
+  }finally{ nuvemEnviando=false; }
+}
+function nuvemAplicar(data){
+  const novo=sanitizeBackup(data.dados);
+  novo.pin=S.pin; novo.theme=S.theme;
+  S=novo;
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+  nuvemSetMeta({uid:nuvemUser.id,at:data.updated_at,dirty:false});
+  nuvemSujo=false;
+  agendaSyncNotif();
+}
+// busca a versão da nuvem; só substitui os dados locais se não houver alteração pendente neste aparelho
+async function nuvemPull(){
+  if(!NUVEM_ON||!nuvemUser) return 'off';
+  const r=await SB.from('financeiro_dados').select('dados,updated_at').eq('user_id',nuvemUser.id).maybeSingle();
+  if(r.error) throw r.error;
+  const data=r.data;
+  if(!data) return 'vazio';
+  const m=nuvemMeta();
+  if(m.uid===nuvemUser.id && m.at && nuvemTs(m.at)===nuvemTs(data.updated_at)) return 'igual';
+  if(m.uid===nuvemUser.id && (m.dirty||nuvemSujo)) return 'local-pendente';
+  nuvemAplicar(data);
+  return 'aplicado';
+}
+// primeira sincronização depois do login (ou ao abrir o app)
+async function nuvemPrimeiraSync(){
+  const m=nuvemMeta(), meu=(m.uid===nuvemUser.id);
+  try{
+    const r=await SB.from('financeiro_dados').select('dados,updated_at').eq('user_id',nuvemUser.id).maybeSingle();
+    if(r.error) throw r.error;
+    const data=r.data;
+    if(!data){
+      // conta nova na nuvem: envia o que já existe neste aparelho
+      nuvemPronta=true;
+      if(nuvemTemDados()||(S.perfil&&S.perfil.nome)) nuvemMarcarSujo();
+      return;
+    }
+    if(meu){
+      nuvemPronta=true;
+      const res=await nuvemPull();
+      if(res==='local-pendente') nuvemMarcarSujo();
+      return;
+    }
+    // esta conta ainda nunca sincronizou neste aparelho
+    if(nuvemTemDados()){
+      const usarNuvem=confirm('Este aparelho já tem dados e a sua conta na nuvem também.\n\nOK = usar os dados da NUVEM (os deste aparelho ficam guardados numa cópia de segurança)\nCancelar = ENVIAR os dados deste aparelho e substituir os da nuvem');
+      if(usarNuvem){
+        try{ localStorage.setItem('fin_app_antes_nuvem',JSON.stringify(S)); }catch(e){}
+        nuvemAplicar(data); nuvemPronta=true;
+      } else { nuvemPronta=true; nuvemMarcarSujo(); }
+    } else { nuvemAplicar(data); nuvemPronta=true; }
+  }catch(e){ nuvemPronta=meu; }
+}
+function nuvemErro(e){
+  const t=String((e&&e.message)||e||'');
+  if(/Invalid login credentials/i.test(t)) return 'E-mail ou senha incorretos.';
+  if(/already registered|already been registered/i.test(t)) return 'Este e-mail já tem conta. Toque em "Entrar".';
+  if(/Email not confirmed/i.test(t)) return 'Confirme seu e-mail antes de entrar.';
+  if(/Password should be/i.test(t)) return 'A senha precisa ter pelo menos 6 caracteres.';
+  if(/fetch|network|Failed/i.test(t)) return 'Sem conexão com a internet.';
+  return 'Não foi possível continuar: '+t;
+}
+function nuvemTelaLogin(erro,info,email){
+  const novo=nuvemModo==='criar';
+  const est='width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:inherit;font-size:15px;margin-bottom:10px;';
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="formscreen cover" data-lock="login" style="justify-content:center;overflow-y:auto;">
+    <div style="padding:36px 24px;text-align:center;max-width:380px;margin:0 auto;width:100%;">
+      <div style="display:flex;justify-content:center;margin-bottom:6px;">${coverSvg(110)}</div>
+      <h2 style="margin:0 0 6px;">${novo?'Criar conta':'Entrar'}</h2>
+      <p style="font-size:13px;color:rgba(255,255,255,.85);margin:0 0 16px;line-height:1.5;">Use a mesma conta no celular e no computador para ter os mesmos dados nos dois.</p>
+      <input id="nvEmail" type="email" autocomplete="email" placeholder="seu@email.com" value="${esc(email||'')}" style="${est}">
+      <input id="nvSenha" type="password" autocomplete="${novo?'new-password':'current-password'}" placeholder="Senha (mínimo 6 caracteres)" style="${est}" onkeydown="if(event.key==='Enter')nuvemEnviarLogin()">
+      <div style="color:#ffb3a8;font-size:12.5px;min-height:18px;margin:0 0 6px;">${esc(erro||'')}</div>
+      ${info?`<div style="color:#bbf7d0;font-size:12.5px;margin:0 0 10px;line-height:1.5;">${esc(info)}</div>`:''}
+      <button id="nvBtn" class="btn primary" style="width:100%;padding:14px;" onclick="nuvemEnviarLogin()">${novo?'Criar conta':'Entrar'}</button>
+      <div style="margin-top:18px;"><button style="background:none;border:none;color:rgba(255,255,255,.9);font-size:13px;text-decoration:underline;cursor:pointer;font-family:inherit;" onclick="nuvemModo='${novo?'entrar':'criar'}';nuvemTelaLogin('','',document.getElementById('nvEmail').value)">${novo?'Já tenho conta: entrar':'Não tenho conta: criar agora'}</button></div>
+    </div>
+  </div>`;
+}
+async function nuvemEnviarLogin(){
+  const email=(document.getElementById('nvEmail').value||'').trim();
+  const senha=document.getElementById('nvSenha').value||'';
+  if(!email||senha.length<6){ nuvemTelaLogin('Informe o e-mail e uma senha de pelo menos 6 caracteres.','',email); return; }
+  const b=document.getElementById('nvBtn'); if(b){ b.disabled=true; b.textContent='Aguarde…'; }
+  try{
+    let r;
+    if(nuvemModo==='criar'){
+      r=await SB.auth.signUp({email:email,password:senha});
+      if(r.error) throw r.error;
+      if(!r.data.session){ nuvemModo='entrar'; nuvemTelaLogin('','Conta criada! Confirme o e-mail que enviamos e depois toque em Entrar.',email); return; }
+    } else {
+      r=await SB.auth.signInWithPassword({email:email,password:senha});
+      if(r.error) throw r.error;
+    }
+    nuvemUser=r.data.session.user;
+    document.getElementById('modalRoot').innerHTML='';
+    await nuvemPrimeiraSync();
+    iniciarApp();
+  }catch(e){ nuvemTelaLogin(nuvemErro(e),'',email); }
+}
+async function nuvemInit(){
+  if(!NUVEM_ON){ iniciarApp(); return; }
+  try{
+    const r=await SB.auth.getSession();
+    if(r.data&&r.data.session){ nuvemUser=r.data.session.user; await nuvemPrimeiraSync(); iniciarApp(); }
+    else nuvemTelaLogin();
+  }catch(e){ iniciarApp(); }
+}
+// puxa os dados mais recentes (só quando não há janela aberta, para não atrapalhar quem está digitando)
+async function nuvemPuxarSeguro(){
+  if(!NUVEM_ON||!nuvemPronta||!nuvemUser||document.hidden) return;
+  if(document.getElementById('modalRoot').innerHTML.trim()||document.getElementById('catModalRoot').innerHTML.trim()) return;
+  try{ const r=await nuvemPull(); if(r==='aplicado'){ render(); showToast('Dados atualizados de outro aparelho'); } }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){ if(nuvemSujo) nuvemPush(); }
+  else nuvemPuxarSeguro();
+});
+setInterval(nuvemPuxarSeguro,60000);
+window.addEventListener('online',()=>{ if(nuvemSujo) nuvemPush(); });
+function openNuvemScreen(){
+  let body;
+  if(!NUVEM_ON){
+    body='<div class="es" style="text-align:left;">A sincronização não está ativa nesta versão do app (ou não há internet para carregar o serviço).</div>';
+  } else {
+    const m=nuvemMeta();
+    const quando=m.at?new Date(m.at).toLocaleString('pt-BR'):'ainda não sincronizado';
+    const status=nuvemSujo?'⏳ Há alterações aguardando envio':'✔ Tudo sincronizado';
+    body=`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.7;margin-bottom:14px;">
+        ✅ Conectado como <b>${esc((nuvemUser&&nuvemUser.email)||'')}</b><br>
+        ${status}<br>
+        <span style="color:var(--muted);">Última sincronização: ${esc(quando)}</span>
+        ${nuvemMsg?`<br><span style="color:#b3392a;">${esc(nuvemMsg)}</span>`:''}
+      </div>
+      <button class="btn primary" style="width:100%;margin-bottom:10px;" onclick="nuvemSyncAgora()">🔄 Sincronizar agora</button>
+      <button class="btn cancel" style="width:100%;" onclick="nuvemSair()">Sair da conta</button>
+      <div class="es" style="margin-top:14px;text-align:left;">Os dados são salvos na nuvem automaticamente a cada alteração. Se você editar nos dois aparelhos ao mesmo tempo, vale a última alteração salva. A senha de 4 dígitos e o tema continuam separados em cada aparelho.</div>`;
+  }
+  subScreen('🔄','Sincronização','Mesmos dados em todos os aparelhos',body);
+}
+async function nuvemSyncAgora(){
+  if(!NUVEM_ON||!nuvemUser) return;
+  showToast('Sincronizando…');
+  try{
+    clearTimeout(nuvemTimer);
+    if(nuvemSujo){ const ok=await nuvemPush(); showToast(ok?'Enviado para a nuvem ✓':'Sem conexão'); }
+    else { const r=await nuvemPull(); if(r==='aplicado'){ render(); showToast('Dados atualizados ✓'); } else showToast('Tudo sincronizado ✓'); }
+  }catch(e){ showToast('Sem conexão'); }
+  openNuvemScreen();
+}
+async function nuvemSair(){
+  if(!confirm('Sair da conta? Os dados continuam salvos na nuvem e neste aparelho.')) return;
+  try{ if(nuvemSujo) await nuvemPush(); await SB.auth.signOut(); }catch(e){}
+  location.reload();
+}
+function iniciarApp(){
+  if(!S.perfil || !S.perfil.nome){ render(); showOnboarding(); }
+  else if(S.pin){ showLockScreen(); }
+  else { render(); }
+  if(S.perfil && S.perfil.nome){ syncNotifData(); setTimeout(()=>{ checkVencimentos(); registrarPeriodicSync(); },1500); }
+}
 if(needsInstallGate()){ /* tela de instalação obrigatória cobre o app */ }
-else if(!S.perfil || !S.perfil.nome){ render(); showOnboarding(); }
-else if(S.pin){ showLockScreen(); }
-else { render(); }
-if(!needsInstallGate() && S.perfil && S.perfil.nome){ syncNotifData(); setTimeout(()=>{ checkVencimentos(); registrarPeriodicSync(); },1500); }
+else nuvemInit();
 </script>
 </body>
 </html>
