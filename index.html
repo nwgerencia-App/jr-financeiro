@@ -1197,6 +1197,15 @@ function inExtItens(){
   diarioItemsForMonth(curYear+'-'+String(curMonth+1).padStart(2,'0')+'-01').forEach(e=>out.push({o:'diario',nome:e.nome,cat:e.categoria,data:e.data,hora:e.hora||'',valor:e.valor}));
   return out.sort((a,b)=>a.data!==b.data?b.data.localeCompare(a.data):(b.hora||'').localeCompare(a.hora||''));
 }
+// Distribuição do resultado realizado do mês entre as reservas (porcentagem que valia naquele mês)
+function inExtReservas(res){
+  const ym=curYear*12+curMonth, base=res>0?res:0;
+  return reservaOrdem().filter(k=>reservaExistiaEm(k,ym)&&reservaPctEm(k,ym)>0).map(k=>{
+    const v=reservaVis(k), p=reservaPctEm(k,ym);
+    return {nome:reservaNome(k),icone:v.icone,hex:RSV_COR_HEX[v.cor]||'#999999',valor:base*p/100};
+  });
+}
+function fmtNum(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function openExtratoInicio(){ inExtModo='geral'; inExtFiltro='tudo'; inExtAbertas=['receber','pagar','diario']; renderExtratoInicio(); }
 function inExtMes(d){ curMonth+=d; if(curMonth<0){curMonth=11;curYear--;} if(curMonth>11){curMonth=0;curYear++;} inExtAbertas=['receber','pagar','diario']; renderExtratoInicio(); }
 function setInExtModo(m){ inExtModo=m; renderExtratoInicio(); }
@@ -1261,6 +1270,12 @@ function renderExtratoInicio(){
         <div class="right"><div class="sub" style="margin-bottom:2px;">${fmtVenc(e.data)}${e.hora?' · '+e.hora:''}</div><div class="valor" style="color:${IN_COR[e.o]}">${sinal(e.o)}${brl(e.valor)}</div></div>
       </div>`).join('')}</div>`;
   }
+  const rvs=inExtReservas(resultado);
+  const reservasBox=rvs.length?`<div style="margin-top:18px;font-size:12.5px;color:var(--muted);line-height:1.7;">
+    <div style="font-weight:600;">Resultado das reservas</div>
+    ${rvs.map(r=>`<div>Saldo reserva ${esc(r.nome)} = ${fmtNum(r.valor)}</div>`).join('')}
+    ${resultado>0?'':'<div>O resultado do mês não é positivo, por isso não há valor a distribuir.</div>'}
+  </div>`:'';
   document.getElementById('modalRoot').innerHTML=`
   <div class="formscreen">
     <header class="top">
@@ -1270,7 +1285,7 @@ function renderExtratoInicio(){
         <div><h1>Extrato do mês</h1><div class="month">Realizado · ${MONTHS[curMonth].f}/${curYear}</div></div>
       </div>
     </header>
-    <main style="padding-bottom:140px;">${nav}${segM}${conteudo}${resumo}<button class="btn primary" style="width:100%;margin-top:16px;padding:14px;" onclick="openCompartilharExtrato('inicio')">🖨️ Imprimir ou compartilhar</button></main>
+    <main style="padding-bottom:140px;">${nav}${segM}${conteudo}${resumo}${reservasBox}<button class="btn primary" style="width:100%;margin-top:16px;padding:14px;" onclick="openCompartilharExtrato('inicio')">🖨️ Imprimir ou compartilhar</button></main>
     <button class="fab" onclick="closeModal(); render();" style="bottom:calc(24px + env(safe-area-inset-bottom,0px));"><span class="plus">←</span><span>Voltar</span></button>
   </div>`;
 }
@@ -1294,7 +1309,7 @@ function extratoDoc(tipo){
       itens:todos.map(e=>({o:e.o,nome:e.nome,cat:e.cat,data:e.data,extra:IN_NOME[e.o],valor:e.valor})),
       extraTit:'Tipo',agrupar:inExtModo==='tela'?'tela':null,
       resumoTit:'Resultado realizado do mês',linhas:[['Recebido',tot.receber,'receber'],['- Pago',tot.pagar,'pagar'],['- Diários',tot.diario,'diario']],
-      totLabel:'= Saldo',totVal:tot.receber-tot.pagar-tot.diario,totSinal:true,nomeArq:'Extrato-'+MONTHS[curMonth].a+'-'+curYear};
+      totLabel:'= Saldo',totVal:tot.receber-tot.pagar-tot.diario,totSinal:true,reservas:inExtReservas(tot.receber-tot.pagar-tot.diario),nomeArq:'Extrato-'+MONTHS[curMonth].a+'-'+curYear};
   }
   const t=extratoTipo, its=extratoItensMes().sort((a,b)=>a.data!==b.data?b.data.localeCompare(a.data):(b.hora||'').localeCompare(a.hora||''));
   const o=t==='receber'?'receber':'pagar';
@@ -1382,6 +1397,14 @@ function gerarPdfExtrato(doc){
   const tc=doc.totSinal?(doc.totVal>=0?C.receber:C.pagar):C[doc.totCor||'pagar'];
   T(M+12,y+sepOff+16,doc.totLabel,12,true,C.navy);
   T(M+CW-12-tw(sv,12),y+sepOff+16,sv,12,true,tc);
+  if(doc.reservas&&doc.reservas.length){
+    y+=bh+16;
+    const rh=14+doc.reservas.length*13+(doc.totVal>0?0:13);
+    if(y+rh>BOT) nova();
+    T(M,y+10,'Resultado das reservas',9.5,true,C.gray); y+=14;
+    doc.reservas.forEach(r=>{ T(M,y+10,'Saldo reserva '+r.nome+' = '+fmtNum(r.valor),9,false,C.gray); y+=13; });
+    if(doc.totVal<=0) T(M,y+10,'O resultado do mês não é positivo, por isso não há valor a distribuir.',9,false,C.gray);
+  }
   const n=pages.length, agora='Gerado em '+fmtVenc(todayStr())+' às '+new Date().toTimeString().slice(0,5);
   pages.forEach((p,i)=>{ cur=p; T(M,H-22,agora,8,false,C.gray); const t='Página '+(i+1)+' de '+n; T(M+CW-tw(norm(t),8),H-22,t,8,false,C.gray); });
   const objs=[];
@@ -1436,6 +1459,7 @@ function imprimirExtrato(tipo){
     ${corpo}
     <div class="pres"><div><b>${esc(doc.resumoTit)}</b></div>${doc.linhas.map(r=>`<div><span>${esc(r[0])}</span><b style="color:${COR[r[2]]}">${brl(r[1])}</b></div>`).join('')}
       <div class="ps"><span>${esc(doc.totLabel)}</span><span style="color:${tcor}">${doc.totSinal?(doc.totVal>=0?'+ ':'- ')+brl(Math.abs(doc.totVal)):brl(doc.totVal)}</span></div></div>
+    ${doc.reservas&&doc.reservas.length?`<div style="margin-top:14px;font-size:10.5px;color:#555;line-height:1.6;"><div style="font-weight:600;">Resultado das reservas</div>${doc.reservas.map(r=>`<div>Saldo reserva ${esc(r.nome)} = ${fmtNum(r.valor)}</div>`).join('')}${doc.totVal>0?'':'<div>O resultado do mês não é positivo, por isso não há valor a distribuir.</div>'}</div>`:''}
     <div class="pf">Gerado em ${fmtVenc(todayStr())} às ${new Date().toTimeString().slice(0,5)}</div>`;
   let pa=document.getElementById('printArea');
   if(!pa){ pa=document.createElement('div'); pa.id='printArea'; document.body.appendChild(pa); }
