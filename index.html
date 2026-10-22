@@ -371,8 +371,6 @@ header.hmain .hic{box-shadow:none;}
 /* Tela Diário: ícone em cima e nome embaixo (nome completo, sem cortar) + destaque do gasto do dia */
 .hero2.diario-hero .h2-panel{gap:4px; padding:8px 6px; align-items:stretch;}
 .hero2.diario-hero .h2-st{padding:6px 8px; border-left:none; border-radius:14px;}
-.hero2.diario-hero .h2-st+.h2-st{border-left:1px solid var(--sep); border-radius:0;}
-.hero2.diario-hero .h2-st.h2-hl+.h2-st{border-left:none;}
 .hero2.diario-hero .h2-st-top{flex-direction:column; align-items:flex-start; gap:5px;}
 .hero2.diario-hero .h2-slbl{white-space:normal; overflow:visible; text-overflow:clip; line-height:1.2;}
 .hero2.diario-hero .h2-st b{font-size:12px;}
@@ -1034,9 +1032,9 @@ function renderList(c,list,nameKey,pendLabel,doneLabel){
     label:'Total do mês',
     value:brl(totGeral),
     stats:[
-      {icon:isReceber?ICO.down:ICO.up,label:isReceber?'A receber':'A pagar',val:brl(totalPend)},
-      {icon:ICO.check,label:isReceber?'Recebido':'Pago',val:brl(totalDone)},
-      {icon:ICO.receipt,label:'Lançamentos',val:String(items.length)}
+      {icon:isReceber?ICO.down:ICO.up,label:isReceber?'A receber':'A pagar',val:brl(totalPend),tone:isReceber?'green':'red'},
+      {icon:ICO.check,label:isReceber?'Recebido':'Pago',val:brl(totalDone),tone:isReceber?'green':'red'},
+      {icon:ICO.receipt,label:'Lançamentos',val:String(items.length),tone:isReceber?'green':'red'}
     ]
   });
   html+=alertaTipoHtml(isReceber?'r':'p');
@@ -1133,8 +1131,8 @@ function renderDiario(c){
     value:(saldo<0?'- ':'')+brl(Math.abs(saldo)),
     stats:[
       {icon:ICO.receipt,label:diaLabel,val:brl(totalDia),hl:true,click:'openDiaCalendario()',extra:'<span class="h2-hl-cal">📅</span>'},
-      {icon:ICO.cal,label:'Total no mês',val:brl(totalMes)},
-      {icon:ICO.chart,label:'Média/dia',val:brl(mediaDiaMes)}
+      {icon:ICO.cal,label:'Total no mês',val:brl(totalMes),tone:'amber'},
+      {icon:ICO.chart,label:'Média/dia',val:brl(mediaDiaMes),tone:'amber'}
     ]
   });
   // botão acima do card (canto direito) para definir o capital de giro mensal
