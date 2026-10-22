@@ -378,7 +378,6 @@ header.hmain .hic{box-shadow:none;}
 .hero2.diario-hero .h2-st b{font-size:12px;}
 .hero2.diario-hero .h2-st.h2-hl{position:relative; cursor:pointer; flex:1.35; background:linear-gradient(135deg,#d9a441,#b9812e); box-shadow:0 4px 12px rgba(185,129,46,.35);}
 .hero2.diario-hero .h2-hl-cal{position:absolute; top:7px; right:9px; font-size:12px; line-height:1; pointer-events:none;}
-.hero2.diario-hero .h2-hl-pick{position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; border:0; padding:0; margin:0; -webkit-appearance:none; appearance:none; font-size:16px;}
 .hero2.diario-hero .h2-st.h2-hl .h2-slbl{color:rgba(255,255,255,.92); font-weight:700;}
 .hero2.diario-hero .h2-st.h2-hl b{color:#fff; font-size:15.5px; letter-spacing:-.3px;}
 .hero2.diario-hero .h2-st.h2-hl .h2-sic{background:rgba(255,255,255,.28); color:#fff;}
@@ -843,7 +842,7 @@ const ICO={
 };
 // Card hero padrão (Início, Diário, A Receber, A Pagar)
 function heroHtml(o){
-  const stats=o.stats.map(s=>`<div class="h2-st${s.tone?' tone-'+s.tone:''}${s.hl?' h2-hl':''}"${s.go?` onclick="event.stopPropagation();goTab('${s.go}')" style="cursor:pointer;"`:''}><div class="h2-st-top"><span class="h2-sic">${s.icon}</span><span class="h2-slbl">${s.label}${s.pct?` <span class="h2-pctl">${s.pct}</span>`:''}</span></div><b>${s.val}</b>${s.extra||''}</div>`).join('');
+  const stats=o.stats.map(s=>`<div class="h2-st${s.tone?' tone-'+s.tone:''}${s.hl?' h2-hl':''}"${s.go?` onclick="event.stopPropagation();goTab('${s.go}')" style="cursor:pointer;"`:(s.click?` onclick="event.stopPropagation();${s.click}" style="cursor:pointer;"`:'')}><div class="h2-st-top"><span class="h2-sic">${s.icon}</span><span class="h2-slbl">${s.label}${s.pct?` <span class="h2-pctl">${s.pct}</span>`:''}</span></div><b>${s.val}</b>${s.extra||''}</div>`).join('');
   return `<div class="hero2 ${o.cls}"${o.go?` onclick="goTab('${o.go}')" style="cursor:pointer;"`:''}>
     <div class="h2-blob"></div><div class="h2-blobic">${o.blobIcon}</div>
     <div class="h2-top"><span class="h2-tic">${o.icon}</span><span class="h2-lbl">${o.label}${o.pct?` <span class="h2-lblpct">${o.pct}</span>`:''}</span></div>
@@ -911,6 +910,39 @@ function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMo
 let diaSel=todayStr();
 let diarioSort='hora_desc';
 // mantém a data de referência do Diário dentro do mês selecionado no cabeçalho (mês atual = hoje; outros meses = dia 1)
+let calAno=0, calMes=0;
+function openDiaCalendario(){ calAno=+diaSel.slice(0,4); calMes=+diaSel.slice(5,7)-1; renderDiaCalendario(); }
+function calNav(d){ calMes+=d; if(calMes<0){calMes=11;calAno--;} if(calMes>11){calMes=0;calAno++;} renderDiaCalendario(); }
+function calEscolher(ds){ closeCatModal(); escolherDiaDiario(ds); }
+function renderDiaCalendario(){
+  const pad=n=>String(n).padStart(2,'0');
+  const primeiro=new Date(calAno,calMes,1).getDay();
+  const dias=new Date(calAno,calMes+1,0).getDate();
+  const ym=calAno+'-'+pad(calMes+1);
+  const comGasto=new Set(S.diarios.filter(e=>e.data&&e.data.slice(0,7)===ym).map(e=>e.data));
+  const hoje=todayStr();
+  let cells='';
+  for(let i=0;i<primeiro;i++) cells+='<div></div>';
+  for(let d=1;d<=dias;d++){
+    const ds=ym+'-'+pad(d), sel=(ds===diaSel), ehHoje=(ds===hoje);
+    const bg=sel?'#b9812e':'transparent', cor=sel?'#fff':'var(--text)';
+    const borda=ehHoje&&!sel?'1.5px solid #b9812e':'1.5px solid transparent';
+    const dot=comGasto.has(ds)?`<span style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:${sel?'#fff':'#b3392a'};"></span>`:'';
+    cells+=`<button onclick="calEscolher('${ds}')" style="position:relative;width:100%;aspect-ratio:1;border-radius:50%;border:${borda};background:${bg};color:${cor};font-family:inherit;font-size:14px;font-weight:${sel||ehHoje?700:500};cursor:pointer;padding:0;">${d}${dot}</button>`;
+  }
+  const sem=['D','S','T','Q','Q','S','S'].map(x=>`<div style="text-align:center;font-size:11px;font-weight:600;color:var(--muted);padding:4px 0;">${x}</div>`).join('');
+  const navBtn='background:var(--cream);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;font-size:18px;color:var(--navy);cursor:pointer;font-family:inherit;';
+  document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <button style="${navBtn}" onclick="calNav(-1)" aria-label="Mês anterior">‹</button>
+      <h2 style="margin:0;font-size:16px;">${MONTHS[calMes].f}/${calAno}</h2>
+      <button style="${navBtn}" onclick="calNav(1)" aria-label="Próximo mês">›</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">${sem}${cells}</div>
+    <div style="font-size:11.5px;color:var(--muted);margin:10px 0 0;display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:50%;background:#b3392a;display:inline-block;"></span>dias com gastos</div>
+    <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Fechar</button><button class="btn primary" onclick="calEscolher(todayStr())">Hoje</button></div>
+  </div></div>`;
+}
 function escolherDiaDiario(v){
   if(!v) return;
   diaSel=v; curYear=+v.slice(0,4); curMonth=+v.slice(5,7)-1;
@@ -1078,7 +1110,7 @@ function renderDiario(c){
     label:'Capital de giro disponível',
     value:(saldo<0?'- ':'')+brl(Math.abs(saldo)),
     stats:[
-      {icon:ICO.receipt,label:diaLabel,val:brl(totalDia),hl:true,extra:'<span class="h2-hl-cal">📅</span><input type="date" class="h2-hl-pick" value="'+diaSel+'" onclick="event.stopPropagation()" onchange="escolherDiaDiario(this.value)" aria-label="Escolher o dia">'},
+      {icon:ICO.receipt,label:diaLabel,val:brl(totalDia),hl:true,click:'openDiaCalendario()',extra:'<span class="h2-hl-cal">📅</span>'},
       {icon:ICO.cal,label:'Total no mês',val:brl(totalMes)},
       {icon:ICO.chart,label:'Média/dia',val:brl(mediaDiaMes)}
     ]
