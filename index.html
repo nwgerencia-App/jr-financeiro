@@ -1794,7 +1794,7 @@ function renderInicio(c){
   const baseRec=real?recebido:cur.fat;
   const pctRec=v=>baseRec>0?(v/baseRec*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%':'';
   const lucroReal=recebido-pago-totalDiario;
-  const lucroShow=real?lucroReal:lucro;
+  const lucroShow=real?lucroReal:(cur.fat-cur.desp-(S.capitalGiro||0));
   const heroInicio=heroHtml({
     cls:'t-blue'+(lucroShow<0?' neg':''),
     go:'gestao',
