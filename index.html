@@ -1872,7 +1872,7 @@ function renderInicio(c){
     ]:[
       {icon:ICO.down,label:'A receber',val:brl(cur.fat),go:'receber',tone:'green'},
       {icon:ICO.card,label:'A pagar',val:brl(cur.desp),pct:pctRec(cur.desp),go:'pagar',tone:'red'},
-      {icon:ICO.cal,label:'Diários',val:brl(S.capitalGiro||0),go:'diario',tone:'amber'}
+      {icon:ICO.cal,label:'Diários',val:brl(S.capitalGiro||0),pct:pctRec(S.capitalGiro||0),go:'diario',tone:'amber'}
     ]
   });
   const segInicio=`<div class="seg"><button class="${real?'':'on'}" onclick="setInicioModo('previsto')">Previsto</button><button class="${real?'on':''}" onclick="setInicioModo('realizado')">Realizado</button></div>`;
