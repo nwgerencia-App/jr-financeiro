@@ -368,6 +368,26 @@ header.hmain .hic{box-shadow:none;}
 .hero2 .h2-sic .i{width:14px; height:14px; stroke-width:2.1;}
 .hero2 .h2-slbl{font-size:10.5px; font-weight:500; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .hero2 .h2-st b{display:block; font-size:12.5px; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+/* Tela Diário: ícone em cima e nome embaixo (nome completo, sem cortar) + destaque do gasto do dia */
+.hero2.diario-hero .h2-panel{gap:4px; padding:8px 6px; align-items:stretch;}
+.hero2.diario-hero .h2-st{padding:6px 8px; border-left:none; border-radius:14px;}
+.hero2.diario-hero .h2-st+.h2-st{border-left:1px solid var(--sep); border-radius:0;}
+.hero2.diario-hero .h2-st.h2-hl+.h2-st{border-left:none;}
+.hero2.diario-hero .h2-st-top{flex-direction:column; align-items:flex-start; gap:5px;}
+.hero2.diario-hero .h2-slbl{white-space:normal; overflow:visible; text-overflow:clip; line-height:1.2;}
+.hero2.diario-hero .h2-st b{font-size:12px;}
+.hero2.diario-hero .h2-st.h2-hl{flex:1.35; background:linear-gradient(135deg,#d9a441,#b9812e); box-shadow:0 4px 12px rgba(185,129,46,.35);}
+.hero2.diario-hero .h2-st.h2-hl .h2-slbl{color:rgba(255,255,255,.92); font-weight:700;}
+.hero2.diario-hero .h2-st.h2-hl b{color:#fff; font-size:15.5px; letter-spacing:-.3px;}
+.hero2.diario-hero .h2-st.h2-hl .h2-sic{background:rgba(255,255,255,.28); color:#fff;}
+:root[data-theme="dark"] .hero2.diario-hero .h2-st.h2-hl{background:linear-gradient(135deg,#f0d49a,#e8c887); box-shadow:0 4px 12px rgba(0,0,0,.35);}
+:root[data-theme="dark"] .hero2.diario-hero .h2-st.h2-hl .h2-slbl, :root[data-theme="dark"] .hero2.diario-hero .h2-st.h2-hl b{color:#2b2210;}
+:root[data-theme="dark"] .hero2.diario-hero .h2-st.h2-hl .h2-sic{background:rgba(43,34,16,.15); color:#2b2210;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .hero2.diario-hero .h2-st.h2-hl{background:linear-gradient(135deg,#f0d49a,#e8c887); box-shadow:0 4px 12px rgba(0,0,0,.35);}
+  :root:not([data-theme="light"]) .hero2.diario-hero .h2-st.h2-hl .h2-slbl, :root:not([data-theme="light"]) .hero2.diario-hero .h2-st.h2-hl b{color:#2b2210;}
+  :root:not([data-theme="light"]) .hero2.diario-hero .h2-st.h2-hl .h2-sic{background:rgba(43,34,16,.15); color:#2b2210;}
+}
 
 /* ===== Cards de reservas (Gestão) ===== */
 .rgrid{align-items:stretch;}
@@ -822,7 +842,7 @@ const ICO={
 };
 // Card hero padrão (Início, Diário, A Receber, A Pagar)
 function heroHtml(o){
-  const stats=o.stats.map(s=>`<div class="h2-st${s.tone?' tone-'+s.tone:''}"${s.go?` onclick="event.stopPropagation();goTab('${s.go}')" style="cursor:pointer;"`:''}><div class="h2-st-top"><span class="h2-sic">${s.icon}</span><span class="h2-slbl">${s.label}${s.pct?` <span class="h2-pctl">${s.pct}</span>`:''}</span></div><b>${s.val}</b></div>`).join('');
+  const stats=o.stats.map(s=>`<div class="h2-st${s.tone?' tone-'+s.tone:''}${s.hl?' h2-hl':''}"${s.go?` onclick="event.stopPropagation();goTab('${s.go}')" style="cursor:pointer;"`:''}><div class="h2-st-top"><span class="h2-sic">${s.icon}</span><span class="h2-slbl">${s.label}${s.pct?` <span class="h2-pctl">${s.pct}</span>`:''}</span></div><b>${s.val}</b></div>`).join('');
   return `<div class="hero2 ${o.cls}"${o.go?` onclick="goTab('${o.go}')" style="cursor:pointer;"`:''}>
     <div class="h2-blob"></div><div class="h2-blobic">${o.blobIcon}</div>
     <div class="h2-top"><span class="h2-tic">${o.icon}</span><span class="h2-lbl">${o.label}${o.pct?` <span class="h2-lblpct">${o.pct}</span>`:''}</span></div>
@@ -933,7 +953,7 @@ function render(){
   hIc.style.background={receber:'#e8a53d',pagar:'rgba(255,255,255,.14)',diario:'#2d6cdf',resultado:'#2d6cdf',gestao:'rgba(255,255,255,.14)'}[tab];
   if(tab==='receber'){title.textContent='A Receber'; sub.textContent=MONTHS[curMonth].f+'/'+curYear; renderList(c,S.receber,'cliente','A Receber','Recebido');}
   else if(tab==='pagar'){title.textContent='A Pagar'; sub.textContent=MONTHS[curMonth].f+'/'+curYear; renderList(c,S.pagar,'conta','A Pagar','Pago');}
-  else if(tab==='diario'){title.textContent='Despesas Diárias'; sub.textContent='Acompanhe seus gastos de hoje'; renderDiario(c);}
+  else if(tab==='diario'){title.textContent='Despesas Diárias'; sub.textContent='Acompanhe seus gastos do dia a dia'; renderDiario(c);}
   else if(tab==='resultado'){
     title.textContent='Olá, Bem-vindo(a)!';
     sub.textContent=(S.perfil&&S.perfil.nome)?S.perfil.nome:'Configure seu perfil em Configurações';
@@ -1046,13 +1066,13 @@ function renderDiario(c){
   const chartTotalLabel='total do mês';
   const heroCls='t-amber'+(saldo<0?' neg':'');
   let html=heroHtml({
-    cls:heroCls,
+    cls:heroCls+' diario-hero',
     icon:ICO.wallet,
     blobIcon:ICO.wallet,
     label:'Capital de giro disponível',
     value:(saldo<0?'- ':'')+brl(Math.abs(saldo)),
     stats:[
-      {icon:ICO.receipt,label:'Gasto no dia',val:brl(totalDia)},
+      {icon:ICO.receipt,label:'Gasto no dia',val:brl(totalDia),hl:true},
       {icon:ICO.cal,label:'Total no mês',val:brl(totalMes)},
       {icon:ICO.chart,label:'Média/dia',val:brl(mediaDiaMes)}
     ]
