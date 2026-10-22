@@ -767,6 +767,28 @@ main{padding-bottom:170px;}
 .hero2 .h2-pctl,.hero2 .h2-lblpct{font:inherit; font-weight:inherit; color:inherit; margin:0;}
 .hero2 .h2-panel.tones .h2-st-top{flex-direction:column; align-items:flex-start; flex-wrap:nowrap; gap:7px; margin-bottom:6px;}
 .hero2 .h2-panel.tones .h2-slbl{white-space:nowrap;}
+/* Início: cards A receber / A pagar / Diários mais fortes e com acabamento (borda + sombra suave) */
+.hero2 .h2-panel.tones .h2-st{border:1px solid transparent; box-shadow:0 3px 10px rgba(0,0,0,.07);}
+.hero2 .h2-panel.tones .tone-green{background:linear-gradient(135deg,#c6efd6,#a4e2bd); border-color:#86d3a5;}
+.hero2 .h2-panel.tones .tone-red{background:linear-gradient(135deg,#fbdcd6,#f6c6be); border-color:#eeb1a8;}
+.hero2 .h2-panel.tones .tone-amber{background:linear-gradient(135deg,#fff0d6,#fbe0b0); border-color:#f2d08b;}
+.hero2 .h2-panel.tones .tone-green .h2-sic{background:rgba(33,122,75,.30); color:#14603c;}
+.hero2 .h2-panel.tones .tone-green .h2-slbl{color:#1d6b43; font-weight:600;}
+.hero2 .h2-panel.tones .tone-green b{color:#0d5232;}
+:root[data-theme="dark"] .hero2 .h2-panel.tones .tone-green{background:linear-gradient(135deg,#1f5239,#18412d); border-color:#2f7a54;}
+:root[data-theme="dark"] .hero2 .h2-panel.tones .tone-red{background:linear-gradient(135deg,#432620,#3a201a); border-color:#5a342b;}
+:root[data-theme="dark"] .hero2 .h2-panel.tones .tone-amber{background:linear-gradient(135deg,#43371b,#3a2f18); border-color:#5a4a26;}
+:root[data-theme="dark"] .hero2 .h2-panel.tones .tone-green .h2-sic{background:rgba(95,211,141,.25); color:#8ff0b4;}
+:root[data-theme="dark"] .hero2 .h2-panel.tones .tone-green .h2-slbl{color:#a6e8c0;}
+:root[data-theme="dark"] .hero2 .h2-panel.tones .tone-green b{color:#8ff0b4;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .hero2 .h2-panel.tones .tone-green{background:linear-gradient(135deg,#1f5239,#18412d); border-color:#2f7a54;}
+  :root:not([data-theme="light"]) .hero2 .h2-panel.tones .tone-red{background:linear-gradient(135deg,#432620,#3a201a); border-color:#5a342b;}
+  :root:not([data-theme="light"]) .hero2 .h2-panel.tones .tone-amber{background:linear-gradient(135deg,#43371b,#3a2f18); border-color:#5a4a26;}
+  :root:not([data-theme="light"]) .hero2 .h2-panel.tones .tone-green .h2-sic{background:rgba(95,211,141,.25); color:#8ff0b4;}
+  :root:not([data-theme="light"]) .hero2 .h2-panel.tones .tone-green .h2-slbl{color:#a6e8c0;}
+  :root:not([data-theme="light"]) .hero2 .h2-panel.tones .tone-green b{color:#8ff0b4;}
+}
 
 /* ===== Impressão do extrato (A4) ===== */
 #printArea{display:none;}
