@@ -1046,18 +1046,21 @@ function renderDiario(c){
   const mediaDiaMes=diasBaseMedia?totalMes/diasBaseMedia:0;
   const chartItems=diarioVerTodas?monthItems:dayItems;
   const chartTotalLabel=diarioVerTodas?'total do mês':'total do dia';
+  const heroCls='t-amber'+(saldo<0?' neg':'');
   let html=heroHtml({
-    cls:'t-amber',
-    icon:ICO.cal,
-    blobIcon:ICO.receipt,
-    label:'Gasto no dia',
-    value:brl(totalDia),
+    cls:heroCls,
+    icon:ICO.wallet,
+    blobIcon:ICO.wallet,
+    label:'Capital de giro disponível',
+    value:(saldo<0?'- ':'')+brl(Math.abs(saldo)),
     stats:[
+      {icon:ICO.receipt,label:'Gasto no dia',val:brl(totalDia)},
       {icon:ICO.cal,label:'Total no mês',val:brl(totalMes)},
-      {icon:ICO.receipt,label:'Lançamentos',val:String(dayItems.length)},
       {icon:ICO.chart,label:'Média/dia',val:brl(mediaDiaMes)}
     ]
   });
+  // toque no card para definir o capital de giro mensal
+  html=html.replace('<div class="hero2 '+heroCls+'"','<div class="hero2 '+heroCls+'" onclick="openCapitalModal()" style="cursor:pointer;"');
   html+=diarioChartHtml(chartItems,chartTotalLabel);
   html+=`<div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;">
     <span>Lançamentos do dia</span>
