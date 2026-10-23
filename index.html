@@ -458,7 +458,9 @@ nav.bottom{max-width:calc(var(--maxw) - 24px);}
   .rsv-name{font-size:14.5px;}
   .rsv-val{font-size:21px;}
   .rsv-sub{font-size:11.5px;}
-  .list{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  /* Tablet: lista em 2 colunas, preenchendo a 1ª de cima para baixo e depois a 2ª (mantém a ordem por data) */
+  .list{display:block; column-count:2; column-gap:10px;}
+  .list>.row{break-inside:avoid; -webkit-column-break-inside:avoid; page-break-inside:avoid; margin-bottom:10px;}
   .row .cli{font-size:15px;}
   .row .sub{font-size:12.5px;}
   .row .valor{font-size:15px;}
