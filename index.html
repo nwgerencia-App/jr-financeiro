@@ -751,6 +751,16 @@ nav.bottom .ic svg{width:25px; height:25px; stroke-width:2;}
 nav.bottom button.active{color:#0a47b8; font-weight:800;}
 nav.bottom button.active .ic{background:linear-gradient(135deg,#0a47b8,#1380ee); color:#fff; box-shadow:0 8px 18px rgba(10,71,184,.38);}
 nav.bottom button.active::after{background:linear-gradient(90deg,#0a47b8,#1380ee);}
+/* Botão central (Dia a Dia) em destaque: maior, sempre colorido e levemente elevado */
+nav.bottom button[data-tab="diario"] .ic{width:72px; height:54px; border-radius:27px; margin-top:-12px; background:linear-gradient(135deg,#0a47b8,#1380ee); color:#fff; box-shadow:0 8px 18px rgba(10,71,184,.38);}
+nav.bottom button[data-tab="diario"] .ic svg{width:28px; height:28px;}
+nav.bottom button[data-tab="diario"]{font-weight:800; color:#0a47b8;}
+:root[data-theme="dark"] nav.bottom button[data-tab="diario"] .ic{background:#8fb3ff; color:#15181f; box-shadow:0 8px 18px rgba(143,179,255,.25);}
+:root[data-theme="dark"] nav.bottom button[data-tab="diario"]{color:#8fb3ff;}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) nav.bottom button[data-tab="diario"] .ic{background:#8fb3ff; color:#15181f; box-shadow:0 8px 18px rgba(143,179,255,.25);}
+  :root:not([data-theme="light"]) nav.bottom button[data-tab="diario"]{color:#8fb3ff;}
+}
 :root[data-theme="dark"] nav.bottom button{color:#9aa7c4;}
 :root[data-theme="dark"] nav.bottom button.active::after{background:#8fb3ff;}
 :root[data-theme="dark"] nav.bottom button.active .ic{background:#8fb3ff;}
@@ -831,9 +841,9 @@ main{padding-bottom:170px;}
   <button class="fab" id="fabAdd" style="display:none;"><span class="plus">+</span><span id="fabAddLabel">Novo lançamento</span></button>
   <nav class="bottom">
     <button data-tab="resultado" class="active"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg></span>Início</button>
-    <button data-tab="diario"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg></span>Diário</button>
-    <button data-tab="receber"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M8.5 13l3.5 3.5 3.5-3.5"/></svg></span>Receber</button>
-    <button data-tab="pagar"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-9M8.5 11 12 7.5 15.5 11"/></svg></span>Pagar</button>
+    <button data-tab="receber"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M8.5 13l3.5 3.5 3.5-3.5"/></svg></span>A receber</button>
+    <button data-tab="diario"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg></span>Dia a Dia</button>
+    <button data-tab="pagar"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-9M8.5 11 12 7.5 15.5 11"/></svg></span>A pagar</button>
     <button data-tab="gestao"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 10 12 4l9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></span>Gestão</button>
   </nav>
 </div>
@@ -2962,7 +2972,7 @@ document.getElementById('settingsBtn').addEventListener('click',openSettings);
 document.querySelectorAll('nav.bottom button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab; render();}));
 function goTab(t){ tab=t; render(); }
 
-const TAB_ORDER=['resultado','diario','receber','pagar','gestao'];
+const TAB_ORDER=['resultado','receber','diario','pagar','gestao'];
 let swipeStartX=0, swipeStartY=0, swipeSkip=false;
 const contentEl=document.getElementById('content');
 contentEl.addEventListener('touchstart',e=>{
