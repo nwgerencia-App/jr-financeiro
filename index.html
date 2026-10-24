@@ -374,6 +374,14 @@ header.hmain .hic{box-shadow:none;}
 .hero2.diario-hero .h2-st-top{flex-direction:column; align-items:flex-start; gap:5px;}
 .hero2.diario-hero .h2-slbl{white-space:normal; overflow:visible; text-overflow:clip; line-height:1.2;}
 .hero2.diario-hero .h2-st b{font-size:12px;}
+/* Celular: os três valores do Dia a Dia aparecem inteiros, sem cortar */
+@media (max-width:480px){
+  .hero2.diario-hero .h2-panel.tones{gap:4px; padding:4px;}
+  .hero2.diario-hero .h2-panel.tones .h2-st{padding:8px 6px 9px; flex:1;}
+  .hero2.diario-hero .h2-panel.tones .h2-st b{font-size:11px; overflow:visible; text-overflow:clip;}
+  .hero2.diario-hero .h2-panel.tones .h2-st.h2-hl b{font-size:12px;}
+  .hero2.diario-hero .h2-hl-cal{right:6px;}
+}
 .hero2.diario-hero .h2-st.h2-hl{position:relative; cursor:pointer; flex:1.35; background:linear-gradient(135deg,#d9a441,#b9812e); box-shadow:0 4px 12px rgba(185,129,46,.35);}
 .hero2.diario-hero .h2-hl-cal{position:absolute; top:7px; right:9px; font-size:12px; line-height:1; pointer-events:none;}
 .hero2.diario-hero .h2-st.h2-hl .h2-slbl{color:rgba(255,255,255,.92); font-weight:700;}
@@ -1140,7 +1148,7 @@ function renderDiario(c){
   const chartItems=monthItems;
   const chartTotalLabel='total do mês';
   const heroCls='t-amber'+(saldo<0?' neg':'');
-  const diaLabel=(diaSel===todayStr())?'Gasto no dia':'Gasto em '+diaSel.slice(8,10)+'/'+diaSel.slice(5,7);
+  const diaLabel=(diaSel===todayStr())?'Gastos de hoje':'Gasto em '+diaSel.slice(8,10)+'/'+diaSel.slice(5,7);
   let html=heroHtml({
     cls:heroCls+' diario-hero',
     icon:ICO.wallet,
@@ -1154,7 +1162,7 @@ function renderDiario(c){
     ]
   });
   // botão acima do card (canto direito) para definir o capital de giro mensal
-  html='<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button onclick="openCapitalModal()" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;">Capital de giro</button></div>'+html;
+  html='<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button onclick="openCapitalModal()" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;">Meu capital de giro</button></div>'+html;
   html+=diarioChartHtml(chartItems,chartTotalLabel);
   html+=`<div class="sectionh" style="display:flex;justify-content:space-between;align-items:center;">
     <span>Lançamentos</span>
