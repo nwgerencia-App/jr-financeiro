@@ -754,6 +754,12 @@ nav.bottom button.active::after{background:linear-gradient(90deg,#0a47b8,#1380ee
 /* Botão central (Dia a Dia) em destaque: maior, sempre colorido e levemente elevado */
 nav.bottom button[data-tab="diario"] .ic{width:72px; height:54px; border-radius:27px; margin-top:-12px; background:none; color:#0a47b8; box-shadow:none;}
 nav.bottom button[data-tab="diario"] .ic svg{width:28px; height:28px;}
+/* Dia a Dia selecionado: mesmo fundo colorido dos outros botões */
+nav.bottom button.active[data-tab="diario"] .ic{background:linear-gradient(135deg,#0a47b8,#1380ee); color:#fff; box-shadow:0 8px 18px rgba(10,71,184,.38);}
+:root[data-theme="dark"] nav.bottom button.active[data-tab="diario"] .ic{background:#8fb3ff; color:#15181f; box-shadow:0 5px 12px rgba(143,179,255,.25);}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) nav.bottom button.active[data-tab="diario"] .ic{background:#8fb3ff; color:#15181f; box-shadow:0 5px 12px rgba(143,179,255,.25);}
+}
 nav.bottom button[data-tab="diario"]{font-weight:800; color:#0a47b8;}
 :root[data-theme="dark"] nav.bottom button[data-tab="diario"] .ic{background:none; color:#8fb3ff; box-shadow:none;}
 :root[data-theme="dark"] nav.bottom button[data-tab="diario"]{color:#8fb3ff;}
