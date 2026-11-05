@@ -820,6 +820,7 @@ main{padding-bottom:170px;}
 .vbars .vb-sub{font-size:12px; color:var(--muted); margin-bottom:10px;}
 .vbars .vb-plot{display:flex; align-items:flex-end; gap:8px; padding:0 2px; border-bottom:2px solid var(--text);}
 .vbars .vb-col{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;}
+.vbars .vb-cap{font-size:10.5px; font-weight:700; color:var(--muted); text-align:center; line-height:1.15; margin-bottom:3px;}
 .vbars .vb-val{font-size:11px; font-weight:800; color:var(--navy); white-space:nowrap; margin-bottom:6px; letter-spacing:-.2px;}
 .vbars .vb-val.neg{color:#b3392a;}
 .vbars .vb-bar{width:100%; border-radius:4px 4px 0 0; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow:inset 0 -18px 30px rgba(0,0,0,.12);}
@@ -1898,12 +1899,13 @@ let inicioModo='previsto';
 function setInicioModo(m){ inicioModo=m; render(); }
 // gráfico de barras verticais da tela Início
 function inicioBarrasHtml(barras,mesLbl){
-  const maxV=Math.max(...barras.map(b=>Math.abs(b.val)),1), alturaMax=200, alturaMin=96;
+  const maxV=Math.max(...barras.map(b=>Math.abs(b.val)),1), alturaMax=220, alturaMin=6, cabeNome=110;
   const cols=barras.map(b=>{
-    const neg=b.val<0, h=Math.max(Math.round(Math.abs(b.val)/maxV*alturaMax),alturaMin);
+    const neg=b.val<0, h=Math.max(Math.round(Math.abs(b.val)/maxV*alturaMax),alturaMin), dentro=h>=cabeNome;
     return `<div class="vb-col">
+      ${dentro?'':`<div class="vb-cap">${b.lbl}</div>`}
       <div class="vb-val${neg?' neg':''}">${neg?'- ':''}${brl(Math.abs(b.val))}</div>
-      <div class="vb-bar ${b.cls}" style="height:${h}px;"><span>${b.lbl}</span></div>
+      <div class="vb-bar ${b.cls}" style="height:${h}px;">${dentro?`<span>${b.lbl}</span>`:''}</div>
     </div>`;
   }).join('');
   return `<div class="vbars">
