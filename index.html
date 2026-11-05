@@ -940,7 +940,7 @@ function seed(){
     reservaNomes:{imprevistos:'Imprevistos',projeto:'Projeto Anual',pessoal:'Pessoal',doacoes:'Doações'},
     reservaOrdem:['imprevistos','projeto','pessoal','doacoes'], reservaVis:{},
     reservaHist:[{desde:0,reservas:{imprevistos:50,projeto:20,pessoal:20,doacoes:10}}],
-    customCats:[], catColors:{}, hiddenCats:[], catsPor:{pagar:{custom:[],hidden:[]},receber:{custom:[],hidden:[]},diario:{custom:[],hidden:[]}}, diarios:[], capitalGiro:0, customFormas:[], notifPref:true, pin:null, perfil:{nome:'',email:''}, theme:'auto', ano:'2026', reservaSaidas:[], reservaEntradas:[]
+    customCats:[], catColors:{}, hiddenCats:[], catsPor:{pagar:{custom:[],hidden:[]},receber:{custom:[],hidden:[]},diario:{custom:[],hidden:[]}}, diarios:[], capitalGiro:0, capitalMes:{}, customFormas:[], notifPref:true, pin:null, perfil:{nome:'',email:''}, theme:'auto', ano:'2026', reservaSaidas:[], reservaEntradas:[]
   };
 }
 let S=load();
@@ -964,6 +964,7 @@ function load(){
     if(!s.hiddenCats) s.hiddenCats=[];
     if(!s.diarios) s.diarios=[];
     if(s.capitalGiro===undefined) s.capitalGiro=0;
+    if(!s.capitalMes||typeof s.capitalMes!=='object') s.capitalMes={};
     if(!s.customFormas) s.customFormas=[];
     if(s.notifPref===undefined) s.notifPref=true;
     if(s.notifDias===undefined) s.notifDias=3;
@@ -1166,7 +1167,7 @@ function renderDiario(c){
   const totalDia=dayItems.reduce((s,e)=>s+e.valor,0);
   const monthItems=diarioItemsForMonth(diaSel);
   const totalMes=monthItems.reduce((s,e)=>s+e.valor,0);
-  const saldo=(S.capitalGiro||0)-totalMes;
+  const saldo=capitalDoMes(curYear,curMonth)-totalMes;
   // média diária do mês: total do mês dividido pelos dias do mês (no mês atual, só até hoje)
   const [anoDia,mesDia]=diaSel.split('-').map(Number);
   const hojeMedia=new Date();
@@ -1655,15 +1656,23 @@ function selectMonthYear(i){
   document.getElementById('catModalRoot').innerHTML='';
   render();
 }
+// capital de giro de cada mês (cada mês guarda o seu valor; mês sem valor próprio usa o valor antigo geral)
+function capKey(ano,mes){ return ano+'-'+String(mes+1).padStart(2,'0'); }
+function capitalDoMes(ano,mes){
+  const m=S.capitalMes||{}, k=capKey(ano,mes);
+  return Object.prototype.hasOwnProperty.call(m,k)?(+m[k]||0):(+S.capitalGiro||0);
+}
 function openCapitalModal(){
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
-    <h2>Capital de giro mensal</h2>
-    <div class="field"><label>Valor (R$)</label><input id="fCapital" type="number" step="0.01" inputmode="decimal" enterkeyhint="done" value="${S.capitalGiro||0}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCapital();}"></div>
+    <h2>Capital de giro de ${MONTHS[curMonth].f}/${curYear}</h2>
+    <div class="field"><label>Valor (R$)</label><input id="fCapital" type="number" step="0.01" inputmode="decimal" enterkeyhint="done" value="${capitalDoMes(curYear,curMonth)}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCapital();}"></div>
+    <div class="rnota">Vale só para este mês. Os outros meses não mudam.</div>
     <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button><button class="btn primary" onclick="saveCapital()">Salvar</button></div>
   </div></div>`;
 }
 function saveCapital(){
-  S.capitalGiro=+document.getElementById('fCapital').value||0;
+  S.capitalMes=S.capitalMes||{};
+  S.capitalMes[capKey(curYear,curMonth)]=+document.getElementById('fCapital').value||0;
   save(); document.getElementById('catModalRoot').innerHTML=''; render();
 }
 function openDiarioForm(editId){
@@ -1928,7 +1937,8 @@ function renderInicio(c){
   const baseRec=real?recebido:cur.fat;
   const pctRec=v=>baseRec>0?(v/baseRec*100).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%':'';
   const lucroReal=recebido-pago-totalDiario;
-  const lucroShow=real?lucroReal:(cur.fat-cur.desp-(S.capitalGiro||0));
+  const capMes=capitalDoMes(curYear,curMonth);
+  const lucroShow=real?lucroReal:(cur.fat-cur.desp-capMes);
   const heroInicio=heroHtml({
     cls:'t-blue'+(lucroShow<0?' neg':''),
     go:'gestao',
@@ -1943,7 +1953,7 @@ function renderInicio(c){
     ]:[
       {icon:ICO.down,label:'A receber',val:brl(cur.fat),go:'receber',tone:'green'},
       {icon:ICO.card,label:'A pagar',val:brl(cur.desp),pct:pctRec(cur.desp),go:'pagar',tone:'red'},
-      {icon:ICO.cal,label:'Diários',val:brl(S.capitalGiro||0),pct:pctRec(S.capitalGiro||0),go:'diario',tone:'amber'}
+      {icon:ICO.cal,label:'Diários',val:brl(capMes),pct:pctRec(capMes),go:'diario',tone:'amber'}
     ]
   });
   const segInicio=`<div class="seg"><button class="${real?'':'on'}" onclick="setInicioModo('previsto')">Previsto</button><button class="${real?'on':''}" onclick="setInicioModo('realizado')">Realizado</button></div>`;
@@ -1951,7 +1961,7 @@ function renderInicio(c){
   const barras=[
     {lbl:real?'Recebido':'A receber',val:real?recebido:cur.fat,cls:'b-green'},
     {lbl:real?'Pago':'A pagar',val:real?pago:cur.desp,cls:'b-red'},
-    {lbl:'Despesas do dia a dia',val:real?totalDiario:(S.capitalGiro||0),cls:'b-amber'},
+    {lbl:'Despesas do dia a dia',val:real?totalDiario:capMes,cls:'b-amber'},
     {lbl:'Resultado',val:lucroShow,cls:'b-blue'}
   ];
 
@@ -2679,6 +2689,8 @@ function sanitizeBackup(d){
     if(/^(#[0-9a-fA-F]{3,8}|hsl\(\d{1,3},\s?\d{1,3}%,\s?\d{1,3}%\))$/.test(String(v))) out.catColors[txt(k,40)]=String(v);
   });
   out.capitalGiro=num(d.capitalGiro);
+  out.capitalMes={};
+  if(d.capitalMes&&typeof d.capitalMes==='object') Object.entries(d.capitalMes).slice(0,600).forEach(([k,v])=>{ if(/^\d{4}-(0[1-9]|1[0-2])$/.test(k)) out.capitalMes[k]=num(v); });
   out.notifPref=d.notifPref!==false;
   out.notifDias=Math.min(30,Math.max(0,Math.round(num(d.notifDias===undefined?3:d.notifDias))));
   out.pin=/^\d{4}$/.test(String(d.pin))?String(d.pin):null;
