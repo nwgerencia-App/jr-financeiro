@@ -1656,23 +1656,41 @@ function selectMonthYear(i){
   document.getElementById('catModalRoot').innerHTML='';
   render();
 }
-// capital de giro de cada mês (cada mês guarda o seu valor; mês sem valor próprio usa o valor antigo geral)
+// capital de giro de cada mês: por padrão é automático = o que falta para as contas a pagar + dia a dia chegarem a 80% do total a receber
+const LIMITE_GASTOS=80;
 function capKey(ano,mes){ return ano+'-'+String(mes+1).padStart(2,'0'); }
-function capitalDoMes(ano,mes){
+function capitalAuto(ano,mes){
+  const fat=sumFor(S.receber,mes,ano), desp=sumFor(S.pagar,mes,ano);
+  return Math.max(0, fat*LIMITE_GASTOS/100 - desp);
+}
+function capitalManual(ano,mes){
   const m=S.capitalMes||{}, k=capKey(ano,mes);
-  return Object.prototype.hasOwnProperty.call(m,k)?(+m[k]||0):(+S.capitalGiro||0);
+  return Object.prototype.hasOwnProperty.call(m,k)?(+m[k]||0):null;   // null = usa o automático
+}
+function capitalDoMes(ano,mes){
+  const man=capitalManual(ano,mes);
+  return man===null?capitalAuto(ano,mes):man;
 }
 function openCapitalModal(){
+  const auto=capitalAuto(curYear,curMonth), man=capitalManual(curYear,curMonth);
   document.getElementById('catModalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeCatModal()"><div class="modal">
     <h2>Capital de giro de ${MONTHS[curMonth].f}/${curYear}</h2>
-    <div class="field"><label>Valor (R$)</label><input id="fCapital" type="number" step="0.01" inputmode="decimal" enterkeyhint="done" value="${capitalDoMes(curYear,curMonth)}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCapital();}"></div>
-    <div class="rnota">Vale só para este mês. Os outros meses não mudam.</div>
+    <div class="rnota">Automático: o que falta para as contas a pagar + dia a dia chegarem a ${LIMITE_GASTOS}% do total a receber do mês. Agora: <b>${brl(auto)}</b>.</div>
+    <div class="field"><label>Valor (R$)</label><input id="fCapital" type="number" step="0.01" inputmode="decimal" enterkeyhint="done" value="${man===null?auto.toFixed(2):man}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCapital();}"></div>
+    <div class="rnota">${man===null?'Este mês está no automático. Se você digitar outro valor, ele passa a valer só para este mês.':'Este mês está com valor manual.'}</div>
+    ${man===null?'':'<button class="btn ghost" style="width:100%;margin-bottom:10px;" onclick="capitalAutomatico()">↺ Voltar ao cálculo automático</button>'}
     <div class="modalbtns"><button class="btn ghost" onclick="closeCatModal()">Cancelar</button><button class="btn primary" onclick="saveCapital()">Salvar</button></div>
   </div></div>`;
 }
+function capitalAutomatico(){
+  if(S.capitalMes) delete S.capitalMes[capKey(curYear,curMonth)];
+  save(); document.getElementById('catModalRoot').innerHTML=''; render();
+}
 function saveCapital(){
   S.capitalMes=S.capitalMes||{};
-  S.capitalMes[capKey(curYear,curMonth)]=+document.getElementById('fCapital').value||0;
+  const v=+document.getElementById('fCapital').value||0;
+  if(capitalManual(curYear,curMonth)===null && Math.abs(v-capitalAuto(curYear,curMonth))<0.005){ document.getElementById('catModalRoot').innerHTML=''; render(); return; }   // não mudou: continua automático
+  S.capitalMes[capKey(curYear,curMonth)]=v;
   save(); document.getElementById('catModalRoot').innerHTML=''; render();
 }
 function openDiarioForm(editId){
