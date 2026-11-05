@@ -814,6 +814,33 @@ main{padding-bottom:170px;}
   :root:not([data-theme="light"]) .hero2 .h2-panel.tones .tone-green b{color:#8ff0b4;}
 }
 
+/* ===== Início: gráfico de barras verticais ===== */
+.vbars{background:var(--card); border:1px solid var(--border); border-radius:18px; padding:16px 12px 14px; margin-bottom:16px;}
+.vbars .vb-head{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;}
+.vbars .vb-sub{font-size:12px; color:var(--muted); margin-bottom:10px;}
+.vbars .vb-plot{display:flex; align-items:flex-end; gap:8px; padding:0 2px; border-bottom:2px solid var(--text);}
+.vbars .vb-col{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;}
+.vbars .vb-val{font-size:11px; font-weight:800; color:var(--navy); white-space:nowrap; margin-bottom:6px; letter-spacing:-.2px;}
+.vbars .vb-val.neg{color:#b3392a;}
+.vbars .vb-bar{width:100%; border-radius:4px 4px 0 0; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow:inset 0 -18px 30px rgba(0,0,0,.12);}
+.vbars .vb-bar span{writing-mode:vertical-rl; transform:rotate(180deg); color:#fff; font-weight:800; font-size:13px; line-height:1.15; text-align:center; padding:8px 0; max-height:100%;}
+.vbars .b-green{background:linear-gradient(180deg,#2fae6a,#1f8a55);}
+.vbars .b-red{background:linear-gradient(180deg,#e07a6b,#c9564a);}
+.vbars .b-amber{background:linear-gradient(180deg,#f0b44f,#d9961c);}
+.vbars .b-blue{background:linear-gradient(180deg,#2d6cdf,#0a47b8);}
+:root[data-theme="dark"] .vbars .vb-val{color:var(--text);}
+:root[data-theme="dark"] .vbars .vb-val.neg{color:#ff9d8f;}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .vbars .vb-val{color:var(--text);}
+  :root:not([data-theme="light"]) .vbars .vb-val.neg{color:#ff9d8f;}
+}
+@media (min-width:700px){
+  .vbars .vb-val{font-size:14px;}
+  .vbars .vb-bar span{font-size:15px;}
+  .vbars .vb-plot{gap:16px;}
+}
+
+
 /* ===== Impressão do extrato (A4) ===== */
 #printArea{display:none;}
 @page{size:A4;margin:14mm;}
@@ -1869,35 +1896,31 @@ function renderResultado(c){
 
 let inicioModo='previsto';
 function setInicioModo(m){ inicioModo=m; render(); }
+// gráfico de barras verticais da tela Início
+function inicioBarrasHtml(barras,mesLbl){
+  const maxV=Math.max(...barras.map(b=>Math.abs(b.val)),1), alturaMax=200, alturaMin=96;
+  const cols=barras.map(b=>{
+    const neg=b.val<0, h=Math.max(Math.round(Math.abs(b.val)/maxV*alturaMax),alturaMin);
+    return `<div class="vb-col">
+      <div class="vb-val${neg?' neg':''}">${neg?'- ':''}${brl(Math.abs(b.val))}</div>
+      <div class="vb-bar ${b.cls}" style="height:${h}px;"><span>${b.lbl}</span></div>
+    </div>`;
+  }).join('');
+  return `<div class="vbars">
+    <div class="vb-head">
+      <div class="lbl" style="margin:0;font-size:12.5px;font-weight:600;">Movimentação Financeira ${inicioModo==='realizado'?'Realizado':'Previsto'}</div>
+      <button onclick="openExtratoInicio()" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;white-space:nowrap;">📋 Extrato do mês ›</button>
+    </div>
+    <div class="vb-sub">${mesLbl}</div>
+    <div class="vb-plot">${cols}</div>
+  </div>`;
+}
 function renderInicio(c){
   const totals=effTotals();
   const cur=totals[curMonth];
   const recebido=sumStatus(S.receber,curMonth,['Recebido']);
-  const aReceberPend=sumStatus(S.receber,curMonth,['A Receber']);
   const pago=sumStatus(S.pagar,curMonth,['Pago']);
-  const aPagarPend=sumStatus(S.pagar,curMonth,['A Pagar']);
   const totalDiario=diarioTotalForMonth(curMonth);
-  const lucro=cur.fat-totalDiario-cur.desp;
-  const pct=cur.fat?((lucro/cur.fat)*100).toFixed(1):'0.0';
-
-  const vals=[recebido,aReceberPend,pago,aPagarPend,totalDiario];
-  const colors=['#1e8449','#5fd38d','#e0392b','#f4a6b0','#e8a53d'];
-  const max=Math.max(...vals,1);
-  function barRow(label,value,color){
-    const pct=Math.max(Math.round((value/max)*100),2);
-    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <div style="width:82px;flex-shrink:0;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${label}</div>
-      <div style="flex:1;background:var(--cream);border-radius:7px;height:14px;overflow:hidden;">
-        <div style="width:${pct}%;height:100%;background:${color};border-radius:7px;"></div>
-      </div>
-      <div style="width:84px;flex-shrink:0;text-align:right;font-size:11.5px;font-weight:700;color:var(--text);white-space:nowrap;">${brl(value)}</div>
-    </div>`;
-  }
-  const groupLbl='font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.03em;margin-bottom:8px;';
-
-  const ymKey=`${curYear}-${String(curMonth+1).padStart(2,'0')}`;
-  const diasComGasto=new Set((S.diarios||[]).filter(e=>e.data&&e.data.slice(0,7)===ymKey).map(e=>e.data)).size;
-  const mediaDia=diasComGasto?totalDiario/diasComGasto:0;
 
   const real=inicioModo==='realizado';
   const baseRec=real?recebido:cur.fat;
@@ -1923,29 +1946,16 @@ function renderInicio(c){
   });
   const segInicio=`<div class="seg"><button class="${real?'':'on'}" onclick="setInicioModo('previsto')">Previsto</button><button class="${real?'on':''}" onclick="setInicioModo('realizado')">Realizado</button></div>`;
 
-  c.innerHTML=segInicio+heroInicio+inicioVencHtml()+`
-  <div class="chart">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">
-      <div class="lbl" style="margin:0;">Movimentação Financeira Realizado</div>
-      <button onclick="openExtratoInicio()" style="background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--navy);font-family:inherit;cursor:pointer;white-space:nowrap;">📋 Extrato do mês ›</button>
-    </div>
-    <div class="sub" style="margin-bottom:16px;">${MONTHS[curMonth].f}/${curYear}</div>
-    <div style="margin-bottom:16px;">
-      <div style="${groupLbl}">TOTAL A RECEBER</div>
-      ${barRow('Recebido',recebido,colors[0])}
-      ${barRow('A receber',aReceberPend,colors[1])}
-    </div>
-    <div style="margin-bottom:16px;">
-      <div style="${groupLbl}">TOTAL A PAGAR</div>
-      ${barRow('Pago',pago,colors[2])}
-      ${barRow('A pagar',aPagarPend,colors[3])}
-    </div>
-    <div>
-      <div style="${groupLbl}">TOTAL DIÁRIOS</div>
-      ${barRow('Diário',totalDiario,colors[4])}
-    </div>
-  </div>`;
+  const barras=[
+    {lbl:real?'Recebido':'A receber',val:real?recebido:cur.fat,cls:'b-green'},
+    {lbl:real?'Pago':'A pagar',val:real?pago:cur.desp,cls:'b-red'},
+    {lbl:'Despesas do dia a dia',val:real?totalDiario:(S.capitalGiro||0),cls:'b-amber'},
+    {lbl:'Resultado',val:lucroShow,cls:'b-blue'}
+  ];
+
+  c.innerHTML=segInicio+heroInicio+inicioVencHtml()+inicioBarrasHtml(barras,MONTHS[curMonth].f+'/'+curYear);
 }
+
 
 const RSV_ICONS={
   wallet:'<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1 1 0 0 1 1 1v2"/><path d="M4 7.5V17a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 1 4 7.5z"/><circle cx="16" cy="13.5" r="1.1" fill="currentColor"/>',
