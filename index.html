@@ -1424,12 +1424,12 @@ function abrirExtrato(tipo){
 }
 // itens do mês, no mesmo formato para Diário, A Receber e A Pagar
 function extratoItensMes(){
-  if(extratoTipo==='diario') return diarioItemsForMonth(diaSel).map(e=>({id:e.id,nome:e.nome,categoria:e.categoria,data:e.data,hora:e.hora||'',valor:e.valor,status:''}));
+  if(extratoTipo==='diario') return diarioItemsForMonth(diaSel).map(e=>({id:e.id,nome:e.nome,categoria:e.categoria,data:e.data,hora:e.hora||'',valor:e.valor,status:'',pend:false}));
   const rec=extratoTipo==='receber';
   const list=rec?S.receber:S.pagar, nk=rec?'cliente':'conta', done=rec?'Recebido':'Pago';
   return list
     .filter(e=>monthIndexFromRef(e.referencia)===curMonth&&yearFromRef(e.referencia)===String(curYear))
-    .map(e=>({id:e.id,nome:e[nk],categoria:e.tipo,data:e.venc,hora:'',valor:e.valor,status:e.status===done?'✔ '+done:'Pendente'}));
+    .map(e=>({id:e.id,nome:e[nk],categoria:e.tipo,data:e.venc,hora:'',valor:e.valor,status:e.status===done?'✔ '+done:'Pendente',pend:e.status!==done}));
 }
 // abre/fecha as despesas de uma categoria (na própria lista, sem sair do extrato) e mantém a posição da tela
 function toggleExtratoCat(enc){
@@ -1456,6 +1456,9 @@ function fecharNovoModal(){
 function openExtratoMes(){
   const corV=extratoTipo==='receber'?'#217a4b':'#b3392a';
   const tom=extratoTipo==='receber'?'green':(extratoTipo==='pagar'?'red':'amber');
+  const corPend='#b9812e';
+  const corIt=e=>e.pend?corPend:corV;
+  const sgIt=e=>extratoTipo==='diario'?'':(extratoTipo==='receber'?'+ ':'- ');
   const items=extratoItensMes().sort((a,b)=>{
     if(a.data!==b.data) return b.data.localeCompare(a.data);
     return (b.hora||'').localeCompare(a.hora||'');
@@ -1471,8 +1474,8 @@ function openExtratoMes(){
         </div>
       </div>
       <div class="right">
-        <div class="sub" style="margin-bottom:2px;">${e.status||e.hora||''}</div>
-        <div class="valor" style="color:${corV}">${brl(e.valor)}</div>
+        <div class="sub" style="margin-bottom:2px;${e.pend?'color:'+corPend+';font-weight:600;':''}">${e.status||e.hora||''}</div>
+        <div class="valor" style="color:${corIt(e)}">${sgIt(e)}${brl(e.valor)}</div>
       </div>
     </div>`).join('');
   const seg=`<div class="seg"><button class="${extratoModo==='geral'?'on':''}" onclick="setExtratoModo('geral')">Geral</button><button class="${extratoModo==='categoria'?'on':''}" onclick="setExtratoModo('categoria')">Por categoria</button></div>`;
@@ -1487,7 +1490,7 @@ function openExtratoMes(){
     conteudo=cats.map(([nome,d])=>{
       const pct=total?d.valor/total*100:0;
       const aberta=extratoCatsAbertas.includes(nome);
-      const lista=aberta?`<div class="catx-list">${d.itens.map(e=>`<div class="catx-item" style="cursor:pointer;" onclick="event.stopPropagation();editarDoExtrato('${e.id}')"><div class="ci-l"><div class="ci-n">${escHtml(e.nome)}</div><div class="ci-d">${fmtVenc(e.data)}${e.hora?' · '+e.hora:''}${e.status?' · '+e.status:''}</div></div><div class="ci-v" style="color:${corV}">${brl(e.valor)}</div></div>`).join('')}</div>`:'';
+      const lista=aberta?`<div class="catx-list">${d.itens.map(e=>`<div class="catx-item" style="cursor:pointer;" onclick="event.stopPropagation();editarDoExtrato('${e.id}')"><div class="ci-l"><div class="ci-n">${escHtml(e.nome)}</div><div class="ci-d">${fmtVenc(e.data)}${e.hora?' · '+e.hora:''}${e.status?' · '+e.status:''}</div></div><div class="ci-v" style="color:${corIt(e)}">${sgIt(e)}${brl(e.valor)}</div></div>`).join('')}</div>`:'';
       return `<div class="catx" onclick="toggleExtratoCat('${encodeURIComponent(nome).replace(/'/g,'%27')}')">
         <div class="catx-top">
           <div class="ric">${iconFor(nome)}</div>
@@ -1666,7 +1669,7 @@ function extratoDoc(tipo){
   const per=t==='diario'?MONTHS[+diaSel.split('-')[1]-1].f+'/'+diaSel.split('-')[0]:mes;
   const nomeMes=t==='diario'?MONTHS[+diaSel.split('-')[1]-1].a+'-'+diaSel.split('-')[0]:MONTHS[curMonth].a+'-'+curYear;
   return {titulo:'Financeiro'+(ehPJ()?' PJ':'')+' — Extrato do mês',sub:lbl+' · '+per,sinal:false,
-    itens:its.map(e=>({o,nome:e.nome,cat:e.categoria,data:e.data,extra:t==='diario'?'':e.status.replace('✔ ',''),valor:e.valor})),
+    itens:its.map(e=>({o:(t!=='diario'&&e.pend)?'diario':o,nome:e.nome,cat:e.categoria,data:e.data,extra:t==='diario'?'':e.status.replace('✔ ',''),valor:e.valor})),
     extraTit:t==='diario'?null:'Status',agrupar:extratoModo==='categoria'?'cat':null,
     resumoTit:'Resumo do mês',
     linhas:t==='diario'?[]:[[t==='receber'?'Recebido':'Pago',total-pend,o],[t==='receber'?'A receber':'A pagar',pend,'diario']],
